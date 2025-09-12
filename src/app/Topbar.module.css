@@ -1,0 +1,36 @@
+.topbar {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+}
+
+.brand {
+  font-weight: 800;
+}
+
+.topActions {
+  display: flex;
+  gap: 8px;
+}
+
+.topButton {
+  background: #222831;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.select {
+  background: #0f1720;
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #222;
+}
+

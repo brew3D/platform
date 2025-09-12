@@ -1,0 +1,212 @@
+.page {
+  background: #0b0f14;
+  min-height: 100vh;
+  color: #ddd;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.main {
+  display: flex;
+  height: calc(100vh - 56px);
+}
+
+.left {
+  width: 36%;
+  min-width: 380px;
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  display: flex;
+  flex-direction: column;
+}
+
+.right {
+  flex: 1;
+}
+
+.leftHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.leftHeaderRight {
+  display: flex;
+  gap: 8px;
+}
+
+.iconBtn {
+  background: #16202b;
+  color: #fff;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+
+.controlsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+}
+
+.editor {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.textarea {
+  flex: 1;
+  width: 100%;
+  background: #071019;
+  color: #d7e7ef;
+  border-radius: 8px;
+  padding: 12px;
+  resize: none;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.applyBtn {
+  background: #1f6feb;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.objectList {
+  padding: 12px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.objectRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+.smallAction {
+  background: #0f1720;
+  color: #fff;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* --- Prompt Drawer --- */
+.promptDrawer {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 380px;
+  max-height: 260px;
+  background: #0f1720;
+  border-top-left-radius: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.4);
+  transform: translateY(260px);
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.promptOpen {
+  transform: translateY(0);
+}
+
+.promptHeader {
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #16202b;
+  border-top-left-radius: 12px;
+  font-weight: 600;
+  color: #eee;
+}
+
+.promptTitle {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.promptHeaderBtns {
+  display: flex;
+  gap: 8px;
+}
+
+.promptArea {
+  flex: 1;
+  background: #071019;
+  border: none;
+  resize: none;
+  outline: none;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 14px;
+  color: #d7e7ef;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.promptFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px;
+}
+
+/* Buttons inside prompt */
+.ghostBtn {
+  background: transparent;
+  color: #bbb;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ghostBtn:hover {
+  color: #fff;
+  border-color: #888;
+}
+
+.generateBtn {
+  background: #1f6feb;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.generateBtn:hover {
+  background: #2c7cf0;
+}
+
+/* Floating "Prompt" button */
+.floatingPromptBtn {
+  position: fixed;
+  right: 28px;
+  bottom: 24px;
+  background: #2d3748;
+  color: #fff;
+  border-radius: 999px;
+  border: none;
+  padding: 12px 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.floatingPromptBtn:hover {
+  background: #3e4a61;
+}
