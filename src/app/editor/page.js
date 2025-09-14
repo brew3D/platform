@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
   OrbitControls,
   Grid,
   PerspectiveCamera,
-  TransformControls
+  TransformControls,
+  Environment,
+  Sky
 } from "@react-three/drei";
-import styles from "../Home.module.css";
+import styles from "./editor.module.css";
 import Topbar from "../Topbar";
 import SelectableMesh from "../components/selectableMesh";
 import GroupMesh from "../components/GroupMesh";
@@ -54,6 +56,7 @@ function MeshFromObj({ o }) {
 }
 
 export default function EditorPage() {
+  // Scene state
   const [sceneObjects, setSceneObjects] = useState([
     {
       id: "box_1",
@@ -64,12 +67,44 @@ export default function EditorPage() {
       material: "#FF8C42",
     },
   ]);
-
-  const [sceneCode, setSceneCode] = useState(
-    JSON.stringify({ objects: sceneObjects }, null, 2)
-  );
-  const [gridSize, setGridSize] = useState(10);
   const [sceneGroups, setSceneGroups] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  
+  // UI State
+  const [activeMode, setActiveMode] = useState('object'); // object, edit, sculpt, etc.
+  const [transformMode, setTransformMode] = useState('translate'); // translate, rotate, scale
+  const [coordinateSystem, setCoordinateSystem] = useState('global'); // global, local
+  const [snapEnabled, setSnapEnabled] = useState(false);
+  const [snapValue, setSnapValue] = useState(0.1);
+  
+  // Viewport settings
+  const [viewMode, setViewMode] = useState('solid'); // wireframe, solid, material, rendered
+  const [shadingMode, setShadingMode] = useState('smooth'); // flat, smooth
+  const [showGrid, setShowGrid] = useState(true);
+  const [showAxes, setShowAxes] = useState(true);
+  const [gridSize, setGridSize] = useState(10);
+  const [gridDivisions, setGridDivisions] = useState(10);
+  
+  // Lighting
+  const [ambientIntensity, setAmbientIntensity] = useState(0.6);
+  const [directionalIntensity, setDirectionalIntensity] = useState(0.7);
+  const [environmentPreset, setEnvironmentPreset] = useState('sunset');
+  
+  // Animation
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentFrame, setCurrentFrame] = useState(1);
+  const [totalFrames, setTotalFrames] = useState(250);
+  const [fps, setFps] = useState(24);
+  
+  // Panels visibility
+  const [showOutliner, setShowOutliner] = useState(true);
+  const [showProperties, setShowProperties] = useState(true);
+  const [showTimeline, setShowTimeline] = useState(true);
+  const [showToolbar, setShowToolbar] = useState(true);
+  
+  // AI Prompt
+  const [isPromptOpen, setPromptOpen] = useState(false);
+  const [promptText, setPromptText] = useState("");
   
   const updateObjectField = (id, field, value) => {
     const objs = sceneObjects.map((o) => {
@@ -82,39 +117,41 @@ export default function EditorPage() {
       }
       return copy;
     });
-    updateSceneFromObjects(objs);
+    setSceneObjects(objs);
   };
 
   const updateScene = (objs, grps) => {
     setSceneObjects(objs);
     setSceneGroups(grps);
-    setSceneCode(JSON.stringify({ objects: objs, groups: grps }, null, 2));
   };
 
-
-
-  const [gridDivisions, setGridDivisions] = useState(10);
-  const [showAxes, setShowAxes] = useState(true);
-  const [showGrid, setShowGrid] = useState(true);
-  const [isPromptOpen, setPromptOpen] = useState(false);
-  const [promptText, setPromptText] = useState("");
-  const [selectedId, setSelectedId] = useState(null);
-
-  const updateSceneFromObjects = (objs) => {
-    setSceneObjects(objs);
-    setSceneCode(JSON.stringify({ objects: objs }, null, 2));
+  const addPrimitive = (type) => {
+    const newId = `${type}_${Date.now() % 10000}`;
+    const base = { dimensions: [1, 1, 1] };
+    const newObj = {
+      id: newId,
+      object: type,
+      position: [0, (base.dimensions[1] || 1) / 2, 0],
+      rotation: [0, 0, 0],
+      material: "#999999",
+      ...base,
+    };
+    setSceneObjects([...sceneObjects, newObj]);
   };
 
-  const applySceneCode = () => {
-    try {
-      const parsed = JSON.parse(sceneCode);
-      if (parsed.objects && Array.isArray(parsed.objects)) {
-        updateSceneFromObjects(parsed.objects);
-      } else {
-        alert("scene JSON must contain { objects: [ ... ] }");
-      }
-    } catch (e) {
-      alert("Invalid JSON: " + e.message);
+  const removeObject = (id) => {
+    setSceneObjects(sceneObjects.filter((o) => o.id !== id));
+  };
+
+  const duplicateObject = (id) => {
+    const obj = sceneObjects.find(o => o.id === id);
+    if (obj) {
+      const newObj = {
+        ...obj,
+        id: `${obj.id}_copy_${Date.now() % 10000}`,
+        position: [obj.position[0] + 1, obj.position[1], obj.position[2]]
+      };
+      setSceneObjects([...sceneObjects, newObj]);
     }
   };
 
@@ -270,156 +307,463 @@ export default function EditorPage() {
   }
 };
 
-const handleGenerate = async () => {
-  const { objects, groups } = simulateAI(promptText || "two cubes");
-  updateScene(objects, groups);
-  setPromptOpen(false);
-};
-
-
-  const addPrimitive = (type) => {
-    const newId = `${type}_${Date.now() % 10000}`;
-    const base = { dimensions: [1, 1, 1] };
-    const newObj = {
-      id: newId,
-      object: type,
-      position: [0, (base.dimensions[1] || 1) / 2, 0],
-      rotation: [0, 0, 0],
-      material: "#999999",
-      ...base,
-    };
-    updateSceneFromObjects([...sceneObjects, newObj]);
-  };
-
-  const removeObject = (id) => {
-    updateSceneFromObjects(sceneObjects.filter((o) => o.id !== id));
+  const handleGenerate = async () => {
+    const { objects, groups } = simulateAI(promptText || "two cubes");
+    updateScene(objects, groups);
+    setPromptOpen(false);
   };
 
   const cameraProps = useMemo(() => ({ position: [5, 5, 8], fov: 50 }), []);
 
   return (
-    <div className={styles.page}>
+    <div className={styles.editorContainer}>
       <Topbar />
-
-      <main className={styles.main}>
-        <section className={styles.left}>
-          <div className={styles.leftHeader}>
-            <div className={styles.leftTitle}>Scene Editor</div>
-            <div className={styles.leftHeaderRight}>
-              <button onClick={() => addPrimitive("cube")} className={styles.iconBtn}>+ Cube</button>
-              <button onClick={() => addPrimitive("sphere")} className={styles.iconBtn}>+ Sphere</button>
-              <button onClick={() => addPrimitive("cylinder")} className={styles.iconBtn}>+ Cylinder</button>
-            </div>
-          </div>
-
-          <div className={styles.controlsRow}>
-            <label className={styles.label}>Grid size</label>
-            <input type="range" min={2} max={40} value={gridSize} onChange={(e) => setGridSize(Number(e.target.value))} />
-            <span className={styles.smallText}>{gridSize}</span>
-            <label className={styles.divisionsLabel}>Divisions</label>
-            <input type="number" min={2} max={64} value={gridDivisions} onChange={(e) => setGridDivisions(Number(e.target.value))} className={styles.divisionsInput} />
-          </div>
-
-          <div className={styles.controlsRow}>
-            <label className={styles.checkboxLabel}>
-              <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} /> Show Grid
-            </label>
-            <label className={styles.checkboxLabel}>
-              <input type="checkbox" checked={showAxes} onChange={(e) => setShowAxes(e.target.checked)} /> Show Axes
-            </label>
-            <button onClick={() => { setSceneObjects([]); setSceneCode('{ "objects": [] }'); }} className={styles.clearBtn}>Clear</button>
-            <button onClick={applySceneCode} className={styles.applyBtn}>Apply JSON</button>
-          </div>
-
-          <div className={styles.editor}>
-            <textarea value={sceneCode} onChange={(e) => setSceneCode(e.target.value)} className={styles.textarea} />
-          </div>
-
-          <div className={styles.objectList}>
-            <div className={styles.objectListTitle}>Objects</div>
-            <div className={styles.objectListInner}>
-              {sceneObjects.map((o) => (
-                <div key={o.id} className={styles.objectRow}>
-                  <div className={styles.objectInfo}>
-                    <div className={styles.objectId}>{o.id}</div>
-                    <div className={styles.smallText}>{o.object} • pos: {o.position.map(n => n.toFixed(2)).join(", ")}</div>
-                  </div>
-                  <div className={styles.objectActions}>
-                    <button onClick={() => removeObject(o.id)} className={styles.smallAction}>Remove</button>
-                    <button onClick={() => {
-                      const c = prompt("Set hex color (e.g. #ff00aa)", o.material || "#999");
-                      if (c) updateSceneFromObjects(sceneObjects.map(x => x.id === o.id ? { ...x, material: c } : x));
-                    }} className={styles.smallAction}>Color</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.right}>
-          <Canvas shadows camera={{ position: [5, 5, 8], fov: 50 }}>
-            <ambientLight intensity={0.6} />
-            <directionalLight position={[5, 10, 5]} intensity={0.7} />
-            <PerspectiveCamera makeDefault position={cameraProps.position} fov={cameraProps.fov} />
-            <OrbitControls makeDefault />
-            {showGrid && <Grid args={[gridSize, gridDivisions]} position={[0, 0, 0]} />}
-            {showAxes && <axesHelper args={[Math.max(3, gridSize / 2)]} />}
-            {sceneObjects.map((o) => (
-              <SelectableMesh
-                key={o.id}
-                o={o}
-                updateObject={updateObjectField}
-                selectedId={selectedId}
-                setSelectedId={setSelectedId}
-              />
-            ))}
-
-            {sceneGroups.map((g) => (
-              <GroupMesh
-                key={g.id}
-                group={g}
-                updateGroup={(id, pos) => {
-                  // Apply offset to children if group moves
-                  const updated = sceneGroups.map((x) =>
-                    x.id === id ? { ...x, position: pos } : x
-                  );
-                  setSceneGroups(updated);
-                }}
-                selectedId={selectedId}
-                setSelectedId={setSelectedId}
-              />
-            ))}
-
-            <mesh rotation={[-Math.PI/2, 0, 0]} position={[0, 0, 0.001]}>
-              <planeGeometry args={[100, 100]} />
-              <meshStandardMaterial opacity={0.02} transparent />
-            </mesh>
-          </Canvas>
-        </section>
-      </main>
-
-      <div className={`${styles.promptDrawer} ${isPromptOpen ? styles.promptOpen : ""}`}>
-        <div className={styles.promptHeader}>
-          <div className={styles.promptTitle}>Prompt · Chat with AI</div>
-          <div className={styles.promptHeaderBtns}>
-            <button onClick={() => setPromptOpen(false)} className={styles.smallAction}>Close</button>
-            <button onClick={() => { setPromptText(""); }} className={styles.smallAction}>Clear</button>
-          </div>
+      
+      {/* Main Toolbar */}
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarSection}>
+          <button 
+            className={`${styles.toolbarBtn} ${activeMode === 'object' ? styles.active : ''}`}
+            onClick={() => setActiveMode('object')}
+            title="Object Mode"
+          >
+            🎯
+          </button>
+          <button 
+            className={`${styles.toolbarBtn} ${activeMode === 'edit' ? styles.active : ''}`}
+            onClick={() => setActiveMode('edit')}
+            title="Edit Mode"
+          >
+            ✏️
+          </button>
+          <button 
+            className={`${styles.toolbarBtn} ${activeMode === 'sculpt' ? styles.active : ''}`}
+            onClick={() => setActiveMode('sculpt')}
+            title="Sculpt Mode"
+          >
+            🎨
+          </button>
         </div>
-        <textarea
-          placeholder='e.g. "make me a wooden chair and a small round table"'
-          value={promptText}
-          onChange={(e) => setPromptText(e.target.value)}
-          className={styles.promptArea}
-        />
-        <div className={styles.promptFooter}>
-          <button onClick={() => { setPromptOpen(false); setPromptText(""); }} className={styles.ghostBtn}>Cancel</button>
-          <button onClick={handleGenerate} className={styles.generateBtn}>Generate</button>
+
+        <div className={styles.toolbarSection}>
+          <button 
+            className={`${styles.toolbarBtn} ${transformMode === 'translate' ? styles.active : ''}`}
+            onClick={() => setTransformMode('translate')}
+            title="Move (G)"
+          >
+            ↔️
+          </button>
+          <button 
+            className={`${styles.toolbarBtn} ${transformMode === 'rotate' ? styles.active : ''}`}
+            onClick={() => setTransformMode('rotate')}
+            title="Rotate (R)"
+          >
+            🔄
+          </button>
+          <button 
+            className={`${styles.toolbarBtn} ${transformMode === 'scale' ? styles.active : ''}`}
+            onClick={() => setTransformMode('scale')}
+            title="Scale (S)"
+          >
+            📏
+          </button>
+        </div>
+
+        <div className={styles.toolbarSection}>
+          <button 
+            className={`${styles.toolbarBtn} ${coordinateSystem === 'global' ? styles.active : ''}`}
+            onClick={() => setCoordinateSystem('global')}
+            title="Global Coordinates"
+          >
+            🌍
+          </button>
+          <button 
+            className={`${styles.toolbarBtn} ${coordinateSystem === 'local' ? styles.active : ''}`}
+            onClick={() => setCoordinateSystem('local')}
+            title="Local Coordinates"
+          >
+            📐
+          </button>
+        </div>
+
+        <div className={styles.toolbarSection}>
+          <button 
+            className={`${styles.toolbarBtn} ${snapEnabled ? styles.active : ''}`}
+            onClick={() => setSnapEnabled(!snapEnabled)}
+            title="Snap to Grid"
+          >
+            🧲
+          </button>
+          <input 
+            type="number" 
+            value={snapValue} 
+            onChange={(e) => setSnapValue(Number(e.target.value))}
+            className={styles.snapInput}
+            title="Snap Value"
+          />
+        </div>
+
+        <div className={styles.toolbarSection}>
+          <button 
+            className={`${styles.toolbarBtn} ${viewMode === 'wireframe' ? styles.active : ''}`}
+            onClick={() => setViewMode('wireframe')}
+            title="Wireframe"
+          >
+            ⚡
+          </button>
+          <button 
+            className={`${styles.toolbarBtn} ${viewMode === 'solid' ? styles.active : ''}`}
+            onClick={() => setViewMode('solid')}
+            title="Solid"
+          >
+            🟦
+          </button>
+          <button 
+            className={`${styles.toolbarBtn} ${viewMode === 'material' ? styles.active : ''}`}
+            onClick={() => setViewMode('material')}
+            title="Material Preview"
+          >
+            🎨
+          </button>
+          <button 
+            className={`${styles.toolbarBtn} ${viewMode === 'rendered' ? styles.active : ''}`}
+            onClick={() => setViewMode('rendered')}
+            title="Rendered"
+          >
+            🌟
+          </button>
         </div>
       </div>
 
-      <button onClick={() => setPromptOpen(true)} className={styles.floatingPromptBtn}>💬 Prompt</button>
+      {/* Main Layout */}
+      <div className={styles.mainLayout}>
+        {/* Left Panel - Outliner */}
+        {showOutliner && (
+          <div className={styles.leftPanel}>
+            <div className={styles.panelHeader}>
+              <h3>Outliner</h3>
+              <button onClick={() => setShowOutliner(false)}>×</button>
+            </div>
+            <div className={styles.outlinerContent}>
+              <div className={styles.outlinerItem}>
+                <span>📁 Scene Collection</span>
+                <div className={styles.outlinerChildren}>
+                  {sceneObjects.map((obj) => (
+                    <div 
+                      key={obj.id} 
+                      className={`${styles.outlinerObject} ${selectedId === obj.id ? styles.selected : ''}`}
+                      onClick={() => setSelectedId(obj.id)}
+                    >
+                      <span>{obj.object === 'cube' ? '📦' : obj.object === 'sphere' ? '⚪' : '🥤'}</span>
+                      <span>{obj.id}</span>
+                      <div className={styles.objectActions}>
+                        <button onClick={() => duplicateObject(obj.id)} title="Duplicate">📋</button>
+                        <button onClick={() => removeObject(obj.id)} title="Delete">🗑️</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Center - 3D Viewport */}
+        <div className={styles.viewportContainer}>
+          <div className={styles.viewportHeader}>
+            <div className={styles.viewportInfo}>
+              <span>3D Viewport</span>
+              <span className={styles.viewportMode}>{viewMode.toUpperCase()}</span>
+            </div>
+            <div className={styles.viewportControls}>
+              <button onClick={() => setShowGrid(!showGrid)} className={showGrid ? styles.active : ''}>
+                Grid
+              </button>
+              <button onClick={() => setShowAxes(!showAxes)} className={showAxes ? styles.active : ''}>
+                Axes
+              </button>
+            </div>
+          </div>
+          
+          <div className={styles.viewport}>
+            <Canvas shadows camera={{ position: [5, 5, 8], fov: 50 }}>
+              <ambientLight intensity={ambientIntensity} />
+              <directionalLight position={[5, 10, 5]} intensity={directionalIntensity} />
+              <PerspectiveCamera makeDefault position={[5, 5, 8]} fov={50} />
+              <OrbitControls makeDefault />
+              
+              {environmentPreset !== 'none' && <Environment preset={environmentPreset} />}
+              
+              {showGrid && <Grid args={[gridSize, gridDivisions]} position={[0, 0, 0]} />}
+              {showAxes && <axesHelper args={[Math.max(3, gridSize / 2)]} />}
+              
+              {sceneObjects.map((o) => (
+                <SelectableMesh
+                  key={o.id}
+                  o={o}
+                  updateObject={updateObjectField}
+                  selectedId={selectedId}
+                  setSelectedId={setSelectedId}
+                  transformMode={transformMode}
+                  coordinateSystem={coordinateSystem}
+                  snapEnabled={snapEnabled}
+                  snapValue={snapValue}
+                />
+              ))}
+
+              {sceneGroups.map((g) => (
+                <GroupMesh
+                  key={g.id}
+                  group={g}
+                  updateGroup={(id, pos) => {
+                    const updated = sceneGroups.map((x) =>
+                      x.id === id ? { ...x, position: pos } : x
+                    );
+                    setSceneGroups(updated);
+                  }}
+                  selectedId={selectedId}
+                  setSelectedId={setSelectedId}
+                />
+              ))}
+
+              <mesh rotation={[-Math.PI/2, 0, 0]} position={[0, 0, 0.001]}>
+                <planeGeometry args={[100, 100]} />
+                <meshStandardMaterial opacity={0.02} transparent />
+              </mesh>
+            </Canvas>
+          </div>
+        </div>
+
+        {/* Right Panel - Properties */}
+        {showProperties && (
+          <div className={styles.rightPanel}>
+            <div className={styles.panelHeader}>
+              <h3>Properties</h3>
+              <button onClick={() => setShowProperties(false)}>×</button>
+            </div>
+            
+            <div className={styles.propertiesContent}>
+              {/* Transform Properties */}
+              <div className={styles.propertyGroup}>
+                <h4>Transform</h4>
+                {selectedId && (() => {
+                  const obj = sceneObjects.find(o => o.id === selectedId);
+                  return obj ? (
+                    <div className={styles.transformInputs}>
+                      <div className={styles.inputRow}>
+                        <label>Location</label>
+                        <input 
+                          type="number" 
+                          value={obj.position[0].toFixed(2)} 
+                          onChange={(e) => updateObjectField(obj.id, 'position', `${e.target.value},${obj.position[1]},${obj.position[2]}`)}
+                        />
+                        <input 
+                          type="number" 
+                          value={obj.position[1].toFixed(2)} 
+                          onChange={(e) => updateObjectField(obj.id, 'position', `${obj.position[0]},${e.target.value},${obj.position[2]}`)}
+                        />
+                        <input 
+                          type="number" 
+                          value={obj.position[2].toFixed(2)} 
+                          onChange={(e) => updateObjectField(obj.id, 'position', `${obj.position[0]},${obj.position[1]},${e.target.value}`)}
+                        />
+                      </div>
+                      <div className={styles.inputRow}>
+                        <label>Rotation</label>
+                        <input 
+                          type="number" 
+                          value={obj.rotation[0].toFixed(2)} 
+                          onChange={(e) => updateObjectField(obj.id, 'rotation', `${e.target.value},${obj.rotation[1]},${obj.rotation[2]}`)}
+                        />
+                        <input 
+                          type="number" 
+                          value={obj.rotation[1].toFixed(2)} 
+                          onChange={(e) => updateObjectField(obj.id, 'rotation', `${obj.rotation[0]},${e.target.value},${obj.rotation[2]}`)}
+                        />
+                        <input 
+                          type="number" 
+                          value={obj.rotation[2].toFixed(2)} 
+                          onChange={(e) => updateObjectField(obj.id, 'rotation', `${obj.rotation[0]},${obj.rotation[1]},${e.target.value}`)}
+                        />
+                      </div>
+                      <div className={styles.inputRow}>
+                        <label>Scale</label>
+                        <input 
+                          type="number" 
+                          value={obj.dimensions[0].toFixed(2)} 
+                          onChange={(e) => updateObjectField(obj.id, 'dimensions', `${e.target.value},${obj.dimensions[1]},${obj.dimensions[2]}`)}
+                        />
+                        <input 
+                          type="number" 
+                          value={obj.dimensions[1].toFixed(2)} 
+                          onChange={(e) => updateObjectField(obj.id, 'dimensions', `${obj.dimensions[0]},${e.target.value},${obj.dimensions[2]}`)}
+                        />
+                        <input 
+                          type="number" 
+                          value={obj.dimensions[2].toFixed(2)} 
+                          onChange={(e) => updateObjectField(obj.id, 'dimensions', `${obj.dimensions[0]},${obj.dimensions[1]},${e.target.value}`)}
+                        />
+                      </div>
+                    </div>
+                  ) : <p>No object selected</p>;
+                })()}
+              </div>
+
+              {/* Material Properties */}
+              <div className={styles.propertyGroup}>
+                <h4>Material</h4>
+                {selectedId && (() => {
+                  const obj = sceneObjects.find(o => o.id === selectedId);
+                  return obj ? (
+                    <div className={styles.materialInputs}>
+                      <div className={styles.inputRow}>
+                        <label>Color</label>
+                        <input 
+                          type="color" 
+                          value={obj.material || "#999999"} 
+                          onChange={(e) => updateObjectField(obj.id, 'material', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  ) : <p>No object selected</p>;
+                })()}
+              </div>
+
+              {/* Viewport Settings */}
+              <div className={styles.propertyGroup}>
+                <h4>Viewport</h4>
+                <div className={styles.viewportSettings}>
+                  <div className={styles.inputRow}>
+                    <label>Grid Size</label>
+                    <input 
+                      type="range" 
+                      min="2" 
+                      max="40" 
+                      value={gridSize} 
+                      onChange={(e) => setGridSize(Number(e.target.value))}
+                    />
+                    <span>{gridSize}</span>
+                  </div>
+                  <div className={styles.inputRow}>
+                    <label>Grid Divisions</label>
+                    <input 
+                      type="number" 
+                      min="2" 
+                      max="64" 
+                      value={gridDivisions} 
+                      onChange={(e) => setGridDivisions(Number(e.target.value))}
+                    />
+                  </div>
+                  <div className={styles.inputRow}>
+                    <label>Ambient Light</label>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="2" 
+                      step="0.1" 
+                      value={ambientIntensity} 
+                      onChange={(e) => setAmbientIntensity(Number(e.target.value))}
+                    />
+                    <span>{ambientIntensity.toFixed(1)}</span>
+                  </div>
+                  <div className={styles.inputRow}>
+                    <label>Directional Light</label>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="2" 
+                      step="0.1" 
+                      value={directionalIntensity} 
+                      onChange={(e) => setDirectionalIntensity(Number(e.target.value))}
+                    />
+                    <span>{directionalIntensity.toFixed(1)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Panel - Timeline */}
+      {showTimeline && (
+        <div className={styles.timelinePanel}>
+          <div className={styles.panelHeader}>
+            <h3>Timeline</h3>
+            <button onClick={() => setShowTimeline(false)}>×</button>
+          </div>
+          <div className={styles.timelineContent}>
+            <div className={styles.timelineControls}>
+              <button onClick={() => setIsPlaying(!isPlaying)} className={styles.playButton}>
+                {isPlaying ? '⏸️' : '▶️'}
+              </button>
+              <div className={styles.frameInfo}>
+                <span>Frame {currentFrame} / {totalFrames}</span>
+                <span>FPS: {fps}</span>
+              </div>
+              <div className={styles.timelineSlider}>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max={totalFrames} 
+                  value={currentFrame} 
+                  onChange={(e) => setCurrentFrame(Number(e.target.value))}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Object Panel */}
+      <div className={styles.addObjectPanel}>
+        <h4>Add Object</h4>
+        <div className={styles.primitiveButtons}>
+          <button onClick={() => addPrimitive("cube")} className={styles.primitiveBtn}>
+            📦 Cube
+          </button>
+          <button onClick={() => addPrimitive("sphere")} className={styles.primitiveBtn}>
+            ⚪ Sphere
+          </button>
+          <button onClick={() => addPrimitive("cylinder")} className={styles.primitiveBtn}>
+            🥤 Cylinder
+          </button>
+          <button onClick={() => addPrimitive("plane")} className={styles.primitiveBtn}>
+            ⬜ Plane
+          </button>
+        </div>
+      </div>
+
+      {/* AI Prompt Modal */}
+      {isPromptOpen && (
+        <div className={styles.promptModal}>
+          <div className={styles.promptContent}>
+            <div className={styles.promptHeader}>
+              <h3>AI Prompt</h3>
+              <button onClick={() => setPromptOpen(false)}>×</button>
+            </div>
+            <textarea
+              placeholder='Describe what you want to create... e.g. "a wooden chair and a small round table"'
+              value={promptText}
+              onChange={(e) => setPromptText(e.target.value)}
+              className={styles.promptTextarea}
+            />
+            <div className={styles.promptActions}>
+              <button onClick={() => setPromptOpen(false)} className={styles.cancelBtn}>
+                Cancel
+              </button>
+              <button onClick={handleGenerate} className={styles.generateBtn}>
+                Generate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating AI Button */}
+      <button onClick={() => setPromptOpen(true)} className={styles.aiButton}>
+        🤖 AI
+      </button>
     </div>
   );
 }

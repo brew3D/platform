@@ -77,7 +77,16 @@ function EdgeHandle({ position, direction, onDrag, color = "#ff6b6b" }) {
 /**
  * A mesh that can be selected, highlighted, and moved around
  */
-export default function SelectableMesh({ o, updateObject, selectedId, setSelectedId }) {
+export default function SelectableMesh({ 
+  o, 
+  updateObject, 
+  selectedId, 
+  setSelectedId, 
+  transformMode = 'translate',
+  coordinateSystem = 'global',
+  snapEnabled = false,
+  snapValue = 0.1
+}) {
   const ref = useRef();
   const isSelected = selectedId === o.id;
   const [isResizing, setIsResizing] = useState(false);
@@ -292,11 +301,17 @@ export default function SelectableMesh({ o, updateObject, selectedId, setSelecte
   return isSelected ? (
     <TransformControls
       object={ref.current}
-      mode="translate"
+      mode={transformMode}
+      space={coordinateSystem}
+      translationSnap={snapEnabled ? snapValue : null}
+      rotationSnap={snapEnabled ? snapValue : null}
+      scaleSnap={snapEnabled ? snapValue : null}
       onMouseUp={() => {
         if (ref.current) {
           const { x, y, z } = ref.current.position;
+          const { x: rx, y: ry, z: rz } = ref.current.rotation;
           updateObject(o.id, "position", `${x},${y},${z}`);
+          updateObject(o.id, "rotation", `${rx},${ry},${rz}`);
         }
       }}
     >

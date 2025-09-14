@@ -1,0 +1,653 @@
+/* Blender-like Editor Styles */
+.editorContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #2b2b2b;
+  color: #d4d4d4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  overflow: hidden;
+}
+
+/* Main Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: #3c3c3c;
+  border-bottom: 1px solid #4a4a4a;
+  min-height: 48px;
+  flex-shrink: 0;
+}
+
+.toolbarSection {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.5rem;
+  border-right: 1px solid #4a4a4a;
+}
+
+.toolbarSection:last-child {
+  border-right: none;
+}
+
+.toolbarBtn {
+  background: #4a4a4a;
+  border: 1px solid #5a5a5a;
+  color: #d4d4d4;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toolbarBtn:hover {
+  background: #5a5a5a;
+  border-color: #6a6a6a;
+}
+
+.toolbarBtn.active {
+  background: #0078d4;
+  border-color: #106ebe;
+  color: white;
+}
+
+.snapInput {
+  background: #4a4a4a;
+  border: 1px solid #5a5a5a;
+  color: #d4d4d4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  width: 60px;
+  font-size: 0.875rem;
+}
+
+/* Main Layout */
+.mainLayout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left Panel - Outliner */
+.leftPanel {
+  width: 280px;
+  background: #2b2b2b;
+  border-right: 1px solid #4a4a4a;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #3c3c3c;
+  border-bottom: 1px solid #4a4a4a;
+}
+
+.panelHeader h3 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #d4d4d4;
+}
+
+.panelHeader button {
+  background: none;
+  border: none;
+  color: #d4d4d4;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.panelHeader button:hover {
+  background: #4a4a4a;
+}
+
+.outlinerContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.outlinerItem {
+  margin-bottom: 0.5rem;
+}
+
+.outlinerChildren {
+  margin-left: 1rem;
+  margin-top: 0.25rem;
+}
+
+.outlinerObject {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.outlinerObject:hover {
+  background: #3c3c3c;
+}
+
+.outlinerObject.selected {
+  background: #0078d4;
+  color: white;
+}
+
+.objectActions {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.outlinerObject:hover .objectActions {
+  opacity: 1;
+}
+
+.objectActions button {
+  background: none;
+  border: none;
+  color: #d4d4d4;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.objectActions button:hover {
+  background: #4a4a4a;
+}
+
+/* Viewport Container */
+.viewportContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #1e1e1e;
+  position: relative;
+}
+
+.viewportHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #3c3c3c;
+  border-bottom: 1px solid #4a4a4a;
+  flex-shrink: 0;
+}
+
+.viewportInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.viewportMode {
+  background: #0078d4;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.viewportControls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.viewportControls button {
+  background: #4a4a4a;
+  border: 1px solid #5a5a5a;
+  color: #d4d4d4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.viewportControls button:hover {
+  background: #5a5a5a;
+}
+
+.viewportControls button.active {
+  background: #0078d4;
+  border-color: #106ebe;
+  color: white;
+}
+
+.viewport {
+  flex: 1;
+  position: relative;
+}
+
+/* Right Panel - Properties */
+.rightPanel {
+  width: 320px;
+  background: #2b2b2b;
+  border-left: 1px solid #4a4a4a;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.propertiesContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.propertyGroup {
+  margin-bottom: 1.5rem;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.propertyGroup h4 {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  background: #3c3c3c;
+  border-bottom: 1px solid #4a4a4a;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #d4d4d4;
+}
+
+.transformInputs,
+.materialInputs,
+.viewportSettings {
+  padding: 0.75rem;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.inputRow:last-child {
+  margin-bottom: 0;
+}
+
+.inputRow label {
+  min-width: 80px;
+  font-size: 0.875rem;
+  color: #d4d4d4;
+  font-weight: 500;
+}
+
+.inputRow input[type="number"] {
+  background: #3c3c3c;
+  border: 1px solid #5a5a5a;
+  color: #d4d4d4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  width: 60px;
+}
+
+.inputRow input[type="number"]:focus {
+  outline: none;
+  border-color: #0078d4;
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+}
+
+.inputRow input[type="color"] {
+  background: #3c3c3c;
+  border: 1px solid #5a5a5a;
+  border-radius: 4px;
+  width: 40px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.inputRow input[type="range"] {
+  flex: 1;
+  margin: 0 0.5rem;
+}
+
+.inputRow span {
+  min-width: 40px;
+  text-align: right;
+  font-size: 0.875rem;
+  color: #d4d4d4;
+}
+
+/* Timeline Panel */
+.timelinePanel {
+  height: 120px;
+  background: #2b2b2b;
+  border-top: 1px solid #4a4a4a;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.timelineContent {
+  flex: 1;
+  padding: 0.75rem 1rem;
+}
+
+.timelineControls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.playButton {
+  background: #0078d4;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s ease;
+}
+
+.playButton:hover {
+  background: #106ebe;
+}
+
+.frameInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #d4d4d4;
+}
+
+.timelineSlider {
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.timelineSlider input[type="range"] {
+  width: 100%;
+  height: 4px;
+  background: #3c3c3c;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.timelineSlider input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #0078d4;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Add Object Panel */
+.addObjectPanel {
+  position: fixed;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  background: #3c3c3c;
+  border: 1px solid #4a4a4a;
+  border-radius: 8px;
+  padding: 1rem;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.addObjectPanel h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  color: #d4d4d4;
+}
+
+.primitiveButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.primitiveBtn {
+  background: #4a4a4a;
+  border: 1px solid #5a5a5a;
+  color: #d4d4d4;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.primitiveBtn:hover {
+  background: #5a5a5a;
+  border-color: #6a6a6a;
+}
+
+/* AI Prompt Modal */
+.promptModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.promptContent {
+  background: #3c3c3c;
+  border: 1px solid #4a4a4a;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.promptHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #4a4a4a;
+}
+
+.promptHeader h3 {
+  margin: 0;
+  color: #d4d4d4;
+}
+
+.promptHeader button {
+  background: none;
+  border: none;
+  color: #d4d4d4;
+  cursor: pointer;
+  font-size: 1.5rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.promptHeader button:hover {
+  background: #4a4a4a;
+}
+
+.promptTextarea {
+  flex: 1;
+  background: #2b2b2b;
+  border: none;
+  color: #d4d4d4;
+  padding: 1rem;
+  font-size: 1rem;
+  resize: none;
+  outline: none;
+  min-height: 200px;
+  font-family: inherit;
+}
+
+.promptTextarea::placeholder {
+  color: #888;
+}
+
+.promptActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-top: 1px solid #4a4a4a;
+}
+
+.cancelBtn {
+  background: #4a4a4a;
+  border: 1px solid #5a5a5a;
+  color: #d4d4d4;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.cancelBtn:hover {
+  background: #5a5a5a;
+}
+
+.generateBtn {
+  background: #0078d4;
+  border: 1px solid #106ebe;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.generateBtn:hover {
+  background: #106ebe;
+}
+
+/* Floating AI Button */
+.aiButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(45deg, #0078d4, #106ebe);
+  border: none;
+  color: white;
+  padding: 1rem;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.aiButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .leftPanel {
+    width: 240px;
+  }
+  
+  .rightPanel {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainLayout {
+    flex-direction: column;
+  }
+  
+  .leftPanel,
+  .rightPanel {
+    width: 100%;
+    height: 200px;
+  }
+  
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .toolbarSection {
+    border-right: none;
+    border-bottom: 1px solid #4a4a4a;
+    padding-bottom: 0.5rem;
+  }
+  
+  .addObjectPanel {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    margin: 1rem;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2b2b2b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5a5a5a;
+}
+
+/* Focus styles */
+input:focus,
+button:focus,
+textarea:focus {
+  outline: 2px solid #0078d4;
+  outline-offset: 2px;
+}
+
+/* Animation for smooth transitions */
+.editorContainer * {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
