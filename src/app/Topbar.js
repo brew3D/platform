@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Link from "next/link";
 import styles from "./Topbar.module.css"; // ✅ CSS module import
 
 
@@ -10,8 +11,14 @@ function Topbar() {
 
   return (
     <header className={styles.topbar}>
-        <div className={styles.brand}>Ruchi AI • 3D Workspace</div>
+        <div className={styles.brand}>
+          <Link href="/landing" className={styles.brandLink}>
+            🎨 Simo
+          </Link>
+        </div>
         <div className={styles.topActions}>
+          <Link href="/landing" className={styles.navLink}>Home</Link>
+          <Link href="/editor" className={styles.navLink}>Editor</Link>
           <select
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value)}

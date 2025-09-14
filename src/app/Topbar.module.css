@@ -12,9 +12,38 @@
   font-weight: 800;
 }
 
+.brandLink {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.brandLink:hover {
+  color: #00d4ff;
+  transform: scale(1.05);
+}
+
 .topActions {
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  align-items: center;
+}
+
+.navLink {
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.navLink:hover {
+  background: rgba(0, 212, 255, 0.1);
+  color: #00d4ff;
+  opacity: 1;
 }
 
 .topButton {
