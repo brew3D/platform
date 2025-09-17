@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useAuth } from '../contexts/AuthContext';
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import styles from "./landing.module.css";
@@ -15,6 +16,8 @@ if (typeof window !== "undefined") {
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const { user, logout } = useAuth();
   
   // Refs for GSAP animations
   const featuresRef = useRef(null);
@@ -372,6 +375,18 @@ export default function LandingPage() {
     };
   }, []);
 
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showProfileDropdown && !event.target.closest('.profileContainer')) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showProfileDropdown]);
+
   // Hamburger toggle function
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -420,14 +435,73 @@ export default function LandingPage() {
               <span className={styles.navText}>Community</span>
               <div className={styles.navUnderline}></div>
             </Link>
-            <Link 
-              href="/editor" 
-              className={styles.navButton}
-              ref={navButtonRef}
-            >
-              <span className={styles.buttonText}>Start Creating</span>
-              <div className={styles.buttonGlow}></div>
-            </Link>
+            {user ? (
+              <div className={styles.profileContainer}>
+                <button 
+                  className={styles.profileButton}
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                >
+                  <div className={styles.profileAvatar}>
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <span className={styles.profileName}>{user.name}</span>
+                  <svg className={styles.dropdownArrow} width="12" height="8" viewBox="0 0 12 8">
+                    <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="2" fill="none"/>
+                  </svg>
+                </button>
+                {showProfileDropdown && (
+                  <div className={styles.profileDropdown}>
+                    <Link href="/profile" className={styles.dropdownItem}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2"/>
+                        <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                      Profile Settings
+                    </Link>
+                    <Link href="/editor" className={styles.dropdownItem}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2"/>
+                        <path d="M2 17l10 5 10-5" stroke="currentColor" strokeWidth="2"/>
+                        <path d="M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                      Editor
+                    </Link>
+                    <button 
+                      className={styles.dropdownItem}
+                      onClick={() => {
+                        logout();
+                        setShowProfileDropdown(false);
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" strokeWidth="2"/>
+                        <polyline points="16,17 21,12 16,7" stroke="currentColor" strokeWidth="2"/>
+                        <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link 
+                  href="/auth/signin" 
+                  className={styles.navLink}
+                >
+                  <span className={styles.navText}>Sign In</span>
+                  <div className={styles.navUnderline}></div>
+                </Link>
+                <Link 
+                  href="/auth/signup" 
+                  className={styles.navButton}
+                  ref={navButtonRef}
+                >
+                  <span className={styles.buttonText}>Sign Up</span>
+                  <div className={styles.buttonGlow}></div>
+                </Link>
+              </>
+            )}
           </div>
           
           <button 

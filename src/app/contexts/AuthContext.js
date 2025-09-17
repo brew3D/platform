@@ -53,14 +53,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:5000/login', {
+      const response = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('auth_token', data.token);
         return { success: true };
       } else {
-        return { success: false, error: data.error };
+        return { success: false, error: data.message };
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -79,14 +79,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (username, password) => {
+  const register = async (name, email, password) => {
     try {
-      const response = await fetch('http://localhost:5000/register', {
+      const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await response.json();
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('auth_token', data.token);
         return { success: true };
       } else {
-        return { success: false, error: data.error };
+        return { success: false, error: data.message };
       }
     } catch (error) {
       console.error('Registration failed:', error);

@@ -9,13 +9,21 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test:multi": "./test-multiple-users.sh"
+    "test:multi": "./test-multiple-users.sh",
+    "start:all": "./start-dev.sh",
+    "start:all:win": "start-dev.bat"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.890.0",
+    "@aws-sdk/lib-dynamodb": "^3.890.0",
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.3.0",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.2",
     "gsap": "^3.13.0",
+    "jsonwebtoken": "^9.0.2",
     "next": "15.5.2",
+    "next-auth": "^4.24.11",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "socket.io-client": "^4.8.1",
