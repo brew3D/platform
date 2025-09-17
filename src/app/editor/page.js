@@ -19,6 +19,7 @@ import SceneManager from "../components/SceneManager";
 import UserStatus from "../components/UserStatus";
 import { useAuth } from "../contexts/AuthContext";
 import { useCollaboration } from "../contexts/CollaborationContext";
+import Link from "next/link";
 
 function MeshFromObj({ o }) {
   const { id, object, dimensions, position, rotation, material } = o;
@@ -421,6 +422,17 @@ export default function EditorPage() {
   return (
     <div className={styles.editorContainer}>
       <Topbar />
+      
+      {/* Profile Icon */}
+      {user && (
+        <div className={styles.profileIcon}>
+          <Link href="/profile" className={styles.profileLink}>
+            <div className={styles.profileAvatar}>
+              {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            </div>
+          </Link>
+        </div>
+      )}
       
       {/* User Status */}
       <div className={styles.userStatusContainer}>
