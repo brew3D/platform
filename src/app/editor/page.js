@@ -124,12 +124,51 @@ export default function EditorPage() {
   // Panels visibility
   const [showOutliner, setShowOutliner] = useState(true);
   const [showProperties, setShowProperties] = useState(true);
-  const [showTimeline, setShowTimeline] = useState(true);
-  const [showToolbar, setShowToolbar] = useState(true);
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [showToolbar, setShowToolbar] = useState(false);
+  const [showChat, setShowChat] = useState(true);
   
   // AI Prompt
   const [isPromptOpen, setPromptOpen] = useState(false);
   const [promptText, setPromptText] = useState("");
+
+  // Save / Load helpers
+  const saveCurrentScene = async () => {
+    try {
+      if (!currentScene) return;
+      const res = await fetch(`/api/scenes/${currentScene.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: currentScene.name || 'Untitled Scene',
+          objects: sceneObjects,
+          groups: sceneGroups,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to save');
+    } catch (e) {
+      console.error('Save failed', e);
+    }
+  };
+
+  const saveAsNewScene = async () => {
+    try {
+      const res = await fetch('/api/scenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'demo_user' },
+        body: JSON.stringify({
+          name: `Scene ${new Date().toLocaleString()}`,
+          objects: sceneObjects,
+          groups: sceneGroups,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to save as');
+      const data = await res.json();
+      setCurrentScene(data.scene);
+    } catch (e) {
+      console.error('Save As failed', e);
+    }
+  };
 
   // WebSocket event handlers
   useEffect(() => {
@@ -434,8 +473,13 @@ export default function EditorPage() {
   return (
     <div className={styles.editorContainer}>
       <Topbar />
+      {/* Quick Save Buttons */}
+      <div className={styles.quickActions}>
+        <button className={styles.topButton} onClick={saveCurrentScene} title="Save (updates current scene)"><FiSave /> Save</button>
+        <button className={styles.topButton} onClick={saveAsNewScene} title="Save As (creates a new scene)"><FiDownload /> Save As</button>
+      </div>
       
-      {/* Profile Icon */}
+      {/* Profile Icon (kept minimal) */}
       {user && (
         <div className={styles.profileIcon}>
           <Link href="/profile" className={styles.profileLink}>
@@ -445,11 +489,6 @@ export default function EditorPage() {
           </Link>
         </div>
       )}
-      
-      {/* User Status */}
-      <div className={styles.userStatusContainer}>
-        <UserStatus />
-      </div>
       
       {/* Main Toolbar */}
       <div className={styles.toolbar}>
@@ -569,7 +608,7 @@ export default function EditorPage() {
 
       {/* Main Layout */}
       <div className={styles.mainLayout}>
-        {/* Left Panel - Scene Manager & Outliner */}
+        {/* Left Panel - Scene Info */}
         {showOutliner && (
           <div className={styles.leftPanel}>
             <SceneManager 
@@ -577,7 +616,7 @@ export default function EditorPage() {
               onSceneCreate={handleSceneCreate}
             />
             <div className={styles.panelHeader}>
-              <h3>Outliner</h3>
+              <h3>Objects</h3>
               <button onClick={() => setShowOutliner(false)}>
                 <FiX />
               </button>
@@ -587,7 +626,7 @@ export default function EditorPage() {
                 <span className={styles.outlinerFolder}>
                   <FiChevronDown />
                   <FiLayers />
-                  Scene Collection
+                  Scene
                 </span>
                 <div className={styles.outlinerChildren}>
                   {sceneObjects.map((obj) => (
@@ -599,15 +638,8 @@ export default function EditorPage() {
                       <span className={styles.objectIcon}>
                         {obj.object === 'cube' ? <FiBox /> : obj.object === 'sphere' ? <FiCircle /> : <FiSquare />}
                       </span>
-                      <span className={styles.objectName}>{obj.id}</span>
-                      <div className={styles.objectActions}>
-                        <button onClick={() => duplicateObject(obj.id)} title="Duplicate">
-                          <FiCopy />
-                        </button>
-                        <button onClick={() => removeObject(obj.id)} title="Delete">
-                          <FiTrash2 />
-                        </button>
-                      </div>
+                      <span className={styles.objectName}>{obj.id} · pos({obj.position?.map(n=>Number(n).toFixed(2)).join(', ')})</span>
+                      
                     </div>
                   ))}
                 </div>
@@ -621,7 +653,6 @@ export default function EditorPage() {
           <div className={styles.viewportHeader}>
             <div className={styles.viewportInfo}>
               <span>3D Viewport</span>
-              <span className={styles.viewportMode}>{viewMode.toUpperCase()}</span>
             </div>
             <div className={styles.viewportControls}>
               <button onClick={() => setShowGrid(!showGrid)} className={showGrid ? styles.active : ''}>
@@ -636,6 +667,7 @@ export default function EditorPage() {
           </div>
           
           <div className={styles.viewport}>
+            {/* Click empty space to deselect */}
             <Canvas shadows camera={{ position: [5, 5, 8], fov: 50 }}>
               <ambientLight intensity={ambientIntensity} />
               <directionalLight position={[5, 10, 5]} intensity={directionalIntensity} />
@@ -684,8 +716,29 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* Right Panel - Properties */}
-        {showProperties && (
+        {/* Right Panel - Chatbot (default visible) */}
+        {showChat && (
+          <div className={styles.chatPanel}>
+            <div className={styles.chatHeader}>
+              <h3>Chatbot</h3>
+              <button className={styles.chatToggleBtn} onClick={() => setShowChat(false)}><FiX /> Hide</button>
+            </div>
+            <div className={styles.chatBody}>
+              <p>Ask AI for help with modeling, materials, and more.</p>
+            </div>
+            <div className={styles.chatInputBar}>
+              <input className={styles.chatInput} placeholder="Type a prompt..." />
+              <button className={styles.chatSendBtn}>Send</button>
+            </div>
+          </div>
+        )}
+
+        {!showChat && (
+          <button className={styles.chatToggleBtn} onClick={() => setShowChat(true)}>Show Chat</button>
+        )}
+
+        {/* Properties panel moved into left info panel earlier; keeping existing sections below the viewport for now */}
+        {false && showProperties && (
           <div className={styles.rightPanel}>
             <div className={styles.panelHeader}>
               <h3>Properties</h3>
@@ -693,7 +746,7 @@ export default function EditorPage() {
                 <FiX />
               </button>
             </div>
-            
+
             <div className={styles.propertiesContent}>
               {/* Transform Properties */}
               <div className={styles.propertyGroup}>
@@ -837,93 +890,13 @@ export default function EditorPage() {
         )}
       </div>
 
-      {/* Bottom Panel - Timeline */}
-      {showTimeline && (
-        <div className={styles.timelinePanel}>
-          <div className={styles.panelHeader}>
-            <h3>Timeline</h3>
-            <button onClick={() => setShowTimeline(false)}>
-              <FiX />
-            </button>
-          </div>
-          <div className={styles.timelineContent}>
-            <div className={styles.timelineControls}>
-              <button onClick={() => setIsPlaying(!isPlaying)} className={styles.playButton}>
-                {isPlaying ? <FiPause /> : <FiPlay />}
-              </button>
-              <div className={styles.frameInfo}>
-                <span>Frame {currentFrame} / {totalFrames}</span>
-                <span>FPS: {fps}</span>
-              </div>
-              <div className={styles.timelineSlider}>
-                <input 
-                  type="range" 
-                  min="1" 
-                  max={totalFrames} 
-                  value={currentFrame} 
-                  onChange={(e) => setCurrentFrame(Number(e.target.value))}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Timeline removed for simplicity */}
 
-      {/* Add Object Panel */}
-      <div className={styles.addObjectPanel}>
-        <h4>Add Object</h4>
-        <div className={styles.primitiveButtons}>
-          <button onClick={() => addPrimitive("cube")} className={styles.primitiveBtn}>
-            <FiBox />
-            Cube
-          </button>
-          <button onClick={() => addPrimitive("sphere")} className={styles.primitiveBtn}>
-            <FiCircle />
-            Sphere
-          </button>
-          <button onClick={() => addPrimitive("cylinder")} className={styles.primitiveBtn}>
-            <FiSquare />
-            Cylinder
-          </button>
-          <button onClick={() => addPrimitive("plane")} className={styles.primitiveBtn}>
-            <FiLayers />
-            Plane
-          </button>
-        </div>
-      </div>
+      {/* Add Object panel removed for simplicity */}
 
-      {/* AI Prompt Modal */}
-      {isPromptOpen && (
-        <div className={styles.promptModal}>
-          <div className={styles.promptContent}>
-            <div className={styles.promptHeader}>
-              <h3>AI Prompt</h3>
-              <button onClick={() => setPromptOpen(false)}>
-                <FiX />
-              </button>
-            </div>
-            <textarea
-              placeholder='Describe what you want to create... e.g. "a wooden chair and a small round table"'
-              value={promptText}
-              onChange={(e) => setPromptText(e.target.value)}
-              className={styles.promptTextarea}
-            />
-            <div className={styles.promptActions}>
-              <button onClick={() => setPromptOpen(false)} className={styles.cancelBtn}>
-                Cancel
-              </button>
-              <button onClick={handleGenerate} className={styles.generateBtn}>
-                Generate
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Prompt modal removed; use chat panel instead */}
 
-      {/* Floating AI Button */}
-      <button onClick={() => setPromptOpen(true)} className={styles.aiButton}>
-        <FiCpu />
-      </button>
+      {/* Floating AI button removed */}
     </div>
   );
 }

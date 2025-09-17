@@ -21,15 +21,15 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
   const loadScenes = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/scenes', {
+      const response = await fetch('/api/scenes', {
         headers: {
-          'Authorization': `Bearer ${token || 'demo_token'}`,
+          'x-user-id': 'demo_user',
         },
       });
 
       if (response.ok) {
         const data = await response.json();
-        setScenes(Object.values(data.scenes));
+        setScenes(data.scenes || []);
       }
     } catch (error) {
       console.error('Failed to load scenes:', error);
@@ -43,11 +43,11 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/scenes', {
+      const response = await fetch('/api/scenes', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token || 'demo_token'}`,
           'Content-Type': 'application/json',
+          'x-user-id': 'demo_user',
         },
         body: JSON.stringify({
           name: newSceneName,
@@ -73,11 +73,7 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
   const loadScene = async (sceneId) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/scenes/${sceneId}`, {
-        headers: {
-          'Authorization': `Bearer ${token || 'demo_token'}`,
-        },
-      });
+      const response = await fetch(`/api/scenes/${sceneId}`);
 
       if (response.ok) {
         const data = await response.json();

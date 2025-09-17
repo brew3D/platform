@@ -1,3 +1,126 @@
+.compactNavbar { 
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  background: rgba(20,20,32,0.6);
+  border: 1px solid rgba(102,126,234,0.25);
+  border-radius: 10px;
+  padding: 6px;
+  z-index: 20;
+}
+
+.compactGroup {
+  display: flex;
+  gap: 6px;
+  padding-right: 6px;
+  margin-right: 6px;
+  border-right: 1px solid rgba(102,126,234,0.2);
+}
+
+.compactGroup:last-child {
+  border-right: none;
+  margin-right: 0;
+  padding-right: 0;
+}
+
+.compactBtn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(102,126,234,0.35);
+  color: #fff;
+  height: 30px;
+  min-width: 30px;
+  padding: 0 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.compactBtnActive {
+  background: rgba(124,58,237,0.9);
+  border-color: rgba(124,58,237,1);
+}
+
+.quickActions {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 1002;
+}
+
+.topButton {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(102,126,234,0.35);
+  color: #fff;
+  border-radius: 6px;
+  height: 32px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chatHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: rgba(102, 126, 234, 0.1);
+  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.chatBody {
+  flex: 1;
+  padding: 1rem;
+  overflow: auto;
+}
+
+.chatInputBar {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-top: 1px solid rgba(102, 126, 234, 0.2);
+  background: rgba(0,0,0,0.2);
+}
+
+.chatInput {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(102,126,234,0.35);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+}
+
+.chatSendBtn {
+  background: rgba(124,58,237,0.9);
+  border: 0;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+}
+
+.chatToggleBtn {
+  position: absolute;
+  top: 1rem;
+  right: 4.5rem;
+  z-index: 1001;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(102,126,234,0.35);
+  color: #fff;
+  border-radius: 8px;
+  height: 36px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 /* Ruchi AI Editor - Super Sexy Dark Theme */
 .editorContainer {
   display: flex;
@@ -133,13 +256,13 @@
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
   border: 1px solid rgba(102, 126, 234, 0.3);
   color: #ffffff;
-  padding: 0.75rem;
-  border-radius: 10px;
+  padding: 0.45rem;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 1rem;
-  min-width: 40px;
-  height: 40px;
+  font-size: 0.95rem;
+  min-width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -208,7 +331,7 @@
 
 /* Left Panel - Outliner */
 .leftPanel {
-  width: 320px;
+  flex: 0 0 25%;
   background: rgba(26, 26, 46, 0.8);
   backdrop-filter: blur(20px);
   border-right: 1px solid rgba(102, 126, 234, 0.2);
@@ -383,7 +506,7 @@
 
 /* Viewport Container */
 .viewportContainer {
-  flex: 1;
+  flex: 0 0 50%;
   display: flex;
   flex-direction: column;
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
@@ -452,10 +575,10 @@
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(102, 126, 234, 0.3);
   color: #ffffff;
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
@@ -484,8 +607,8 @@
 }
 
 /* Right Panel - Properties */
-.rightPanel {
-  width: 360px;
+.chatPanel {
+  flex: 0 0 25%;
   background: rgba(26, 26, 46, 0.8);
   backdrop-filter: blur(20px);
   border-left: 1px solid rgba(102, 126, 234, 0.2);
@@ -495,7 +618,7 @@
   position: relative;
 }
 
-.rightPanel::before {
+.chatPanel::before {
   content: '';
   position: absolute;
   top: 0;
@@ -779,10 +902,10 @@
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(102, 126, 234, 0.3);
   color: #ffffff;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;

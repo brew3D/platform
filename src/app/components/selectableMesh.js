@@ -293,14 +293,13 @@ export default function SelectableMesh({
           emissiveIntensity={isSelected ? 0.4 : 0}
         />
       </mesh>
-      {getEdgeHandles()}
+      {/* Resize handles disabled per request */}
     </group>
   );
 
-  // If selected → wrap in TransformControls
-  return isSelected ? (
+  // If selected → wrap in TransformControls (only when mesh ref exists)
+  return isSelected && ref.current ? (
     <TransformControls
-      object={ref.current}
       mode={transformMode}
       space={coordinateSystem}
       translationSnap={snapEnabled ? snapValue : null}

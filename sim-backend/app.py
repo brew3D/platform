@@ -13,8 +13,9 @@ from datetime import datetime, timedelta
 # -----------------------------
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this')
-CORS(app, origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"])
-socketio = SocketIO(app, cors_allowed_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"])
+# Relax CORS temporarily
+CORS(app, resources={r"*": {"origins": "*"}})
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Set your OpenAI API key here or in environment variables
 # export OPENAI_API_KEY="your_key"
@@ -438,4 +439,4 @@ def handle_object_deleted(data):
 # -----------------------------
 if __name__ == "__main__":
     print("[LOG] Starting Flask-SocketIO server on http://127.0.0.1:5000")
-    socketio.run(app, debug=True, port=5000)
+    socketio.run(app, debug=True, port=5000, allow_unsafe_werkzeug=True)
