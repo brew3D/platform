@@ -21,6 +21,18 @@ import { useAuth } from "../contexts/AuthContext";
 import { useCollaboration } from "../contexts/CollaborationContext";
 import Link from "next/link";
 
+// React Icons
+import { 
+  FiTarget, FiEdit3, FiTool, FiMove, FiRotateCw, FiMaximize2,
+  FiGlobe, FiLayers, FiGrid, FiEye, FiEyeOff, FiPlay, FiPause,
+  FiPlus, FiMinus, FiCopy, FiTrash2, FiSettings, FiZap,
+  FiBox, FiCircle, FiSquare, FiCpu, FiWifi,
+  FiSun, FiMoon, FiVolume2, FiVolumeX, FiSave, FiDownload,
+  FiUpload, FiRefreshCw, FiChevronDown, FiChevronRight,
+  FiX, FiCheck, FiAlertCircle, FiInfo, FiHelpCircle,
+  FiMenu, FiMaximize, FiMinimize, FiMoreHorizontal
+} from "react-icons/fi";
+
 function MeshFromObj({ o }) {
   const { id, object, dimensions, position, rotation, material } = o;
   const color = material || "#888888";
@@ -447,21 +459,21 @@ export default function EditorPage() {
             onClick={() => setActiveMode('object')}
             title="Object Mode"
           >
-            🎯
+            <FiTarget />
           </button>
           <button 
             className={`${styles.toolbarBtn} ${activeMode === 'edit' ? styles.active : ''}`}
             onClick={() => setActiveMode('edit')}
             title="Edit Mode"
           >
-            ✏️
+            <FiEdit3 />
           </button>
           <button 
             className={`${styles.toolbarBtn} ${activeMode === 'sculpt' ? styles.active : ''}`}
             onClick={() => setActiveMode('sculpt')}
             title="Sculpt Mode"
           >
-            🎨
+            <FiTool />
           </button>
         </div>
 
@@ -471,21 +483,21 @@ export default function EditorPage() {
             onClick={() => setTransformMode('translate')}
             title="Move (G)"
           >
-            ↔️
+            <FiMove />
           </button>
           <button 
             className={`${styles.toolbarBtn} ${transformMode === 'rotate' ? styles.active : ''}`}
             onClick={() => setTransformMode('rotate')}
             title="Rotate (R)"
           >
-            🔄
+            <FiRotateCw />
           </button>
           <button 
             className={`${styles.toolbarBtn} ${transformMode === 'scale' ? styles.active : ''}`}
             onClick={() => setTransformMode('scale')}
             title="Scale (S)"
           >
-            📏
+            <FiMaximize2 />
           </button>
         </div>
 
@@ -495,14 +507,14 @@ export default function EditorPage() {
             onClick={() => setCoordinateSystem('global')}
             title="Global Coordinates"
           >
-            🌍
+            <FiGlobe />
           </button>
           <button 
             className={`${styles.toolbarBtn} ${coordinateSystem === 'local' ? styles.active : ''}`}
             onClick={() => setCoordinateSystem('local')}
             title="Local Coordinates"
           >
-            📐
+            <FiLayers />
           </button>
         </div>
 
@@ -512,7 +524,7 @@ export default function EditorPage() {
             onClick={() => setSnapEnabled(!snapEnabled)}
             title="Snap to Grid"
           >
-            🧲
+            <FiGrid />
           </button>
           <input 
             type="number" 
@@ -529,28 +541,28 @@ export default function EditorPage() {
             onClick={() => setViewMode('wireframe')}
             title="Wireframe"
           >
-            ⚡
+            <FiZap />
           </button>
           <button 
             className={`${styles.toolbarBtn} ${viewMode === 'solid' ? styles.active : ''}`}
             onClick={() => setViewMode('solid')}
             title="Solid"
           >
-            🟦
+            <FiBox />
           </button>
           <button 
             className={`${styles.toolbarBtn} ${viewMode === 'material' ? styles.active : ''}`}
             onClick={() => setViewMode('material')}
             title="Material Preview"
           >
-            🎨
+            <FiTool />
           </button>
           <button 
             className={`${styles.toolbarBtn} ${viewMode === 'rendered' ? styles.active : ''}`}
             onClick={() => setViewMode('rendered')}
             title="Rendered"
           >
-            🌟
+            <FiSun />
           </button>
         </div>
       </div>
@@ -566,11 +578,17 @@ export default function EditorPage() {
             />
             <div className={styles.panelHeader}>
               <h3>Outliner</h3>
-              <button onClick={() => setShowOutliner(false)}>×</button>
+              <button onClick={() => setShowOutliner(false)}>
+                <FiX />
+              </button>
             </div>
             <div className={styles.outlinerContent}>
               <div className={styles.outlinerItem}>
-                <span>📁 Scene Collection</span>
+                <span className={styles.outlinerFolder}>
+                  <FiChevronDown />
+                  <FiLayers />
+                  Scene Collection
+                </span>
                 <div className={styles.outlinerChildren}>
                   {sceneObjects.map((obj) => (
                     <div 
@@ -578,11 +596,17 @@ export default function EditorPage() {
                       className={`${styles.outlinerObject} ${selectedId === obj.id ? styles.selected : ''}`}
                       onClick={() => setSelectedId(obj.id)}
                     >
-                      <span>{obj.object === 'cube' ? '📦' : obj.object === 'sphere' ? '⚪' : '🥤'}</span>
-                      <span>{obj.id}</span>
+                      <span className={styles.objectIcon}>
+                        {obj.object === 'cube' ? <FiBox /> : obj.object === 'sphere' ? <FiCircle /> : <FiSquare />}
+                      </span>
+                      <span className={styles.objectName}>{obj.id}</span>
                       <div className={styles.objectActions}>
-                        <button onClick={() => duplicateObject(obj.id)} title="Duplicate">📋</button>
-                        <button onClick={() => removeObject(obj.id)} title="Delete">🗑️</button>
+                        <button onClick={() => duplicateObject(obj.id)} title="Duplicate">
+                          <FiCopy />
+                        </button>
+                        <button onClick={() => removeObject(obj.id)} title="Delete">
+                          <FiTrash2 />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -601,9 +625,11 @@ export default function EditorPage() {
             </div>
             <div className={styles.viewportControls}>
               <button onClick={() => setShowGrid(!showGrid)} className={showGrid ? styles.active : ''}>
+                <FiGrid />
                 Grid
               </button>
               <button onClick={() => setShowAxes(!showAxes)} className={showAxes ? styles.active : ''}>
+                <FiLayers />
                 Axes
               </button>
             </div>
@@ -663,7 +689,9 @@ export default function EditorPage() {
           <div className={styles.rightPanel}>
             <div className={styles.panelHeader}>
               <h3>Properties</h3>
-              <button onClick={() => setShowProperties(false)}>×</button>
+              <button onClick={() => setShowProperties(false)}>
+                <FiX />
+              </button>
             </div>
             
             <div className={styles.propertiesContent}>
@@ -814,12 +842,14 @@ export default function EditorPage() {
         <div className={styles.timelinePanel}>
           <div className={styles.panelHeader}>
             <h3>Timeline</h3>
-            <button onClick={() => setShowTimeline(false)}>×</button>
+            <button onClick={() => setShowTimeline(false)}>
+              <FiX />
+            </button>
           </div>
           <div className={styles.timelineContent}>
             <div className={styles.timelineControls}>
               <button onClick={() => setIsPlaying(!isPlaying)} className={styles.playButton}>
-                {isPlaying ? '⏸️' : '▶️'}
+                {isPlaying ? <FiPause /> : <FiPlay />}
               </button>
               <div className={styles.frameInfo}>
                 <span>Frame {currentFrame} / {totalFrames}</span>
@@ -844,16 +874,20 @@ export default function EditorPage() {
         <h4>Add Object</h4>
         <div className={styles.primitiveButtons}>
           <button onClick={() => addPrimitive("cube")} className={styles.primitiveBtn}>
-            📦 Cube
+            <FiBox />
+            Cube
           </button>
           <button onClick={() => addPrimitive("sphere")} className={styles.primitiveBtn}>
-            ⚪ Sphere
+            <FiCircle />
+            Sphere
           </button>
           <button onClick={() => addPrimitive("cylinder")} className={styles.primitiveBtn}>
-            🥤 Cylinder
+            <FiSquare />
+            Cylinder
           </button>
           <button onClick={() => addPrimitive("plane")} className={styles.primitiveBtn}>
-            ⬜ Plane
+            <FiLayers />
+            Plane
           </button>
         </div>
       </div>
@@ -864,7 +898,9 @@ export default function EditorPage() {
           <div className={styles.promptContent}>
             <div className={styles.promptHeader}>
               <h3>AI Prompt</h3>
-              <button onClick={() => setPromptOpen(false)}>×</button>
+              <button onClick={() => setPromptOpen(false)}>
+                <FiX />
+              </button>
             </div>
             <textarea
               placeholder='Describe what you want to create... e.g. "a wooden chair and a small round table"'
@@ -886,7 +922,7 @@ export default function EditorPage() {
 
       {/* Floating AI Button */}
       <button onClick={() => setPromptOpen(true)} className={styles.aiButton}>
-        🤖 AI
+        <FiCpu />
       </button>
     </div>
   );
