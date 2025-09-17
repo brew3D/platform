@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
   OrbitControls,
@@ -14,6 +14,11 @@ import styles from "./editor.module.css";
 import Topbar from "../Topbar";
 import SelectableMesh from "../components/selectableMesh";
 import GroupMesh from "../components/GroupMesh";
+import AuthModal from "../components/AuthModal";
+import SceneManager from "../components/SceneManager";
+import UserStatus from "../components/UserStatus";
+import { useAuth } from "../contexts/AuthContext";
+import { useCollaboration } from "../contexts/CollaborationContext";
 
 function MeshFromObj({ o }) {
   const { id, object, dimensions, position, rotation, material } = o;
@@ -56,6 +61,12 @@ function MeshFromObj({ o }) {
 }
 
 export default function EditorPage() {
+  const { user, loading: authLoading } = useAuth();
+  const { socket, updateObject, deleteObject } = useCollaboration();
+  
+  // Auth state
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  
   // Scene state
   const [sceneObjects, setSceneObjects] = useState([
     {
@@ -69,6 +80,7 @@ export default function EditorPage() {
   ]);
   const [sceneGroups, setSceneGroups] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  const [currentScene, setCurrentScene] = useState(null);
   
   // UI State
   const [activeMode, setActiveMode] = useState('object'); // object, edit, sculpt, etc.
@@ -105,6 +117,43 @@ export default function EditorPage() {
   // AI Prompt
   const [isPromptOpen, setPromptOpen] = useState(false);
   const [promptText, setPromptText] = useState("");
+
+  // WebSocket event handlers
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleSceneState = (data) => {
+      setSceneObjects(data.objects || []);
+      setSceneGroups(data.groups || []);
+    };
+
+    const handleObjectUpdated = (data) => {
+      setSceneObjects(prev => {
+        const existingIndex = prev.findIndex(obj => obj.id === data.object.id);
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          updated[existingIndex] = data.object;
+          return updated;
+        } else {
+          return [...prev, data.object];
+        }
+      });
+    };
+
+    const handleObjectDeleted = (data) => {
+      setSceneObjects(prev => prev.filter(obj => obj.id !== data.object_id));
+    };
+
+    socket.on('scene_state', handleSceneState);
+    socket.on('object_updated', handleObjectUpdated);
+    socket.on('object_deleted', handleObjectDeleted);
+
+    return () => {
+      socket.off('scene_state', handleSceneState);
+      socket.off('object_updated', handleObjectUpdated);
+      socket.off('object_deleted', handleObjectDeleted);
+    };
+  }, [socket]);
   
   const updateObjectField = (id, field, value) => {
     const objs = sceneObjects.map((o) => {
@@ -118,6 +167,12 @@ export default function EditorPage() {
       return copy;
     });
     setSceneObjects(objs);
+    
+    // Sync with server
+    const updatedObject = objs.find(o => o.id === id);
+    if (updatedObject && currentScene) {
+      updateObject(updatedObject);
+    }
   };
 
   const updateScene = (objs, grps) => {
@@ -137,10 +192,20 @@ export default function EditorPage() {
       ...base,
     };
     setSceneObjects([...sceneObjects, newObj]);
+    
+    // Sync with server
+    if (currentScene) {
+      updateObject(newObj);
+    }
   };
 
   const removeObject = (id) => {
     setSceneObjects(sceneObjects.filter((o) => o.id !== id));
+    
+    // Sync with server
+    if (currentScene) {
+      deleteObject(id);
+    }
   };
 
   const duplicateObject = (id) => {
@@ -152,6 +217,11 @@ export default function EditorPage() {
         position: [obj.position[0] + 1, obj.position[1], obj.position[2]]
       };
       setSceneObjects([...sceneObjects, newObj]);
+      
+      // Sync with server
+      if (currentScene) {
+        updateObject(newObj);
+      }
     }
   };
 
@@ -311,13 +381,51 @@ export default function EditorPage() {
     const { objects, groups } = simulateAI(promptText || "two cubes");
     updateScene(objects, groups);
     setPromptOpen(false);
+    
+    // Sync new objects with server
+    if (currentScene) {
+      objects.forEach(obj => updateObject(obj));
+    }
   };
+
+  const handleSceneLoad = (scene) => {
+    setCurrentScene(scene);
+    if (scene) {
+      setSceneObjects(scene.objects || []);
+      setSceneGroups(scene.groups || []);
+    } else {
+      setSceneObjects([{
+        id: "box_1",
+        object: "cube",
+        dimensions: [1, 0.5, 1],
+        position: [0, 0.25, 0],
+        rotation: [0, 0, 0],
+        material: "#FF8C42",
+      }]);
+      setSceneGroups([]);
+    }
+  };
+
+  const handleSceneCreate = (scene) => {
+    setCurrentScene(scene);
+    setSceneObjects(scene.objects || []);
+    setSceneGroups(scene.groups || []);
+  };
+
+  // Skip auth for now - create a demo user
+  const demoUser = { id: 'demo_user', username: 'Demo User' };
+  const demoToken = 'demo_token';
 
   const cameraProps = useMemo(() => ({ position: [5, 5, 8], fov: 50 }), []);
 
   return (
     <div className={styles.editorContainer}>
       <Topbar />
+      
+      {/* User Status */}
+      <div className={styles.userStatusContainer}>
+        <UserStatus />
+      </div>
       
       {/* Main Toolbar */}
       <div className={styles.toolbar}>
@@ -437,9 +545,13 @@ export default function EditorPage() {
 
       {/* Main Layout */}
       <div className={styles.mainLayout}>
-        {/* Left Panel - Outliner */}
+        {/* Left Panel - Scene Manager & Outliner */}
         {showOutliner && (
           <div className={styles.leftPanel}>
+            <SceneManager 
+              onSceneLoad={handleSceneLoad}
+              onSceneCreate={handleSceneCreate}
+            />
             <div className={styles.panelHeader}>
               <h3>Outliner</h3>
               <button onClick={() => setShowOutliner(false)}>×</button>

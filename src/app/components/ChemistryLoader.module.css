@@ -1,0 +1,415 @@
+/* Chemistry Loader - Dark Theme with Purple Elements */
+
+.loaderOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #1a0a2e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.loaderContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Chemistry Lab */
+.chemistryLab {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  margin-bottom: 2rem;
+}
+
+/* Central Molecule */
+.molecule {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  animation: moleculeRotate 8s linear infinite;
+}
+
+.centralAtom {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+}
+
+.atomCore {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, #8a2be2 0%, #4a148c 70%, #1a0a2e 100%);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 20px #8a2be2,
+    0 0 40px rgba(138, 43, 226, 0.5),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
+  animation: atomPulse 2s ease-in-out infinite;
+}
+
+.atomGlow {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 60px;
+  height: 60px;
+  border: 2px solid #8a2be2;
+  border-radius: 50%;
+  animation: atomGlow 3s ease-in-out infinite;
+}
+
+.orbitingAtom {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%) rotate(var(--angle)) translateX(60px) rotate(calc(-1 * var(--angle)));
+  animation: orbitRotate 4s linear infinite;
+}
+
+.orbitingAtom .atomCore {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, #667eea 0%, #4a148c 70%, #1a0a2e 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 15px #667eea;
+}
+
+.electron {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: #ff6b6b;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #ff6b6b;
+  animation: electronOrbit 2s linear infinite;
+}
+
+/* Chemical Bonds */
+.bond {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, #8a2be2, transparent);
+  transform: translate(-50%, -50%) rotate(var(--angle));
+  animation: bondPulse 2s ease-in-out infinite;
+}
+
+/* Lab Equipment */
+.beaker {
+  position: absolute;
+  top: 20%;
+  right: 20%;
+  width: 40px;
+  height: 60px;
+  border: 3px solid #8a2be2;
+  border-radius: 0 0 20px 20px;
+  border-top: none;
+  overflow: hidden;
+}
+
+.beakerLiquid {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 70%;
+  background: linear-gradient(to top, #1a0a2e, #4a148c, #8a2be2);
+  animation: liquidBubble 3s ease-in-out infinite;
+}
+
+.beakerBubbles {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.bubble {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(138, 43, 226, 0.6);
+  border-radius: 50%;
+  animation: bubbleRise 2s ease-in-out infinite;
+}
+
+.bubble:nth-child(1) { left: -8px; animation-delay: 0s; }
+.bubble:nth-child(2) { left: 0px; animation-delay: 0.5s; }
+.bubble:nth-child(3) { left: 8px; animation-delay: 1s; }
+
+.testTube {
+  position: absolute;
+  bottom: 20%;
+  left: 20%;
+  width: 15px;
+  height: 80px;
+  border: 2px solid #667eea;
+  border-radius: 0 0 8px 8px;
+  border-top: none;
+  overflow: hidden;
+}
+
+.testTubeLiquid {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 60%;
+  background: linear-gradient(to top, #1a0a2e, #667eea);
+  animation: liquidGlow 2s ease-in-out infinite;
+}
+
+/* Periodic Elements */
+.periodicElement {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #8a2be2, #4a148c);
+  border: 2px solid #ff6b6b;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  animation: elementFloat 3s ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+.periodicElement:nth-child(1) { top: 10%; left: 10%; }
+.periodicElement:nth-child(2) { top: 20%; right: 10%; }
+.periodicElement:nth-child(3) { bottom: 30%; left: 10%; }
+.periodicElement:nth-child(4) { bottom: 20%; right: 20%; }
+.periodicElement:nth-child(5) { top: 50%; left: 5%; }
+.periodicElement:nth-child(6) { top: 60%; right: 5%; }
+
+/* Chemical Formulas */
+.formula {
+  position: absolute;
+  color: #8a2be2;
+  font-weight: bold;
+  font-size: 14px;
+  text-shadow: 0 0 10px #8a2be2;
+  animation: formulaGlow 2s ease-in-out infinite;
+}
+
+.formula:nth-child(1) { top: 15%; left: 30%; animation-delay: 0s; }
+.formula:nth-child(2) { top: 70%; left: 15%; animation-delay: 0.7s; }
+.formula:nth-child(3) { bottom: 15%; right: 30%; animation-delay: 1.4s; }
+
+/* Energy Waves */
+.energyWave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  border: 2px solid #8a2be2;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: energyPulse 4s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+  opacity: 0.3;
+}
+
+/* Floating Atoms */
+.floatingAtom {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle, #8a2be2, #4a148c);
+  border-radius: 50%;
+  box-shadow: 0 0 15px #8a2be2;
+  animation: floatUp 5s ease-in-out infinite;
+}
+
+/* Loading Text */
+.loadingText {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.loadingTitle {
+  display: block;
+  color: #8a2be2;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 20px #8a2be2;
+  animation: titleGlow 2s ease-in-out infinite;
+}
+
+.loadingDots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.loadingDots span {
+  width: 8px;
+  height: 8px;
+  background: #8a2be2;
+  border-radius: 50%;
+  animation: dotPulse 1.5s ease-in-out infinite;
+}
+
+.loadingDots span:nth-child(1) { animation-delay: 0s; }
+.loadingDots span:nth-child(2) { animation-delay: 0.3s; }
+.loadingDots span:nth-child(3) { animation-delay: 0.6s; }
+
+/* Progress Bar */
+.progressContainer {
+  width: 300px;
+  text-align: center;
+}
+
+.progressBar {
+  width: 100%;
+  height: 4px;
+  background: rgba(138, 43, 226, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #8a2be2, #667eea, #ff6b6b);
+  border-radius: 2px;
+  animation: progressFill 3s ease-in-out infinite;
+}
+
+.progressText {
+  color: #a0a0a0;
+  font-size: 0.9rem;
+  animation: textFade 2s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes moleculeRotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes atomPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes atomGlow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.2); }
+}
+
+@keyframes orbitRotate {
+  from { transform: translate(-50%, -50%) rotate(var(--angle)) translateX(60px) rotate(calc(-1 * var(--angle))); }
+  to { transform: translate(-50%, -50%) rotate(calc(var(--angle) + 360deg)) translateX(60px) rotate(calc(-1 * var(--angle) - 360deg)); }
+}
+
+@keyframes electronOrbit {
+  from { transform: translate(-50%, -50%) rotate(0deg) translateX(80px) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg) translateX(80px) rotate(-360deg); }
+}
+
+@keyframes bondPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes liquidBubble {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.1); }
+}
+
+@keyframes bubbleRise {
+  0% { transform: translateY(0); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(-40px); opacity: 0; }
+}
+
+@keyframes liquidGlow {
+  0%, 100% { box-shadow: 0 0 10px #667eea; }
+  50% { box-shadow: 0 0 20px #667eea, 0 0 30px #667eea; }
+}
+
+@keyframes elementFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
+}
+
+@keyframes formulaGlow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes energyPulse {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+  50% { opacity: 0.3; }
+  100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+}
+
+@keyframes titleGlow {
+  0%, 100% { text-shadow: 0 0 20px #8a2be2; }
+  50% { text-shadow: 0 0 30px #8a2be2, 0 0 40px #8a2be2; }
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.5); opacity: 1; }
+}
+
+@keyframes progressFill {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
+@keyframes textFade {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .chemistryLab {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .loadingTitle {
+    font-size: 1.2rem;
+  }
+  
+  .progressContainer {
+    width: 250px;
+  }
+}

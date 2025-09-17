@@ -651,3 +651,70 @@ textarea:focus {
 .editorContainer * {
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
+
+/* Auth Container */
+.authContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #2b2b2b;
+  color: #d4d4d4;
+}
+
+.authContent {
+  text-align: center;
+  padding: 2rem;
+  background: #3c3c3c;
+  border: 1px solid #4a4a4a;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.authContent h1 {
+  margin: 0 0 1rem 0;
+  color: #d4d4d4;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.authContent p {
+  margin: 0 0 2rem 0;
+  color: #888;
+  font-size: 1rem;
+}
+
+.authButton {
+  background: #0078d4;
+  border: 1px solid #106ebe;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.authButton:hover {
+  background: #106ebe;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #2b2b2b;
+  color: #d4d4d4;
+  font-size: 1.2rem;
+}
+
+/* User Status Container */
+.userStatusContainer {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  z-index: 100;
+  max-width: 200px;
+}

@@ -13,12 +13,14 @@ function Topbar() {
     <header className={styles.topbar}>
         <div className={styles.brand}>
           <Link href="/landing" className={styles.brandLink}>
-            🎨 Simo
+            Ruchi AI
           </Link>
         </div>
         <div className={styles.topActions}>
           <Link href="/landing" className={styles.navLink}>Home</Link>
           <Link href="/editor" className={styles.navLink}>Editor</Link>
+          <Link href="#pricing" className={styles.navLink}>Pricing</Link>
+          <Link href="#community" className={styles.navLink}>Community</Link>
           <select
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value)}

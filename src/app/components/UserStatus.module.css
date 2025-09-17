@@ -1,0 +1,79 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #3c3c3c;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.connected {
+  background: #4caf50;
+  box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
+}
+
+.disconnected {
+  background: #f44336;
+  box-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
+}
+
+.username {
+  color: #d4d4d4;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.collaborators {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  color: #888;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.userList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.collaborator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: #2b2b2b;
+  border-radius: 4px;
+  border: 1px solid #4a4a4a;
+}
+
+.collaboratorIndicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4caf50;
+  flex-shrink: 0;
+}
+
+.collaborator span {
+  color: #d4d4d4;
+  font-size: 0.75rem;
+}
