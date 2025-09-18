@@ -428,7 +428,7 @@ export default function LandingPage() {
               <div className={styles.navUnderline}></div>
             </Link>
             <Link 
-              href="#community" 
+              href="/community" 
               className={styles.navLink}
               ref={el => navLinksRef.current[2] = el}
             >
@@ -976,9 +976,9 @@ export default function LandingPage() {
               
               <div className={styles.footerColumn}>
                 <h4>Community</h4>
-                <Link href="#community">Discord</Link>
-                <Link href="#community">Tutorials</Link>
-                <Link href="#community">Templates</Link>
+                <Link href="/community">Discord</Link>
+                <Link href="/community">Tutorials</Link>
+                <Link href="/community">Templates</Link>
               </div>
               
               <div className={styles.footerColumn}>

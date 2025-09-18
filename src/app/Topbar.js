@@ -20,7 +20,7 @@ function Topbar() {
           <Link href="/landing" className={styles.navLink}>Home</Link>
           <Link href="/editor" className={styles.navLink}>Editor</Link>
           <Link href="#pricing" className={styles.navLink}>Pricing</Link>
-          <Link href="#community" className={styles.navLink}>Community</Link>
+          <Link href="/community" className={styles.navLink}>Community</Link>
           <select
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value)}

@@ -28,7 +28,7 @@ export default function TermsPage() {
               <a href="/landing" className={styles.navLink}>Home</a>
               <a href="/landing#features" className={styles.navLink}>Features</a>
               <a href="/landing#pricing" className={styles.navLink}>Pricing</a>
-              <a href="/landing#community" className={styles.navLink}>Community</a>
+              <a href="/community" className={styles.navLink}>Community</a>
               <a href="/editor" className={styles.navButton}>Start Creating</a>
             </nav>
           </div>
@@ -235,9 +235,9 @@ export default function TermsPage() {
               
               <div className={styles.footerColumn}>
                 <h4>Community</h4>
-                <a href="/landing#community">Discord</a>
-                <a href="/landing#community">Tutorials</a>
-                <a href="/landing#community">Templates</a>
+                <a href="/community">Discord</a>
+                <a href="/community">Tutorials</a>
+                <a href="/community">Templates</a>
               </div>
               
               <div className={styles.footerColumn}>
