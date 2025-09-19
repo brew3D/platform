@@ -5,7 +5,7 @@ import Link from "next/link";
 import styles from "./Topbar.module.css"; // ✅ CSS module import
 
 
-function Topbar() {
+function Topbar({ onExport }) {
     const [exportFormat, setExportFormat] = useState("json");
 
 
@@ -30,7 +30,12 @@ function Topbar() {
             <option value="urdf">Export URDF</option>
             <option value="custom">Export JS</option>
           </select>
-          <button className={styles.topButton}>Export</button>
+          <button
+            className={styles.topButton}
+            onClick={() => onExport?.(exportFormat)}
+          >
+            Export
+          </button>
         </div>
       </header>
   )

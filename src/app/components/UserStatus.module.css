@@ -77,3 +77,27 @@
   color: #d4d4d4;
   font-size: 0.75rem;
 }
+
+/* Compact avatar row */
+.avatarsRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.8rem;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
+}
+
+.avatarText {
+  line-height: 1;
+}

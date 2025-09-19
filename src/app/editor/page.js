@@ -75,7 +75,7 @@ function MeshFromObj({ o }) {
 
 export default function EditorPage() {
   const { user, loading: authLoading } = useAuth();
-  const { socket, updateObject, deleteObject } = useCollaboration();
+  const { socket, updateObject, deleteObject, joinScene } = useCollaboration();
   
   // Auth state
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -131,11 +131,17 @@ export default function EditorPage() {
   // AI Prompt
   const [isPromptOpen, setPromptOpen] = useState(false);
   const [promptText, setPromptText] = useState("");
+  const [chatInput, setChatInput] = useState("");
+  const [isTransforming, setIsTransforming] = useState(false);
 
   // Save / Load helpers
   const saveCurrentScene = async () => {
     try {
-      if (!currentScene) return;
+      if (!currentScene) {
+        // No current scene yet – fallback to Save As
+        await saveAsNewScene();
+        return;
+      }
       const res = await fetch(`/api/scenes/${currentScene.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -155,7 +161,7 @@ export default function EditorPage() {
     try {
       const res = await fetch('/api/scenes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': 'demo_user' },
+        headers: { 'Content-Type': 'application/json', 'x-user-id': (user?.id || 'demo_user') },
         body: JSON.stringify({
           name: `Scene ${new Date().toLocaleString()}`,
           objects: sceneObjects,
@@ -206,6 +212,34 @@ export default function EditorPage() {
       socket.off('object_deleted', handleObjectDeleted);
     };
   }, [socket]);
+
+  // Auto-join a default scene so real-time works without manual load
+  useEffect(() => {
+    let didCancel = false;
+    (async () => {
+      try {
+        if (currentScene) return;
+        const res = await fetch('/api/scenes', { headers: { 'x-user-id': 'demo_user' } });
+        if (!res.ok) return;
+        const data = await res.json();
+        const scene = data.scenes && data.scenes[0];
+        if (!scene || didCancel) return;
+        // Upsert to collaboration backend and join room
+        try {
+          await fetch(`http://localhost:5000/scenes/${scene.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer demo_token' },
+            body: JSON.stringify({ objects: scene.objects || [], groups: scene.groups || [] })
+          });
+        } catch {}
+        setCurrentScene(scene);
+        setSceneObjects(scene.objects || []);
+        setSceneGroups(scene.groups || []);
+        joinScene?.(scene.id);
+      } catch {}
+    })();
+    return () => { didCancel = true; };
+  }, []);
   
   const updateObjectField = (id, field, value) => {
     const objs = sceneObjects.map((o) => {
@@ -234,14 +268,24 @@ export default function EditorPage() {
 
   const addPrimitive = (type) => {
     const newId = `${type}_${Date.now() % 10000}`;
-    const base = { dimensions: [1, 1, 1] };
+    // Defaults per primitive
+    let dimensions = [1, 1, 1];
+    if (type === 'sphere') {
+      dimensions = [1, 1, 1]; // radius is dimensions[0]
+    } else if (type === 'cylinder') {
+      dimensions = [0.5, 1, 0.5]; // radius at [0], height at [1]
+    } else if (type === 'plane') {
+      dimensions = [2, 2, 0.01];
+    }
+
+    const defaultY = type === 'plane' ? 0.001 : (dimensions[1] || 1) / 2;
     const newObj = {
       id: newId,
       object: type,
-      position: [0, (base.dimensions[1] || 1) / 2, 0],
+      position: [0, defaultY, 0],
       rotation: [0, 0, 0],
       material: "#999999",
-      ...base,
+      dimensions,
     };
     setSceneObjects([...sceneObjects, newObj]);
     
@@ -331,7 +375,7 @@ export default function EditorPage() {
         },
       ],
     };
-  } else if (t.includes("chair")) {
+  } else if (t.includes("chair") || t.includes("chiar")) {
     return {
       objects: [],
       groups: [
@@ -389,6 +433,70 @@ export default function EditorPage() {
           ],
         },
       ],
+    };
+  } else if (t.includes("sofa") || t.includes("couch")) {
+    return {
+      objects: [],
+      groups: [
+        {
+          id: "sofa",
+          children: [
+            { id: "sofa_base", object: "cube", dimensions: [2, 0.3, 0.8], position: [0, 0.15, 0], rotation: [0, 0, 0], material: "#4A5568" },
+            { id: "sofa_seat", object: "cube", dimensions: [2, 0.25, 0.8], position: [0, 0.4, 0], rotation: [0, 0, 0], material: "#718096" },
+            { id: "sofa_back", object: "cube", dimensions: [2, 0.8, 0.15], position: [0, 0.8, -0.33], rotation: [0, 0, 0], material: "#4A5568" },
+            { id: "sofa_arm_l", object: "cube", dimensions: [0.15, 0.5, 0.8], position: [-0.925, 0.5, 0], rotation: [0, 0, 0], material: "#4A5568" },
+            { id: "sofa_arm_r", object: "cube", dimensions: [0.15, 0.5, 0.8], position: [0.925, 0.5, 0], rotation: [0, 0, 0], material: "#4A5568" }
+          ]
+        }
+      ]
+    };
+  } else if (t.includes("lamp") || t.includes("light")) {
+    return {
+      objects: [],
+      groups: [
+        {
+          id: "lamp",
+          children: [
+            { id: "lamp_base", object: "cylinder", dimensions: [0.4, 0.08, 0.4], position: [0, 0.04, 0], rotation: [0, 0, 0], material: "#AAAAAA" },
+            { id: "lamp_stem", object: "cylinder", dimensions: [0.08, 0.8, 0.08], position: [0, 0.44, 0], rotation: [0, 0, 0], material: "#CCCCCC" },
+            { id: "lamp_shade", object: "cylinder", dimensions: [0.5, 0.4, 0.5], position: [0, 0.9, 0], rotation: [0, 0, 0], material: "#FFD166" },
+            { id: "lamp_bulb", object: "sphere", dimensions: [0.25, 0.25, 0.25], position: [0, 0.7, 0], rotation: [0, 0, 0], material: "#FFF1B8" }
+          ]
+        }
+      ]
+    };
+  } else if (t.includes("bookshelf") || t.includes("shelf")) {
+    return {
+      objects: [],
+      groups: [
+        {
+          id: "bookshelf",
+          children: [
+            { id: "shelf_side_l", object: "cube", dimensions: [0.12, 1.8, 0.4], position: [-0.44, 0.9, 0], rotation: [0, 0, 0], material: "#8D6E63" },
+            { id: "shelf_side_r", object: "cube", dimensions: [0.12, 1.8, 0.4], position: [0.44, 0.9, 0], rotation: [0, 0, 0], material: "#8D6E63" },
+            { id: "shelf_top", object: "cube", dimensions: [1.0, 0.12, 0.4], position: [0, 1.8, 0], rotation: [0, 0, 0], material: "#A1887F" },
+            { id: "shelf_mid1", object: "cube", dimensions: [1.0, 0.1, 0.38], position: [0, 1.3, 0], rotation: [0, 0, 0], material: "#A1887F" },
+            { id: "shelf_mid2", object: "cube", dimensions: [1.0, 0.1, 0.38], position: [0, 0.8, 0], rotation: [0, 0, 0], material: "#A1887F" },
+            { id: "shelf_bottom", object: "cube", dimensions: [1.0, 0.12, 0.4], position: [0, 0.12, 0], rotation: [0, 0, 0], material: "#A1887F" }
+          ]
+        }
+      ]
+    };
+  } else if (t.includes("bed")) {
+    return {
+      objects: [],
+      groups: [
+        {
+          id: "bed",
+          children: [
+            { id: "bed_frame", object: "cube", dimensions: [2.1, 0.25, 1.6], position: [0, 0.125, 0], rotation: [0, 0, 0], material: "#6D4C41" },
+            { id: "bed_mattress", object: "cube", dimensions: [2.0, 0.3, 1.5], position: [0, 0.4, 0], rotation: [0, 0, 0], material: "#E0E0E0" },
+            { id: "bed_headboard", object: "cube", dimensions: [2.1, 0.9, 0.12], position: [0, 0.8, -0.74], rotation: [0, 0, 0], material: "#6D4C41" },
+            { id: "bed_pillow_l", object: "cube", dimensions: [0.9, 0.12, 0.4], position: [-0.55, 0.55, -0.5], rotation: [0, 0, 0], material: "#FFFFFF" },
+            { id: "bed_pillow_r", object: "cube", dimensions: [0.9, 0.12, 0.4], position: [0.55, 0.55, -0.5], rotation: [0, 0, 0], material: "#FFFFFF" }
+          ]
+        }
+      ]
     };
   } else if (t.includes("sphere") || t.includes("ball")) {
     return {
@@ -464,20 +572,73 @@ export default function EditorPage() {
     setSceneGroups(scene.groups || []);
   };
 
+  const handleChatSend = () => {
+    const text = (chatInput || "").trim();
+    if (!text) return;
+    const { objects, groups } = simulateAI(text);
+    updateScene(objects, groups);
+    setChatInput("");
+    if (currentScene) {
+      objects.forEach(obj => updateObject(obj));
+    }
+  };
+
   // Skip auth for now - create a demo user
   const demoUser = { id: 'demo_user', username: 'Demo User' };
   const demoToken = 'demo_token';
 
   const cameraProps = useMemo(() => ({ position: [5, 5, 8], fov: 50 }), []);
 
+  // Export helpers
+  const handleExport = (format) => {
+    if (format === 'json') {
+      const sJson = {
+        id: currentScene?.id || null,
+        name: currentScene?.name || 'Untitled Scene',
+        objects: sceneObjects.map(o => ({
+          id: o.id,
+          type: o.object,
+          position: o.position,
+          rotation: o.rotation,
+          dimensions: o.dimensions,
+          material: o.material,
+        })),
+        groups: sceneGroups,
+        exported_at: new Date().toISOString(),
+      };
+      // Console log as requested
+      // eslint-disable-next-line no-console
+      console.log('sJson export:', JSON.stringify(sJson, null, 2));
+    }
+  };
+
+  // No-op live updates during drag to avoid re-render interruptions; update occurs on release
+
+  // Debounced autosave when scene objects change
+  useEffect(() => {
+    if (!currentScene) return;
+    const timer = setTimeout(async () => {
+      try {
+        await fetch(`/api/scenes/${currentScene.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: currentScene.name || 'Untitled Scene',
+            objects: sceneObjects,
+            groups: sceneGroups,
+          })
+        });
+      } catch (e) {
+        console.warn('Autosave failed', e);
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [sceneObjects, sceneGroups, currentScene]);
+
   return (
     <div className={styles.editorContainer}>
-      <Topbar />
-      {/* Quick Save Buttons */}
-      <div className={styles.quickActions}>
-        <button className={styles.topButton} onClick={saveCurrentScene} title="Save (updates current scene)"><FiSave /> Save</button>
-        <button className={styles.topButton} onClick={saveAsNewScene} title="Save As (creates a new scene)"><FiDownload /> Save As</button>
-      </div>
+      <Topbar onExport={handleExport} />
+      {/* Quick Save Buttons moved into toolbar */}
       
       {/* Profile Icon (kept minimal) */}
       {user && (
@@ -555,6 +716,34 @@ export default function EditorPage() {
           >
             <FiLayers />
           </button>
+          <button 
+            className={styles.toolbarBtn}
+            onClick={() => addPrimitive('cube')}
+            title="Add Cube"
+          >
+            <FiBox />
+          </button>
+          <button 
+            className={styles.toolbarBtn}
+            onClick={() => addPrimitive('sphere')}
+            title="Add Sphere"
+          >
+            <FiCircle />
+          </button>
+          <button 
+            className={styles.toolbarBtn}
+            onClick={() => addPrimitive('cylinder')}
+            title="Add Cylinder"
+          >
+            <FiMaximize2 />
+          </button>
+          <button 
+            className={styles.toolbarBtn}
+            onClick={() => addPrimitive('plane')}
+            title="Add Plane"
+          >
+            <FiSquare />
+          </button>
         </div>
 
         <div className={styles.toolbarSection}>
@@ -603,6 +792,32 @@ export default function EditorPage() {
           >
             <FiSun />
           </button>
+        </div>
+
+        <div className={styles.toolbarSpacer} />
+
+        <div className={styles.toolbarSection}>
+          <button 
+            className={styles.actionBtn}
+            onClick={saveCurrentScene}
+            title={currentScene ? 'Save (updates current scene)' : 'Save (will create a new scene)'}
+          >
+            <FiSave />
+            <span>Save</span>
+          </button>
+          <button 
+            className={`${styles.actionBtn} ${styles.secondary}`}
+            onClick={saveAsNewScene}
+            title="Save As (creates a new scene)"
+          >
+            <FiDownload />
+            <span>Save As</span>
+          </button>
+        </div>
+
+        <div className={styles.toolbarSection}>
+          {/* Collaborators inline avatars */}
+          <UserStatus compact />
         </div>
       </div>
 
@@ -668,11 +883,26 @@ export default function EditorPage() {
           
           <div className={styles.viewport}>
             {/* Click empty space to deselect */}
-            <Canvas shadows camera={{ position: [5, 5, 8], fov: 50 }}>
+            <Canvas 
+              shadows 
+              camera={{ position: [5, 5, 8], fov: 50 }}
+              onPointerMissed={(e) => {
+                // Deselect when clicking empty space
+                if (!isTransforming) setSelectedId(null);
+              }}
+            >
               <ambientLight intensity={ambientIntensity} />
               <directionalLight position={[5, 10, 5]} intensity={directionalIntensity} />
               <PerspectiveCamera makeDefault position={[5, 5, 8]} fov={50} />
-              <OrbitControls makeDefault />
+              <OrbitControls 
+                makeDefault 
+                enableRotate
+                enablePan
+                enableZoom
+                zoomSpeed={0.8}
+                panSpeed={0.8}
+                rotateSpeed={0.8}
+              />
               
               {environmentPreset !== 'none' && <Environment preset={environmentPreset} />}
               
@@ -684,6 +914,9 @@ export default function EditorPage() {
                   key={o.id}
                   o={o}
                   updateObject={updateObjectField}
+                  onTransformChange={undefined}
+                  onTransformStart={() => setIsTransforming(true)}
+                  onTransformEnd={() => setIsTransforming(false)}
                   selectedId={selectedId}
                   setSelectedId={setSelectedId}
                   transformMode={transformMode}
@@ -727,14 +960,20 @@ export default function EditorPage() {
               <p>Ask AI for help with modeling, materials, and more.</p>
             </div>
             <div className={styles.chatInputBar}>
-              <input className={styles.chatInput} placeholder="Type a prompt..." />
-              <button className={styles.chatSendBtn}>Send</button>
+              <input 
+                className={styles.chatInput} 
+                placeholder="Type a prompt..." 
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend(); }}
+              />
+              <button className={styles.chatSendBtn} onClick={handleChatSend}>Send</button>
             </div>
           </div>
         )}
 
         {!showChat && (
-          <button className={styles.chatToggleBtn} onClick={() => setShowChat(true)}>Show Chat</button>
+          <button className={styles.chatFloatingBtn} onClick={() => setShowChat(true)}>Show Chat</button>
         )}
 
         {/* Properties panel moved into left info panel earlier; keeping existing sections below the viewport for now */}

@@ -3,9 +3,9 @@ import { GetCommand, UpdateCommand, DeleteCommand, PutCommand } from "@aws-sdk/l
 import { getDynamoDocClient, getScenesTableName } from "@/app/lib/dynamodb";
 import { getScene, putScene, deleteScene } from "@/app/lib/demoScenes";
 
-export async function GET(_request, { params }) {
+export async function GET(_request, ctx) {
   try {
-    const { id } = params;
+    const { id } = await ctx.params;
     try {
       const doc = getDynamoDocClient();
       const TableName = getScenesTableName();
@@ -25,9 +25,9 @@ export async function GET(_request, { params }) {
   }
 }
 
-export async function PUT(request, { params }) {
+export async function PUT(request, ctx) {
   try {
-    const { id } = params;
+    const { id } = await ctx.params;
     const body = await request.json();
     const now = new Date().toISOString();
     try {

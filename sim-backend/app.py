@@ -13,9 +13,21 @@ from datetime import datetime, timedelta
 # -----------------------------
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this')
-# Relax CORS temporarily
-CORS(app, resources={r"*": {"origins": "*"}})
-socketio = SocketIO(app, cors_allowed_origins="*")
+# CORS for dev: allow frontend at :3000 and credentials
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],
+            "allow_headers": ["Content-Type", "Authorization"],
+        }
+    },
+    supports_credentials=True,
+)
+socketio = SocketIO(
+    app,
+    cors_allowed_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+)
 
 # Set your OpenAI API key here or in environment variables
 # export OPENAI_API_KEY="your_key"
@@ -255,8 +267,17 @@ def update_scene(scene_id):
     if not user_id:
         return jsonify({"error": "Invalid token"}), 401
     
+    # Upsert behavior: create the scene if it doesn't exist
     if scene_id not in scenes:
-        return jsonify({"error": "Scene not found"}), 404
+        scenes[scene_id] = {
+            'id': scene_id,
+            'name': 'Untitled Scene',
+            'owner_id': user_id,
+            'objects': [],
+            'groups': [],
+            'created_at': datetime.utcnow().isoformat(),
+            'updated_at': datetime.utcnow().isoformat(),
+        }
     
     data = request.json
     scenes[scene_id].update({

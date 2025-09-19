@@ -80,6 +80,9 @@ function EdgeHandle({ position, direction, onDrag, color = "#ff6b6b" }) {
 export default function SelectableMesh({ 
   o, 
   updateObject, 
+  onTransformChange,
+  onTransformStart,
+  onTransformEnd,
   selectedId, 
   setSelectedId, 
   transformMode = 'translate',
@@ -263,6 +266,8 @@ export default function SelectableMesh({
           32,
         ]}
       />
+    ) : o.object === "plane" ? (
+      <planeGeometry args={[o.dimensions[0] || 1, o.dimensions[1] || 1, 1, 1]} />
     ) : (
       <boxGeometry
         args={[
@@ -297,15 +302,23 @@ export default function SelectableMesh({
     </group>
   );
 
-  // If selected → wrap in TransformControls (only when mesh ref exists)
-  return isSelected && ref.current ? (
+  // Always mount TransformControls; toggle enabled to avoid attach timing issues
+  return (
     <TransformControls
+      enabled={isSelected}
       mode={transformMode}
       space={coordinateSystem}
       translationSnap={snapEnabled ? snapValue : null}
       rotationSnap={snapEnabled ? snapValue : null}
       scaleSnap={snapEnabled ? snapValue : null}
+      onMouseDown={() => onTransformStart?.()}
+      onChange={() => {
+        if (!isSelected || !ref.current) return;
+        const { x, y, z } = ref.current.position;
+        onTransformChange?.(o.id, [x, y, z]);
+      }}
       onMouseUp={() => {
+        onTransformEnd?.();
         if (ref.current) {
           const { x, y, z } = ref.current.position;
           const { x: rx, y: ry, z: rz } = ref.current.rotation;
@@ -316,7 +329,5 @@ export default function SelectableMesh({
     >
       {mesh}
     </TransformControls>
-  ) : (
-    mesh
   );
 }

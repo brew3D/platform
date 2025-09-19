@@ -12,6 +12,9 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
   const [newSceneName, setNewSceneName] = useState('');
   const { token } = useAuth();
   const { joinScene, leaveScene, currentSceneId } = useCollaboration();
+  const { user } = useAuth();
+  const userId = user?.id || 'demo_user';
+  const commonHeaders = { 'x-user-id': userId };
 
   useEffect(() => {
     // Always load scenes for demo
@@ -22,9 +25,7 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
     setLoading(true);
     try {
       const response = await fetch('/api/scenes', {
-        headers: {
-          'x-user-id': 'demo_user',
-        },
+        headers: commonHeaders,
       });
 
       if (response.ok) {
@@ -47,7 +48,7 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': 'demo_user',
+          ...commonHeaders,
         },
         body: JSON.stringify({
           name: newSceneName,
@@ -61,6 +62,17 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
         setScenes(prev => [...prev, data.scene]);
         setNewSceneName('');
         setShowCreateForm(false);
+        // Upsert to collaboration backend so a room exists
+        try {
+          await fetch(`http://localhost:5000/scenes/${data.scene.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer demo_token' },
+            body: JSON.stringify({ objects: [], groups: [] })
+          });
+        } catch (e) {
+          console.warn('Collab backend upsert failed (create)', e);
+        }
+        joinScene(data.scene.id);
         onSceneCreate?.(data.scene);
       }
     } catch (error) {
@@ -77,6 +89,16 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
 
       if (response.ok) {
         const data = await response.json();
+        // Ensure collab backend has an up-to-date copy
+        try {
+          await fetch(`http://localhost:5000/scenes/${sceneId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer demo_token' },
+            body: JSON.stringify({ objects: data.scene.objects || [], groups: data.scene.groups || [] })
+          });
+        } catch (e) {
+          console.warn('Collab backend upsert failed (load)', e);
+        }
         joinScene(sceneId);
         onSceneLoad?.(data.scene);
       }
@@ -90,6 +112,54 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
   const leaveCurrentScene = () => {
     leaveScene();
     onSceneLoad?.(null);
+  };
+
+  // Rename support
+  const [renameSceneId, setRenameSceneId] = useState(null);
+  const [renameValue, setRenameValue] = useState('');
+
+  const startRename = (scene) => {
+    setRenameSceneId(scene.id);
+    setRenameValue(scene.name || 'Untitled Scene');
+  };
+
+  const cancelRename = () => {
+    setRenameSceneId(null);
+    setRenameValue('');
+  };
+
+  const commitRename = async (scene) => {
+    setLoading(true);
+    try {
+      // Ensure we have latest objects/groups before renaming
+      const res = await fetch(`/api/scenes/${scene.id}`);
+      let latest = scene;
+      if (res.ok) {
+        const data = await res.json();
+        latest = data.scene || scene;
+      }
+      const put = await fetch(`/api/scenes/${scene.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: renameValue || 'Untitled Scene',
+          objects: latest.objects || [],
+          groups: latest.groups || [],
+        })
+      });
+      if (put.ok) {
+        const d = await put.json();
+        setScenes(prev => prev.map(s => s.id === scene.id ? d.scene : s));
+        if (currentSceneId === scene.id) {
+          onSceneLoad?.(d.scene);
+        }
+      }
+    } catch (e) {
+      console.error('Rename failed', e);
+    } finally {
+      setLoading(false);
+      cancelRename();
+    }
   };
 
   return (
@@ -143,12 +213,33 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
               className={`${styles.sceneItem} ${currentSceneId === scene.id ? styles.active : ''}`}
             >
               <div className={styles.sceneInfo}>
-                <div className={styles.sceneName}>{scene.name}</div>
-                <div className={styles.sceneMeta}>
-                  {new Date(scene.updated_at).toLocaleDateString()}
-                </div>
+                {renameSceneId === scene.id ? (
+                  <div className={styles.createForm}>
+                    <input
+                      type="text"
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      className={styles.input}
+                    />
+                    <div className={styles.formActions}>
+                      <button onClick={() => commitRename(scene)} className={styles.saveButton}>Save</button>
+                      <button onClick={cancelRename} className={styles.cancelButton}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className={styles.sceneName}>{scene.name}</div>
+                    <div className={styles.sceneMeta}>
+                      {scene.user_id ? `by ${scene.user_id} · ` : ''}
+                      {scene.updated_at ? new Date(scene.updated_at).toLocaleString() : ''}
+                    </div>
+                  </>
+                )}
               </div>
               <div className={styles.sceneActions}>
+                {renameSceneId !== scene.id && (
+                  <button onClick={() => startRename(scene)} className={styles.loadButton}>Rename</button>
+                )}
                 {currentSceneId === scene.id ? (
                   <button 
                     onClick={leaveCurrentScene}

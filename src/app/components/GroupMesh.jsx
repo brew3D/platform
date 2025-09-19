@@ -15,29 +15,9 @@ export default function GroupMesh({ group, updateGroup, selectedId, setSelectedI
     }
   }, [isSelected]);
 
-  const groupNode = (
-    <group
-      ref={ref}
-      onClick={(e) => {
-        e.stopPropagation();
-        setSelectedId(group.id);
-      }}
-    >
-      {group.children.map((o) => (
-        <SelectableMesh
-          key={o.id}
-          o={o}
-          selectedId={selectedId}
-          setSelectedId={setSelectedId}
-          updateObject={() => {}}
-        />
-      ))}
-    </group>
-  );
-
-  return isSelected ? (
+  return (
     <TransformControls
-      object={ref.current}
+      enabled={isSelected}
       mode="translate"
       onMouseUp={() => {
         if (ref.current) {
@@ -46,9 +26,23 @@ export default function GroupMesh({ group, updateGroup, selectedId, setSelectedI
         }
       }}
     >
-      {groupNode}
+      <group
+        ref={ref}
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectedId(group.id);
+        }}
+      >
+        {group.children.map((o) => (
+          <SelectableMesh
+            key={o.id}
+            o={o}
+            selectedId={selectedId}
+            setSelectedId={setSelectedId}
+            updateObject={() => {}}
+          />
+        ))}
+      </group>
     </TransformControls>
-  ) : (
-    groupNode
   );
 }

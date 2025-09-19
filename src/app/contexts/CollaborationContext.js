@@ -26,7 +26,7 @@ export const CollaborationProvider = ({ children }) => {
     const authToken = token || 'demo_token';
     
     const newSocket = io('http://localhost:5000', {
-      transports: ['websocket', 'polling']
+      transports: ['polling'] // dev: avoid WS retry spam under Werkzeug; enables stable long-polling
     });
 
     newSocket.on('connect', () => {
@@ -57,20 +57,7 @@ export const CollaborationProvider = ({ children }) => {
       setActiveUsers(data.users);
     });
 
-    newSocket.on('scene_state', (data) => {
-      console.log('Received scene state:', data);
-      // This will be handled by the editor component
-    });
-
-    newSocket.on('object_updated', (data) => {
-      console.log('Object updated by another user:', data);
-      // This will be handled by the editor component
-    });
-
-    newSocket.on('object_deleted', (data) => {
-      console.log('Object deleted by another user:', data);
-      // This will be handled by the editor component
-    });
+    // Editor listens directly; these logs are noisy in prod
 
     setSocket(newSocket);
 
