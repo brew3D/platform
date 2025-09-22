@@ -62,21 +62,5 @@ export default function Home() {
     router.push('/landing');
   }, [router]);
 
-  return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif'
-    }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🎨</div>
-        <h1>Redirecting to Simo...</h1>
-        <p>If you're not redirected automatically, <a href="/landing" style={{ color: '#4ecdc4' }}>click here</a>.</p>
-      </div>
-    </div>
-  );
+  return null;
 }
