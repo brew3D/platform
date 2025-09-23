@@ -58,8 +58,39 @@
 
 .chatBody {
   flex: 1;
-  padding: 1rem;
+  padding: 1rem 1.25rem;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.statusBar {
+  padding: 0.5rem 0.9rem;
+  background: rgba(234, 179, 8, 0.12);
+  border-bottom: 1px solid rgba(234, 179, 8, 0.25);
+  color: #fbbf24;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusBar::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fbbf24;
+  box-shadow: 0 0 0 0 rgba(251,191,36, 0.7);
+  animation: pulse 1.3s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(251,191,36, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(251,191,36, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(251,191,36, 0); }
 }
 
 .chatInputBar {
@@ -77,16 +108,48 @@
   color: #fff;
   border-radius: 8px;
   padding: 0.6rem 0.8rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
 .chatSendBtn {
-  background: rgba(124,58,237,0.9);
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
   border: 0;
   color: #fff;
   border-radius: 8px;
   padding: 0.6rem 0.9rem;
   cursor: pointer;
+  box-shadow: 0 8px 20px rgba(79,70,229,0.35);
 }
+
+/* Chat bubbles */
+.chatBubble {
+  max-width: 92%;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+.fromUser {
+  align-self: flex-end;
+  background: linear-gradient(135deg, rgba(124,58,237,0.3) 0%, rgba(79,70,229,0.25) 100%);
+  border-color: rgba(124,58,237,0.45);
+}
+.fromAgent {
+  align-self: flex-start;
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.15);
+}
+.roleLabel {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 0.25rem;
+}
+.messageText {
+  white-space: pre-wrap;
+}
+.messageSuccess { color: #22c55e; }
+.messageError { color: #ef4444; }
 
 .chatToggleBtn { display: none; }
 

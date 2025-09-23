@@ -14,19 +14,15 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this')
 # CORS for dev: allow frontend at :3000 and credentials
+origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
 CORS(
     app,
-    resources={
-        r"/*": {
-            "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],
-            "allow_headers": ["Content-Type", "Authorization"],
-        }
-    },
+    resources={r"/*": {"origins": origins, "allow_headers": ["Content-Type", "Authorization"],}},
     supports_credentials=True,
 )
 socketio = SocketIO(
     app,
-    cors_allowed_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    cors_allowed_origins=origins,
 )
 
 # Set your OpenAI API key here or in environment variables

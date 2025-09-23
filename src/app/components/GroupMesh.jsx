@@ -4,7 +4,7 @@ import React, { useRef, useEffect } from "react";
 import { TransformControls } from "@react-three/drei";
 import SelectableMesh from "./selectableMesh";
 
-export default function GroupMesh({ group, updateGroup, selectedId, setSelectedId }) {
+export default function GroupMesh({ group, updateGroup, updateChild, selectedId, setSelectedId }) {
   const ref = useRef();
   const isSelected = selectedId === group.id;
 
@@ -39,7 +39,7 @@ export default function GroupMesh({ group, updateGroup, selectedId, setSelectedI
             o={o}
             selectedId={selectedId}
             setSelectedId={setSelectedId}
-            updateObject={() => {}}
+            updateObject={(id, field, value) => updateChild?.(group.id, id, field, value)}
           />
         ))}
       </group>

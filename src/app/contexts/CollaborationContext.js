@@ -25,7 +25,7 @@ export const CollaborationProvider = ({ children }) => {
     // Always connect for demo - use demo token if no real token
     const authToken = token || 'demo_token';
     
-    const newSocket = io('http://localhost:5000', {
+    const newSocket = io('http://127.0.0.1:5000', {
       transports: ['polling'] // dev: avoid WS retry spam under Werkzeug; enables stable long-polling
     });
 

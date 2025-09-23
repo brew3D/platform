@@ -132,6 +132,11 @@ export default function EditorPage() {
   const [isPromptOpen, setPromptOpen] = useState(false);
   const [promptText, setPromptText] = useState("");
   const [chatInput, setChatInput] = useState("");
+  const [chatLog, setChatLog] = useState([]); // {id, role, text} and {type: event}
+  const chatBodyRef = useRef(null);
+  const [statusMsg, setStatusMsg] = useState("");
+  const [pipelineRunning, setPipelineRunning] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [isTransforming, setIsTransforming] = useState(false);
 
   // Save / Load helpers
@@ -572,14 +577,123 @@ export default function EditorPage() {
     setSceneGroups(scene.groups || []);
   };
 
-  const handleChatSend = () => {
+  const appendChat = (entry) => {
+    setChatLog(prev => [...prev, { id: `${Date.now()}_${Math.random().toString(36).slice(2)}`, ...entry }]);
+  };
+
+  // Merge helpers keep existing items (and their moved positions) and add/override by id
+  const mergeObjects = (existing, incoming) => {
+    const map = new Map((existing || []).map(o => [o.id, o]));
+    for (const obj of incoming || []) {
+      const prev = map.get(obj.id);
+      map.set(obj.id, prev ? { ...prev, ...obj } : obj);
+    }
+    return Array.from(map.values());
+  };
+
+  const mergeGroups = (existing, incoming) => {
+    const map = new Map((existing || []).map(g => [g.id, g]));
+    for (const grp of incoming || []) {
+      const prev = map.get(grp.id);
+      map.set(grp.id, prev ? { ...prev, ...grp } : grp);
+    }
+    return Array.from(map.values());
+  };
+
+  useEffect(() => {
+    if (!chatBodyRef.current) return;
+    chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+  }, [chatLog]);
+
+  const handleChatSend = async () => {
     const text = (chatInput || "").trim();
     if (!text) return;
-    const { objects, groups } = simulateAI(text);
-    updateScene(objects, groups);
     setChatInput("");
-    if (currentScene) {
-      objects.forEach(obj => updateObject(obj));
+    setErrorMsg("");
+    appendChat({ role: 'user', text });
+
+    // Stream from pipeline endpoint (NDJSON)
+    try {
+      setPipelineRunning(true);
+      setStatusMsg('Starting pipeline...');
+      const res = await fetch('/api/pipeline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompt: text,
+          scene: { objects: sceneObjects, groups: sceneGroups }
+        })
+      });
+
+      if (!res.ok || !res.body) {
+        const msg = `Pipeline failed to start (${res.status})`;
+        setStatusMsg(msg);
+        setErrorMsg(msg);
+        setPipelineRunning(false);
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buffer.indexOf('\n')) >= 0) {
+          const line = buffer.slice(0, idx).trim();
+          buffer = buffer.slice(idx + 1);
+          if (!line) continue;
+          try {
+            const evt = JSON.parse(line);
+            if (evt.type === 'status') {
+              setStatusMsg(evt.message || '');
+            } else if (evt.type === 'parsing_result') {
+              setStatusMsg('Parsed prompt');
+            } else if (evt.type === 'reference_result') {
+              setStatusMsg('References collected');
+            } else if (evt.type === 'generation_result') {
+              setStatusMsg('Base model generated');
+              // Merge generated scene into current scene so prior moves persist
+              const scene = evt.data?.scene;
+              if (scene) {
+                setSceneObjects(prev => mergeObjects(prev, scene.objects || []));
+                setSceneGroups(prev => mergeGroups(prev, scene.groups || []));
+              }
+            } else if (evt.type === 'editing_result') {
+              setStatusMsg('Edits applied');
+              const scene = evt.data?.scene;
+              if (scene) {
+                setSceneObjects(prev => mergeObjects(prev, scene.objects || []));
+                setSceneGroups(prev => mergeGroups(prev, scene.groups || []));
+                if (currentScene) {
+                  (scene.objects || []).forEach(obj => updateObject(obj));
+                }
+              }
+            } else if (evt.type === 'validation_result') {
+              setStatusMsg('Validation complete');
+            } else if (evt.type === 'done') {
+              setStatusMsg('Pipeline complete');
+              // Final agent reply only at completion, in green
+              appendChat({ role: 'agent', text: 'Pipeline completed successfully', variant: 'success' });
+              setPipelineRunning(false);
+              // Clear status after a short delay
+              setTimeout(() => setStatusMsg(''), 1500);
+            } else {
+              if (evt.message) setStatusMsg(evt.message);
+            }
+          } catch (e) {
+            // non-JSON line; ignore
+          }
+        }
+      }
+    } catch (e) {
+      const msg = 'Pipeline error: ' + (e?.message || 'Unknown error');
+      setStatusMsg(msg);
+      setErrorMsg(msg);
+      setPipelineRunning(false);
     }
   };
 
@@ -936,6 +1050,23 @@ export default function EditorPage() {
                     );
                     setSceneGroups(updated);
                   }}
+                  updateChild={(groupId, childId, field, value) => {
+                    const updated = sceneGroups.map(grp => {
+                      if (grp.id !== groupId) return grp;
+                      const ch = (grp.children || []).map(o => {
+                        if (o.id !== childId) return o;
+                        const copy = { ...o };
+                        if (["position", "rotation", "dimensions"].includes(field)) {
+                          copy[field] = value.split(",").map(Number);
+                        } else {
+                          copy[field] = value;
+                        }
+                        return copy;
+                      });
+                      return { ...grp, children: ch };
+                    });
+                    setSceneGroups(updated);
+                  }}
                   selectedId={selectedId}
                   setSelectedId={setSelectedId}
                 />
@@ -956,8 +1087,34 @@ export default function EditorPage() {
               <h3>Chatbot</h3>
               <button className={styles.chatToggleBtn} onClick={() => setShowChat(false)}><FiX /> Hide</button>
             </div>
-            <div className={styles.chatBody}>
-              <p>Ask AI for help with modeling, materials, and more.</p>
+            {statusMsg && (
+              <div className={styles.statusBar}>
+                {statusMsg}
+              </div>
+            )}
+            <div className={styles.chatBody} ref={chatBodyRef}>
+              {chatLog.length === 0 ? (
+                <p>Ask AI for help with modeling, materials, and more.</p>
+              ) : (
+                chatLog.map((m) => (
+                  <div key={m.id} className={`${styles.chatBubble} ${m.role === 'user' ? styles.fromUser : styles.fromAgent}`}>
+                    <div className={styles.roleLabel}>{m.role === 'user' ? 'You' : 'Agent'}</div>
+                    <div className={`${styles.messageText} ${m.variant === 'success' ? styles.messageSuccess : ''}`}>
+                      {m.text}
+                    </div>
+                  </div>
+                ))
+              )}
+              {errorMsg && (
+                <div className={`${styles.chatBubble} ${styles.fromAgent}`}>
+                  <div className={styles.roleLabel}>Agent</div>
+                  <div className={`${styles.messageText} ${styles.messageError}`}>{errorMsg}</div>
+                  <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                    <button className={styles.chatSendBtn} onClick={() => setErrorMsg("")}>Dismiss</button>
+                    <button className={styles.chatSendBtn} onClick={() => { setErrorMsg(""); setChatInput(''); }}>New Prompt</button>
+                  </div>
+                </div>
+              )}
             </div>
             <div className={styles.chatInputBar}>
               <input 
