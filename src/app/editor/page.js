@@ -14,6 +14,7 @@ import styles from "./editor.module.css";
 import Topbar from "../Topbar";
 import SelectableMesh from "../components/selectableMesh";
 import GroupMesh from "../components/GroupMesh";
+import VoxelInstanced from "../components/VoxelInstanced";
 import AuthModal from "../components/AuthModal";
 import SceneManager from "../components/SceneManager";
 import UserStatus from "../components/UserStatus";
@@ -79,6 +80,8 @@ export default function EditorPage() {
   
   // Auth state
   const [showAuthModal, setShowAuthModal] = useState(false);
+  // Theme (for viewport toggle)
+  const [theme, setTheme] = useState('dark');
   
   // Scene state
   const [sceneObjects, setSceneObjects] = useState([
@@ -128,6 +131,11 @@ export default function EditorPage() {
   const [showToolbar, setShowToolbar] = useState(false);
   const [showChat, setShowChat] = useState(true);
   
+  // Resizable left panel
+  const [leftPanelWidth, setLeftPanelWidth] = useState(0.25); // fraction of container
+  const isResizingRef = useRef(false);
+  const containerRef = useRef(null);
+
   // AI Prompt
   const [isPromptOpen, setPromptOpen] = useState(false);
   const [promptText, setPromptText] = useState("");
@@ -183,6 +191,61 @@ export default function EditorPage() {
     }
   };
 
+  // Resizer handlers
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!isResizingRef.current || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const minPx = 220; // min width of left panel
+      const maxPx = Math.max(260, rect.width * 0.6); // keep some space for viewport
+      const x = e.clientX - rect.left; // position within container
+      const clamped = Math.max(minPx, Math.min(x, maxPx));
+      setLeftPanelWidth(clamped / rect.width);
+      e.preventDefault();
+    };
+    const onUp = () => { isResizingRef.current = false; };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, []);
+
+  const startResize = (e) => {
+    isResizingRef.current = true;
+    e.preventDefault();
+  };
+
+  // Initialize theme from body attr or localStorage
+  useEffect(() => {
+    try {
+      const current = typeof document !== 'undefined' ? (document.body.getAttribute('data-theme') || '') : '';
+      const saved = typeof window !== 'undefined' ? (localStorage.getItem('theme') || '') : '';
+      const initial = current || saved || 'dark';
+      setTheme(initial);
+      if (typeof document !== 'undefined') {
+        document.body.setAttribute('data-theme', initial);
+      }
+      if (typeof window !== 'undefined' && saved !== initial) {
+        localStorage.setItem('theme', initial);
+      }
+    } catch {}
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    try {
+      if (typeof document !== 'undefined') {
+        document.body.setAttribute('data-theme', next);
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('theme', next);
+      }
+    } catch {}
+  };
+
   // WebSocket event handlers
   useEffect(() => {
     if (!socket) return;
@@ -233,7 +296,7 @@ export default function EditorPage() {
         if (!scene || didCancel) return;
         // Upsert to collaboration backend and join room
         try {
-          await fetch(`http://localhost:5000/scenes/${scene.id}`, {
+          await fetch(`http://127.0.0.1:5000/scenes/${scene.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer demo_token' },
             body: JSON.stringify({ objects: scene.objects || [], groups: scene.groups || [] })
@@ -614,6 +677,77 @@ export default function EditorPage() {
     setErrorMsg("");
     appendChat({ role: 'user', text });
 
+    // If user asks for voxel-based generation (e.g., "voxel dragon 64"), use backend Supervisor jobs
+    const wantsVoxel = /voxel/.test(text.toLowerCase()) || /dragon/.test(text.toLowerCase());
+    if (wantsVoxel) {
+      try {
+        setPipelineRunning(true);
+        setStatusMsg('Submitting voxel job...');
+        // Heuristics: subject and resolution
+        const resMatch = text.match(/\b(32|48|64|80|96|128|256|512|1024|1536|2048)\b/);
+        const resolution = resMatch ? Number(resMatch[1]) : 64;
+        const subject = (/dragon/i.test(text) ? 'dragon' : (text || 'object'));
+        const create = await fetch('http://127.0.0.1:5000/jobs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'voxel', resolution, subject, style: 'default', pose: '' })
+        });
+        if (!create.ok) throw new Error(`Job create failed (${create.status})`);
+        const c = await create.json();
+        const jobId = c.jobId;
+        setStatusMsg(`Job ${jobId} queued`);
+
+        // Poll until complete
+        let done = false;
+        while (!done) {
+          await new Promise(r => setTimeout(r, 1000));
+          const st = await fetch(`http://127.0.0.1:5000/jobs/${jobId}`);
+          if (!st.ok) continue;
+          const info = await st.json();
+          if (info.status === 'failed') {
+            setErrorMsg(info.error || 'Voxel job failed');
+            setPipelineRunning(false);
+            setStatusMsg('');
+            return;
+          }
+          if (info.progress && info.progress.length) {
+            const last = info.progress[info.progress.length - 1];
+            if (last?.msg) setStatusMsg(last.msg);
+          }
+          // Stream progressive LODs if present
+          const lods = info.artifacts && info.artifacts.lods;
+          if (lods && typeof lods === 'object') {
+            // pick highest available LOD so far
+            const keys = Object.keys(lods).map(k => Number(k)).sort((a,b)=>a-b);
+            if (keys.length) {
+              const latest = keys[keys.length - 1];
+              const url = `http://127.0.0.1:5000${lods[String(latest)].path}`;
+              const vf = await fetch(url);
+              if (vf.ok) {
+                const voxelData = await vf.json();
+                const group = { id: `voxel_${Math.random().toString(36).slice(2,8)}`, type: 'voxel', voxel: { palette: voxelData.palette || [], voxels: voxelData.voxels || [] }, position: [0,0,0] };
+                setSceneGroups(prev => mergeGroups(prev, [group]));
+                appendChat({ role: 'agent', text: `LOD ${latest} ready (${(voxelData.voxels||[]).length} voxels)` });
+              }
+            }
+          }
+          if (info.status === 'completed') {
+            done = true;
+            setStatusMsg('Pipeline complete');
+            setPipelineRunning(false);
+            setTimeout(() => setStatusMsg(''), 1200);
+            return;
+          }
+        }
+      } catch (e) {
+        const msg = 'Voxel pipeline error: ' + (e?.message || 'Unknown error');
+        setStatusMsg(msg);
+        setErrorMsg(msg);
+        setPipelineRunning(false);
+        return;
+      }
+    }
+
     // Stream from pipeline endpoint (NDJSON)
     try {
       setPipelineRunning(true);
@@ -641,7 +775,14 @@ export default function EditorPage() {
       let buffer = '';
 
       while (true) {
-        const { value, done } = await reader.read();
+        let read;
+        try {
+          read = await reader.read();
+        } catch (e) {
+          setErrorMsg('Stream aborted');
+          break;
+        }
+        const { value, done } = read;
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
         let idx;
@@ -651,6 +792,12 @@ export default function EditorPage() {
           if (!line) continue;
           try {
             const evt = JSON.parse(line);
+            if (evt.type === 'error') {
+              setErrorMsg(evt.message || 'Pipeline error');
+              setPipelineRunning(false);
+              setStatusMsg('');
+              continue;
+            }
             if (evt.type === 'status') {
               setStatusMsg(evt.message || '');
             } else if (evt.type === 'parsing_result') {
@@ -776,7 +923,7 @@ export default function EditorPage() {
   }, [sceneObjects, sceneGroups, currentScene]);
 
   return (
-    <div className={styles.editorContainer}>
+    <div className={styles.editorContainer} ref={containerRef}>
       <Topbar onExport={handleExport} />
       {/* Quick Save Buttons moved into toolbar */}
       
@@ -965,7 +1112,7 @@ export default function EditorPage() {
       <div className={styles.mainLayout}>
         {/* Left Panel - Scene Info */}
         {showOutliner && (
-          <div className={styles.leftPanel}>
+          <div className={styles.leftPanel} style={{ flex: `0 0 ${Math.round(leftPanelWidth * 100)}%` }}>
             <SceneManager 
               onSceneLoad={handleSceneLoad}
               onSceneCreate={handleSceneCreate}
@@ -1000,6 +1147,12 @@ export default function EditorPage() {
                 </div>
               </div>
             </div>
+            {/* Resizer handle */}
+            <div 
+              className={styles.resizerHandle}
+              onMouseDown={startResize}
+              title="Drag to resize"
+            />
           </div>
         )}
 
@@ -1017,6 +1170,9 @@ export default function EditorPage() {
               <button onClick={() => setShowAxes(!showAxes)} className={showAxes ? styles.active : ''}>
                 <FiLayers />
                 Axes
+              </button>
+              <button onClick={toggleTheme} className={theme === 'light' ? styles.active : ''} title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
+                {theme === 'light' ? <FiSun /> : <FiMoon />}
               </button>
             </div>
           </div>
@@ -1097,6 +1253,31 @@ export default function EditorPage() {
                   setSelectedId={setSelectedId}
                 />
               ))}
+
+              {/* Render voxel groups if present (movable like normal groups) */}
+              {sceneGroups.filter(g => g.type === 'voxel' && g.voxel).map((g) => {
+                const isSelected = selectedId === g.id;
+                return (
+                  <TransformControls
+                    key={`${g.id}_voxelwrap`}
+                    enabled={isSelected}
+                    mode="translate"
+                    onMouseUp={(e) => {
+                      const obj = e?.target?.object;
+                      const pos = obj?.position;
+                      if (pos) {
+                        const updated = sceneGroups.map((x) => x.id === g.id ? { ...x, position: [pos.x, pos.y, pos.z] } : x);
+                        setSceneGroups(updated);
+                      }
+                    }}
+                  >
+                    <group position={g.position || [0,0,0]}
+                      onClick={(e) => { e.stopPropagation(); setSelectedId(g.id); }}>
+                      <VoxelInstanced voxel={g.voxel} />
+                    </group>
+                  </TransformControls>
+                );
+              })}
 
               <mesh rotation={[-Math.PI/2, 0, 0]} position={[0, 0, 0.001]}>
                 <planeGeometry args={[100, 100]} />

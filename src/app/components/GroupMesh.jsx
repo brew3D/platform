@@ -33,7 +33,7 @@ export default function GroupMesh({ group, updateGroup, updateChild, selectedId,
           setSelectedId(group.id);
         }}
       >
-        {group.children.map((o) => (
+        {Array.isArray(group.children) && group.children.map((o) => (
           <SelectableMesh
             key={o.id}
             o={o}

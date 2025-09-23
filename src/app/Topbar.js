@@ -1,16 +1,36 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import styles from "./Topbar.module.css"; // ✅ CSS module import
 
 
 function Topbar({ onExport }) {
     const [exportFormat, setExportFormat] = useState("json");
+    const [theme, setTheme] = useState("dark");
+
+    useEffect(() => {
+      const saved = typeof window !== 'undefined' ? (localStorage.getItem('theme') || 'dark') : 'dark';
+      setTheme(saved);
+      if (typeof document !== 'undefined') {
+        document.body.setAttribute('data-theme', saved);
+      }
+    }, []);
+
+    const toggleTheme = () => {
+      const next = theme === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+      if (typeof document !== 'undefined') {
+        document.body.setAttribute('data-theme', next);
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('theme', next);
+      }
+    };
 
 
   return (
-    <header className={styles.topbar}>
+      <header className={styles.topbar}>
         <div className={styles.brand}>
           <Link href="/landing" className={styles.brandLink}>
             Ruchi AI
@@ -21,6 +41,9 @@ function Topbar({ onExport }) {
           <Link href="/editor" className={styles.navLink}>Editor</Link>
           <Link href="#pricing" className={styles.navLink}>Pricing</Link>
           <Link href="/community" className={styles.navLink}>Community</Link>
+          <button className={styles.topButton} onClick={toggleTheme}>
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </button>
           <select
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value)}

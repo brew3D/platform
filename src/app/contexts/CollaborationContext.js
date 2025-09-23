@@ -39,17 +39,24 @@ export const CollaborationProvider = ({ children }) => {
       setConnected(false);
     });
 
-    newSocket.on('error', (error) => {
-      console.error('Socket error:', error);
+    // Silence noisy generic errors; opt-in debug via localStorage.DEBUG_SOCKET = '1'
+    const shouldLog = () => {
+      try { return typeof window !== 'undefined' && window.localStorage?.getItem('DEBUG_SOCKET') === '1'; } catch { return false; }
+    };
+
+    newSocket.on('connect_error', (err) => {
+      if (shouldLog()) console.warn('Socket connect_error:', err?.message || err);
     });
+    newSocket.io?.on?.('reconnect_error', (err) => {
+      if (shouldLog()) console.warn('Socket reconnect_error:', err?.message || err);
+    });
+    // Do not log the plain 'error' event by default to avoid empty-object spam
 
     newSocket.on('user_joined', (data) => {
-      console.log('User joined:', data);
       setActiveUsers(prev => [...prev, data]);
     });
 
     newSocket.on('user_left', (data) => {
-      console.log('User left:', data);
       setActiveUsers(prev => prev.filter(user => user.user_id !== data.user_id));
     });
 

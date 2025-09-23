@@ -217,3 +217,82 @@
 .leaveButton:hover {
   background: #b71c1c;
 }
+
+/* SceneManager polish */
+.headerControls { display: flex; gap: 8px; align-items: center; }
+.sortToggle { background: rgba(255,255,255,0.06); border: 1px solid rgba(139,92,246,0.25); color: #eaeaff; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+.sortToggle:hover { background: rgba(139,92,246,0.2); }
+.sceneItem {
+  box-shadow: 0 6px 14px rgba(0,0,0,0.22);
+}
+.sceneItem:hover .sceneName { color: #ffffff; }
+.sceneName { letter-spacing: 0.2px; }
+.sceneMeta { opacity: 0.9; }
+
+/* Themed glam header accents */
+.container { position: relative; overflow: hidden; }
+.container::after {
+  content: '';
+  position: absolute; inset: -30%;
+  background: radial-gradient(circle at 20% 20%, rgba(102,126,234,0.08), transparent 40%),
+              radial-gradient(circle at 80% 10%, rgba(118,75,162,0.08), transparent 45%);
+  pointer-events: none;
+}
+.header {
+  background: linear-gradient(90deg, rgba(102,126,234,0.12), rgba(118,75,162,0.12));
+  border-bottom: 1px solid rgba(102,126,234,0.25);
+}
+
+/* Chip-like inputs */
+.headerControls .input {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(102,126,234,0.35);
+  border-radius: 10px;
+}
+.headerControls select.input {
+  padding-right: 1.75rem;
+}
+.sortToggle {
+  background: linear-gradient(135deg, rgba(102,126,234,0.25), rgba(118,75,162,0.25));
+  border: 1px solid rgba(102,126,234,0.45);
+  box-shadow: 0 6px 14px rgba(102,126,234,0.2);
+}
+
+/* Card hover glow */
+.sceneItem {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.sceneItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.32), 0 0 0 1px rgba(102,126,234,0.25) inset;
+}
+
+/* Toasts */
+.toastContainer {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 50;
+}
+.toast {
+  background: rgba(26, 26, 46, 0.9);
+  border: 1px solid rgba(102, 126, 234, 0.35);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+  transform: translateY(8px);
+  opacity: 0;
+  animation: toastIn 260ms ease forwards;
+}
+.toastSuccess { border-color: rgba(34,197,94,0.5); box-shadow: 0 10px 24px rgba(34,197,94,0.15); }
+.toastError { border-color: rgba(239,68,68,0.5); box-shadow: 0 10px 24px rgba(239,68,68,0.15); }
+.toastInfo { border-color: rgba(102,126,234,0.5); }
+
+@keyframes toastIn {
+  from { transform: translateY(8px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}

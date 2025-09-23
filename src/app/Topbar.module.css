@@ -4,8 +4,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(10, 10, 10, 0.95);
+  border-bottom: 1px solid var(--panel-border);
+  background: var(--toolbar-bg);
   backdrop-filter: blur(20px);
   position: sticky;
   top: 0;
@@ -34,7 +34,7 @@
 }
 
 .brandLink {
-  color: #fff;
+  color: var(--text-primary);
   text-decoration: none;
   font-size: 1.5rem;
   font-family: var(--font-space-grotesk);
@@ -82,7 +82,7 @@
 }
 
 .navLink {
-  color: #a0a0a0;
+  color: var(--text-secondary);
   text-decoration: none;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
@@ -118,7 +118,7 @@
 
 .topButton {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  color: white;
   padding: 0.6rem 1.25rem;
   border-radius: 50px;
   border: none;
@@ -154,11 +154,11 @@
 }
 
 .select {
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
+  background: var(--input-bg);
+  color: var(--input-text);
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--panel-border);
   font-size: 0.85rem;
   transition: all 0.3s ease;
   cursor: pointer;

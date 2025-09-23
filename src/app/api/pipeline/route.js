@@ -12,112 +12,203 @@ export async function POST(request) {
         const encoder = new TextEncoder();
 
         const send = (obj) => {
-          controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
+          try { controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n")); } catch {}
         };
 
         const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-        // Step 1: Prompt Parsing Agent
-        send({ type: "status", message: "Checking OpenAI connectivity..." });
-        const openaiConnected = isOpenAIAvailable();
-        send({ type: "status", message: `OpenAI connected: ${openaiConnected ? 'yes' : 'no'}` });
-        send({ type: "status", message: "Checking Ollama connectivity..." });
-        const ollamaConnected = await isOllamaAvailable();
-        send({ type: "status", message: `Ollama connected: ${ollamaConnected ? 'yes' : 'no'}` });
-        send({ type: "status", message: "Parsing prompt (OpenAI/Ollama/heuristics)..." });
-
-        let parsingResult = null;
-        if (openaiConnected) {
-          try {
-            const maybe = await tryParseWithOpenAI(prompt);
-            if (maybe && maybe.action) {
-              parsingResult = maybe;
-              send({ type: "status", message: "Parsed with OpenAI" });
-            }
-          } catch {}
+      async function runWithKeepAlive(label, fn, intervalMs = 1500) {
+        let alive = true;
+        let ticks = 0;
+        const ticker = (async () => {
+          while (alive) {
+            await sleep(intervalMs);
+            if (!alive) break;
+            ticks += 1;
+            send({ type: "status", message: `${label}… (${(ticks*intervalMs/1000).toFixed(0)}s)` });
+          }
+        })();
+        try {
+          const result = await fn();
+          return result;
+        } finally {
+          alive = false;
+          try { await ticker; } catch {}
         }
-        if (!parsingResult && ollamaConnected) {
-          try {
-            const maybe = await tryParseWithOllama(prompt);
-            if (maybe && maybe.action) {
-              parsingResult = maybe;
-              send({ type: "status", message: "Parsed with Ollama" });
-            }
-          } catch {}
-        }
-        if (!parsingResult) {
-          send({ type: "status", message: "Ollama unavailable, using heuristic parser" });
-          parsingResult = parsePrompt(prompt);
-        }
-        send({ type: "parsing_result", message: "Parsed prompt", data: parsingResult });
-        await sleep(200);
+      }
 
-        // Step 2: Reference Collection Agent (simulated)
-        send({ type: "status", message: "Collecting references (simulated)..." });
-        await sleep(300);
-        send({ type: "reference_result", message: "References ready", data: { references: [] } });
+        try {
+          // Step 1: Prompt Parsing Agent
+          send({ type: "status", message: "Checking OpenAI connectivity..." });
+          const openaiConnected = isOpenAIAvailable();
+          send({ type: "status", message: `OpenAI connected: ${openaiConnected ? 'yes' : 'no'}` });
+          send({ type: "status", message: "Checking Ollama connectivity..." });
+          const ollamaConnected = await isOllamaAvailable();
+          const USE_OLLAMA = process.env.USE_OLLAMA === '1';
+          send({ type: "status", message: `Ollama connected: ${ollamaConnected ? 'yes' : 'no'} (enabled=${USE_OLLAMA})` });
+          send({ type: "status", message: "Parsing prompt (OpenAI/Ollama/heuristics)..." });
 
-        // If action is generate → Step 3: 3D Generation Agent
-        if (parsingResult.action === "generate") {
-          let genScene = null;
+          let parsingResult = null;
           if (openaiConnected) {
-            send({ type: "status", message: "Generating model via OpenAI..." });
-            const byOpenAI = await tryGenerateSceneWithOpenAI(prompt, parsingResult.character, imageUrl);
-            if (byOpenAI && (Array.isArray(byOpenAI.objects) || Array.isArray(byOpenAI.groups))) {
-              genScene = normalizeScene(byOpenAI);
-              send({ type: "status", message: "OpenAI generation succeeded" });
-            } else {
-              send({ type: "status", message: "OpenAI generation failed" });
+            try {
+              const maybe = await tryParseWithOpenAI(prompt);
+              if (maybe && maybe.action) {
+                parsingResult = maybe;
+                send({ type: "status", message: "Parsed with OpenAI" });
+              }
+            } catch (e) {
+              send({ type: "status", message: "OpenAI parsing failed" });
             }
           }
-          if (!genScene && ollamaConnected) {
-            send({ type: "status", message: "Generating model via Ollama..." });
-            const byOllama = await tryGenerateSceneWithOllama(prompt, parsingResult.character);
-            if (byOllama && (Array.isArray(byOllama.objects) || Array.isArray(byOllama.groups))) {
-              genScene = normalizeScene(byOllama);
-              send({ type: "status", message: "Ollama generation succeeded" });
-            } else {
-              send({ type: "status", message: "Ollama generation failed" });
+          if (!parsingResult && USE_OLLAMA && ollamaConnected) {
+            try {
+              const maybe = await tryParseWithOllama(prompt);
+              if (maybe && maybe.action) {
+                parsingResult = maybe;
+                send({ type: "status", message: "Parsed with Ollama" });
+              }
+            } catch (e) {
+              send({ type: "status", message: "Ollama parsing failed" });
             }
           }
-          if (!genScene) {
-            send({ type: "status", message: "Generating base 3D model (fallback)..." });
-            await sleep(300);
-            genScene = generateBaseSceneFromCharacter(parsingResult.character);
+          if (!parsingResult) {
+            send({ type: "status", message: "Ollama unavailable, using heuristic parser" });
+            parsingResult = parsePrompt(prompt);
           }
-          send({ type: "generation_result", message: "Base model generated", data: { scene: genScene } });
+          send({ type: "parsing_result", message: "Parsed prompt", data: parsingResult });
+          await sleep(200);
 
-          // Step 4: Editing Agent (apply edits on top of base)
-          if (Array.isArray(parsingResult.edits) && parsingResult.edits.length) {
-            send({ type: "status", message: "Applying edits..." });
+          // Step 2: Reference Collection Agent (simulated)
+          send({ type: "status", message: "Collecting references (simulated)..." });
+          await sleep(300);
+          send({ type: "reference_result", message: "References ready", data: { references: [] } });
+
+          // Router: voxel backend vs local generators
+          const shouldUseVoxel = shouldUseVoxelBackend(parsingResult, prompt, body);
+
+          if (shouldUseVoxel) {
+            // Voxel branch → delegate to Flask backend jobs
+            send({ type: "status", message: "Routing to Voxel pipeline (backend)" });
+            const jobReq = {
+              mode: "voxel",
+              resolution: clampInt(body?.resolution ?? 64, 32, 2048),
+              subject: parsingResult?.character || prompt || "object",
+              style: (body?.style || parsingResult?.style || "").toString(),
+              pose: (body?.pose || parsingResult?.pose || "").toString(),
+              seed: Number.isFinite(body?.seed) ? Number(body.seed) : undefined,
+            };
+            const created = await runWithKeepAlive("Creating job", async () => await backendCreateJob(jobReq));
+            const allowFallback = body?.allow_fallback === true;
+            if (!created?.jobId) {
+              if (!allowFallback) {
+                send({ type: 'error', message: 'Backend unavailable (strict mode). Set allow_fallback=true to use local primitive generator.' });
+                return;
+              }
+              send({ type: "status", message: "Backend job creation failed, falling back to local (allow_fallback=true)" });
+            } else {
+              // Poll job and stream progress + final artifact
+              await streamBackendJob(send, created.jobId);
+              // Validation step still applies
+              send({ type: "status", message: "Validating mesh integrity..." });
+              await sleep(200);
+              send({ type: "validation_result", message: "Validation complete", data: { ok: true } });
+              send({ type: "done", message: "Pipeline complete" });
+              return; // voxel path handled fully
+            }
+          }
+
+          // If action is generate → Step 3: 3D Generation Agent (local)
+          if (parsingResult.action === "generate") {
+            let genScene = null;
+            if (openaiConnected) {
+              send({ type: "status", message: "Generating model via OpenAI..." });
+              const byOpenAI = await runWithKeepAlive("Generating (OpenAI)", async () => await tryGenerateSceneWithOpenAI(prompt, parsingResult.character, imageUrl, (m) => send({ type: 'status', message: m })));
+              if (byOpenAI && (Array.isArray(byOpenAI.objects) || Array.isArray(byOpenAI.groups) || byOpenAI.voxels)) {
+                send({ type: "status", message: "OpenAI generation succeeded" });
+                // Stream voxel chunks if present to avoid oversized payloads
+                if (byOpenAI.voxels && Array.isArray(byOpenAI.voxels.voxels) && Array.isArray(byOpenAI.voxels.palette)) {
+                  const sanitized = sanitizeVoxelScene(byOpenAI.voxels);
+                  const CHUNK = 5000;
+                  for (let i = 0; i < sanitized.voxels.length; i += CHUNK) {
+                    const part = sanitized.voxels.slice(i, i + CHUNK);
+                    const gid = `voxel_${Math.random().toString(36).slice(2,8)}_p${Math.floor(i/CHUNK)+1}`;
+                    send({ type: "generation_result", message: `Voxel chunk ${Math.floor(i/CHUNK)+1}`, data: { scene: { objects: [], groups: [{ id: gid, type: 'voxel', voxel: { palette: sanitized.palette, voxels: part }, position: [0,0,0] }] } } });
+                    await sleep(30);
+                  }
+                } else {
+                  genScene = normalizeScene(byOpenAI);
+                }
+              } else {
+                send({ type: "status", message: "OpenAI generation failed" });
+              }
+            }
+            if (!genScene && USE_OLLAMA && ollamaConnected) {
+              send({ type: "status", message: "Generating model via Ollama..." });
+              const byOllama = await runWithKeepAlive("Generating (Ollama)", async () => await tryGenerateSceneWithOllama(prompt, parsingResult.character));
+              if (byOllama && (Array.isArray(byOllama.objects) || Array.isArray(byOllama.groups) || byOllama.voxels)) {
+                if (byOllama.voxels && Array.isArray(byOllama.voxels.voxels) && Array.isArray(byOllama.voxels.palette)) {
+                  const sanitized = sanitizeVoxelScene(byOllama.voxels);
+                  const CHUNK = 5000;
+                  for (let i = 0; i < sanitized.voxels.length; i += CHUNK) {
+                    const part = sanitized.voxels.slice(i, i + CHUNK);
+                    const gid = `voxel_${Math.random().toString(36).slice(2,8)}_p${Math.floor(i/CHUNK)+1}`;
+                    send({ type: "generation_result", message: `Voxel chunk ${Math.floor(i/CHUNK)+1}`, data: { scene: { objects: [], groups: [{ id: gid, type: 'voxel', voxel: { palette: sanitized.palette, voxels: part }, position: [0,0,0] }] } } });
+                    await sleep(30);
+                  }
+                } else {
+                  genScene = normalizeScene(byOllama);
+                }
+                send({ type: "status", message: "Ollama generation succeeded" });
+              } else {
+                send({ type: "status", message: "Ollama generation failed" });
+              }
+            }
+            if (!genScene) {
+              send({ type: "status", message: "Generating base 3D model (fallback)..." });
+              await sleep(300);
+              genScene = generateBaseSceneFromCharacter(parsingResult.character);
+            }
+            if (genScene) {
+              send({ type: "generation_result", message: "Base model generated", data: { scene: genScene } });
+            }
+
+            // Step 4: Editing Agent (apply edits on top of base)
+            if (Array.isArray(parsingResult.edits) && parsingResult.edits.length) {
+              send({ type: "status", message: "Applying edits..." });
+              await sleep(300);
+              const edited = applyEdits(genScene, parsingResult.edits);
+              send({ type: "editing_result", message: "Edits applied", data: { scene: edited } });
+            }
+          } else {
+            // action === edit: apply to provided scene if any
+            send({ type: "status", message: "Editing current model..." });
             await sleep(300);
-            const edited = applyEdits(genScene, parsingResult.edits);
+            const current = body?.scene || { objects: [], groups: [] };
+            const edited = applyEdits(current, parsingResult.edits || []);
             send({ type: "editing_result", message: "Edits applied", data: { scene: edited } });
           }
-        } else {
-          // action === edit: apply to provided scene if any
-          send({ type: "status", message: "Editing current model..." });
-          await sleep(300);
-          const current = body?.scene || { objects: [], groups: [] };
-          const edited = applyEdits(current, parsingResult.edits || []);
-          send({ type: "editing_result", message: "Edits applied", data: { scene: edited } });
+
+          // Step 5: Validation Agent (simulated)
+          send({ type: "status", message: "Validating mesh integrity..." });
+          await sleep(200);
+          send({ type: "validation_result", message: "Validation complete", data: { ok: true } });
+
+          // Step 6: Browser Renderer handled client-side; we just finish
+          send({ type: "done", message: "Pipeline complete" });
+        } catch (e) {
+          send({ type: 'error', message: e?.message || 'Pipeline crashed' });
+        } finally {
+          try { controller.close(); } catch {}
         }
-
-        // Step 5: Validation Agent (simulated)
-        send({ type: "status", message: "Validating mesh integrity..." });
-        await sleep(200);
-        send({ type: "validation_result", message: "Validation complete", data: { ok: true } });
-
-        // Step 6: Browser Renderer handled client-side; we just finish
-        send({ type: "done", message: "Pipeline complete" });
-        controller.close();
       },
     });
 
     return new Response(stream, {
       headers: {
         "Content-Type": "application/x-ndjson; charset=utf-8",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "no-store",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",
       },
     });
   } catch (e) {
@@ -132,6 +223,7 @@ const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "llama3.1";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:5000";
 
 async function isOllamaAvailable() {
   const controller = new AbortController();
@@ -150,9 +242,113 @@ function isOpenAIAvailable() {
   return typeof OPENAI_API_KEY === 'string' && OPENAI_API_KEY.length > 0;
 }
 
+function shouldUseVoxelBackend(parsed, rawPrompt, body) {
+  const lower = (rawPrompt || '').toLowerCase();
+  if ((body && (['voxel','shapee','mesh'].includes(String(body.mode).toLowerCase()) || body.voxel === true)) || lower.includes('voxel') || lower.includes('voxels') || lower.includes('glb')) return true;
+  // Prefer voxel backend for certain subjects like dragon/creature/character
+  const subj = (parsed?.character || '').toLowerCase();
+  if (subj && /(dragon|creature|monster|character|humanoid|robot|car|vehicle|truck|sedan|coupe|van|bus)/.test(subj)) return true;
+  return false;
+}
+
+function clampInt(v, min, max) {
+  const n = Math.round(Number(v || 0));
+  return Math.max(min, Math.min(max, Number.isFinite(n) ? n : min));
+}
+
+async function backendCreateJob(payload) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/jobs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function backendGetJob(jobId) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/jobs/${jobId}`, { method: 'GET' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function backendFetchVoxelArtifact(path) {
+  try {
+    const abs = path.startsWith('http') ? path : `${BACKEND_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+    const res = await fetch(abs, { method: 'GET' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function streamBackendJob(send, jobId) {
+  send({ type: 'status', message: `Job ${jobId} queued` });
+  let lastProgressCount = 0;
+  for (let attempts = 0; attempts < 600; attempts++) { // up to ~60s with 100ms step
+    const info = await backendGetJob(jobId);
+    if (!info) { await delay(250); continue; }
+    // stream new progress entries
+    const progress = Array.isArray(info.progress) ? info.progress : [];
+    if (progress.length > lastProgressCount) {
+      for (let i = lastProgressCount; i < progress.length; i++) {
+        const p = progress[i];
+        if (p?.msg) send({ type: 'status', message: p.msg, data: p });
+      }
+      lastProgressCount = progress.length;
+    }
+    if (info.status === 'failed') {
+      send({ type: 'error', message: info.error || 'Job failed' });
+      return;
+    }
+    if (info.status === 'completed') {
+      const artifacts = info.artifacts || {};
+      // Shap-E single artifact path
+      if (artifacts.shapee && artifacts.shapee.path) {
+        const a = artifacts.shapee;
+        const kind = a.type || (String(a.path).endsWith('.glb') ? 'glb' : 'vox');
+        send({ type: 'generation_result', message: 'Shap-E artifact ready', data: { asset: { url: a.path, kind } } });
+        return;
+      }
+      // Legacy voxel LODs path: prefer highest LOD
+      const lods = artifacts.lods || {};
+      const entries = Object.values(lods);
+      if (entries.length > 0) {
+        entries.sort((a, b) => (Number(a.res||0) - Number(b.res||0)));
+        const best = entries[entries.length - 1];
+        const voxel = await backendFetchVoxelArtifact(best.path);
+        if (voxel && Array.isArray(voxel.voxels) && Array.isArray(voxel.palette)) {
+          const sanitized = sanitizeVoxelScene(voxel);
+          const CHUNK = 8000;
+          for (let i = 0; i < sanitized.voxels.length; i += CHUNK) {
+            const part = sanitized.voxels.slice(i, i + CHUNK);
+            const gid = `voxel_${Math.random().toString(36).slice(2,8)}_p${Math.floor(i/CHUNK)+1}`;
+            send({ type: 'generation_result', message: `Voxel chunk ${Math.floor(i/CHUNK)+1}`, data: { scene: { objects: [], groups: [{ id: gid, type: 'voxel', voxel: { palette: sanitized.palette, voxels: part }, position: [0,0,0] }] } } });
+            await delay(20);
+          }
+        } else {
+          send({ type: 'error', message: 'Voxel artifact unavailable' });
+        }
+      }
+      return;
+    }
+    await delay(100);
+  }
+  send({ type: 'error', message: 'Job polling timed out' });
+}
+
+function delay(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 async function tryParseWithOllama(input) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
+  const timer = setTimeout(() => controller.abort(), 20000);
   const system = [
     "You are a command parser for a 3D scene editor.",
     "Output STRICT JSON only with this schema:",
@@ -259,9 +455,10 @@ async function tryParseWithOpenAI(input) {
   return parsed;
 }
 
-async function tryGenerateSceneWithOpenAI(userPrompt, character, imageUrl) {
+async function tryGenerateSceneWithOpenAI(userPrompt, character, imageUrl, onStatus) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 15000);
+  const timeoutMs = 600000; // 10 minutes
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   const system = [
     "You are a 3D scene generator that outputs a JSON scene.",
     "Output STRICT JSON only with this schema:",
@@ -275,7 +472,8 @@ async function tryGenerateSceneWithOpenAI(userPrompt, character, imageUrl) {
     "        { id: string, object: 'cube'|'sphere'|'cylinder'|'plane',",
     "          dimensions: number[], position: number[], rotation: number[], material?: string }",
     "      > }",
-    "  >",
+    "  >,",
+    "  \"voxels\"?: { palette: string[], voxels: Array<{x:integer,y:integer,z:integer,c:integer,size?:number}> },",
     "}",
     "Constraints:",
     "- Use only the allowed primitive object types.",
@@ -285,39 +483,66 @@ async function tryGenerateSceneWithOpenAI(userPrompt, character, imageUrl) {
     "- dimensions for plane: [width, height, 0.01].",
     "- position: [x,y,z]; rotation: [rx,ry,rz] in radians.",
     "- Keep y around ground (y≈0) when appropriate.",
+    "- Prefer detailed voxel representation when it makes sense (e.g., cars/characters).",
+    "- HARD CAP: total voxels must be <= 20000. If higher, downsample to <= 20000.",
+    "- Palette size <= 16 colors.",
+    "- Use integer grid coordinates. Prefer size=1 per voxel and encode larger shapes via more voxels.",
     "- Keep JSON compact and valid. No comments or extra text.",
   ].join("\n");
 
+  const resolution = /\b(32|48|64|80|96|128)\b/.exec(userPrompt || '')?.[1] || '48';
+  const capped = String(Math.min(64, Math.max(24, Number(resolution) || 48)));
   const prompt = character
-    ? `Generate a simple ${character} model using primitives from the schema.`
-    : `Generate a simple model for: ${userPrompt}`;
+    ? `Generate a ${character} as a voxel scene at ~${capped} resolution. Output voxels{palette,voxels[]} with integer x,y,z and c indexes. Keep total voxels <= 20000.`
+    : `Generate a voxel scene (~${capped} resolution) for: ${userPrompt}. Output voxels{palette,voxels[]} with integer x,y,z and c indexes. Keep total voxels <= 20000.`;
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: OPENAI_MODEL,
-      temperature: 0,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: imageUrl ? `${prompt}\nImage URL: ${imageUrl}` : prompt }
-      ]
-    }),
-    signal: controller.signal,
-  });
-  clearTimeout(timer);
-  if (!res.ok) return null;
-  const data = await res.json();
-  const content = data?.choices?.[0]?.message?.content || '';
-  const jsonText = extractJson(content) || content.trim();
   try {
-    const parsed = JSON.parse(jsonText);
-    return parsed;
-  } catch {
+    if (onStatus) onStatus('Preparing OpenAI prompt');
+    if (onStatus) onStatus('Sending request to OpenAI');
+    const startedAt = Date.now();
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        temperature: 0,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: imageUrl ? `${prompt}\nImage URL: ${imageUrl}` : prompt }
+        ]
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (onStatus) onStatus(`OpenAI responded in ${Math.round((Date.now()-startedAt)/1000)}s, parsing JSON`);
+    if (!res.ok) {
+      if (onStatus) onStatus(`OpenAI error ${res.status}`);
+      return null;
+    }
+    const data = await res.json();
+    const content = data?.choices?.[0]?.message?.content || '';
+    const jsonText = extractJson(content) || content.trim();
+    try {
+      const parsed = JSON.parse(jsonText);
+      if (onStatus) onStatus('OpenAI JSON parsed');
+      return parsed;
+    } catch (e) {
+      if (onStatus) onStatus('Failed to parse OpenAI JSON');
+      return null;
+    }
+  } catch (err) {
+    clearTimeout(timer);
+    if (err && err.name === 'AbortError') {
+      if (onStatus) onStatus('OpenAI request timed out after 600s');
+    } else {
+      if (onStatus) onStatus('OpenAI request failed');
+    }
     return null;
+  } finally {
+    try { clearTimeout(timer); } catch {}
   }
 }
 
@@ -389,6 +614,11 @@ function normalizeScene(scene) {
     position: Array.isArray(g.position) ? g.position : undefined,
     children: Array.isArray(g.children) ? g.children.map(sanitizePrimitive) : []
   }));
+  // Attach voxel group if provided at root
+  if (scene.voxels && Array.isArray(scene.voxels.voxels) && Array.isArray(scene.voxels.palette)) {
+    const voxel = sanitizeVoxelScene(scene.voxels);
+    s.groups.push({ id: `voxel_${Math.random().toString(36).slice(2,8)}`, type: 'voxel', voxel, position: [0,0,0] });
+  }
   // If there are multiple related objects (e.g., car parts) and no group is provided,
   // detect common prefixes and group them under one group for better selection UX.
   if (s.groups.length === 0 && s.objects.length > 1) {
@@ -404,6 +634,25 @@ function normalizeScene(scene) {
   return s;
 }
 
+function sanitizeVoxelScene(voxelsObj) {
+  const MAX_VOX = 20000;
+  const MAX_COL = 16;
+  const palette = Array.isArray(voxelsObj?.palette) ? voxelsObj.palette.slice(0, MAX_COL) : [];
+  const rawVox = Array.isArray(voxelsObj?.voxels) ? voxelsObj.voxels : [];
+  const vox = [];
+  for (let i = 0; i < rawVox.length && vox.length < MAX_VOX; i++) {
+    const v = rawVox[i] || {};
+    const x = Math.round(Number(v.x || 0));
+    const y = Math.round(Number(v.y || 0));
+    const z = Math.round(Number(v.z || 0));
+    let c = Math.max(0, Math.min(palette.length - 1, Number.isFinite(v.c) ? Number(v.c) : 0));
+    if (!Number.isFinite(c)) c = 0;
+    const size = Number.isFinite(v.size) ? Number(v.size) : 1;
+    vox.push({ x, y, z, c, size });
+  }
+  return { palette, voxels: vox };
+}
+
 function sanitizePrimitive(o) {
   const allowed = new Set(['cube','sphere','cylinder','plane']);
   const object = allowed.has(o.object) ? o.object : 'cube';
@@ -413,13 +662,37 @@ function sanitizePrimitive(o) {
   if (object === 'sphere') dimensions = [Number(dimensions[0]) || 1, 1, 1];
   if (object === 'cylinder') dimensions = [Number(dimensions[0]) || 0.5, Number(dimensions[1]) || 1, Number(dimensions[2]) || Number(dimensions[0]) || 0.5];
   if (object === 'plane') dimensions = [Number(dimensions[0]) || 2, Number(dimensions[1]) || 2, 0.01];
+  const colorMap = {
+    peach: '#ffdab9',
+    orange: '#ffa500',
+    gold: '#ffd700',
+    silver: '#c0c0c0',
+    gray: '#808080',
+    grey: '#808080',
+    black: '#000000',
+    white: '#ffffff',
+    red: '#ef4444',
+    green: '#22c55e',
+    blue: '#3b82f6',
+    purple: '#a855f7',
+    yellow: '#eab308',
+    brown: '#8b4513'
+  };
+  let material = typeof o.material === 'string' ? o.material : undefined;
+  if (material) {
+    const lower = material.toLowerCase();
+    if (colorMap[lower]) material = colorMap[lower];
+    // Accept hex (#abc or #aabbcc) else fallback
+    const isHex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(material);
+    if (!isHex && !colorMap[lower]) material = '#999999';
+  }
   return {
     id: o.id || `${object}_${Math.random().toString(36).slice(2,8)}`,
     object,
     position,
     rotation,
     dimensions,
-    material: typeof o.material === 'string' ? o.material : undefined
+    material
   };
 }
 
@@ -433,7 +706,7 @@ function parsePrompt(input) {
 
   // crude character extraction: first capitalized word or known names
   let character = null;
-  const known = ["naruto", "goku", "robot", "humanoid", "chair", "table"];
+  const known = ["naruto", "goku", "robot", "humanoid", "chair", "table", "car", "vehicle", "truck", "sedan", "coupe", "van", "bus", "sports car"];
   for (const k of known) {
     if (lower.includes(k)) { character = k; break; }
   }

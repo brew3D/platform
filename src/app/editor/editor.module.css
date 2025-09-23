@@ -52,8 +52,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  background: var(--subtle-panel);
+  border-bottom: 1px solid var(--panel-border);
 }
 
 .chatBody {
@@ -97,15 +97,15 @@
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem;
-  border-top: 1px solid rgba(102, 126, 234, 0.2);
-  background: rgba(0,0,0,0.2);
+  border-top: 1px solid var(--panel-border);
+  background: var(--panel-bg);
 }
 
 .chatInput {
   flex: 1;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(102,126,234,0.35);
-  color: #fff;
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--input-text);
   border-radius: 8px;
   padding: 0.6rem 0.8rem;
   font-size: 0.95rem;
@@ -192,8 +192,8 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-  color: #ffffff;
+  background: var(--editor-bg);
+  color: var(--editor-text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   overflow: hidden;
   position: relative;
@@ -273,9 +273,9 @@
   align-items: center;
   gap: 1.5rem;
   padding: 1rem 2rem;
-  background: rgba(26, 26, 46, 0.8);
+  background: var(--toolbar-bg);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  border-bottom: 1px solid var(--panel-border);
   min-height: 60px;
   flex-shrink: 0;
   position: relative;
@@ -302,9 +302,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border-right: 1px solid rgba(102, 126, 234, 0.2);
+  border-right: 1px solid var(--panel-border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--item-bg);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 }
@@ -425,9 +425,9 @@
 /* Left Panel - Outliner */
 .leftPanel {
   flex: 0 0 25%;
-  background: rgba(26, 26, 46, 0.8);
+  background: var(--panel-bg);
   backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(102, 126, 234, 0.2);
+  border-right: 1px solid var(--panel-border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -453,8 +453,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  background: var(--subtle-panel);
+  border-bottom: 1px solid var(--panel-border);
   backdrop-filter: blur(10px);
 }
 
@@ -462,14 +462,14 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .panelHeader button {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: var(--item-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--text-primary);
   cursor: pointer;
   font-size: 1.25rem;
   padding: 0.5rem;
@@ -500,12 +500,12 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background: rgba(102, 126, 234, 0.1);
+  background: var(--subtle-panel);
   border-radius: 10px;
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 0.9rem;
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  border: 1px solid var(--panel-border);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 }
@@ -529,8 +529,8 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--item-bg);
+  border: 1px solid var(--panel-border);
   backdrop-filter: blur(10px);
   margin-bottom: 0.5rem;
 }
@@ -565,7 +565,7 @@
   flex: 1;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .objectActions {
@@ -626,9 +626,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: rgba(26, 26, 46, 0.8);
+  background: var(--toolbar-bg);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  border-bottom: 1px solid var(--panel-border);
   flex-shrink: 0;
   position: relative;
   z-index: 10;
@@ -643,7 +643,7 @@
 .viewportInfo span:first-child {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
@@ -666,9 +666,9 @@
 }
 
 .viewportControls button {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  color: #ffffff;
+  background: var(--item-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--text-primary);
   padding: 0.4rem 0.8rem;
   border-radius: 6px;
   cursor: pointer;
@@ -703,9 +703,9 @@
 /* Right Panel - Properties */
 .chatPanel {
   flex: 0 0 25%;
-  background: rgba(26, 26, 46, 0.8);
+  background: var(--panel-bg);
   backdrop-filter: blur(20px);
-  border-left: 1px solid rgba(102, 126, 234, 0.2);
+  border-left: 1px solid var(--panel-border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -1390,4 +1390,26 @@ textarea:focus {
   right: 20px;
   z-index: 100;
   max-width: 250px;
+}
+
+/* Left panel resizer handle */
+.resizerHandle {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  background: linear-gradient(180deg, rgba(102,126,234,0.12), rgba(118,75,162,0.12));
+  border-right: 1px solid rgba(102,126,234,0.25);
+  border-left: 1px solid rgba(102,126,234,0.1);
+  opacity: 0.2;
+}
+
+.leftPanel:hover .resizerHandle {
+  opacity: 0.6;
+}
+
+.resizerHandle:hover {
+  background: linear-gradient(180deg, rgba(102,126,234,0.25), rgba(118,75,162,0.25));
 }
