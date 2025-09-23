@@ -137,6 +137,8 @@ export default function EditorPage() {
   const [statusMsg, setStatusMsg] = useState("");
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [attachment, setAttachment] = useState(null); // { url, name }
   const [isTransforming, setIsTransforming] = useState(false);
 
   // Save / Load helpers
@@ -621,7 +623,8 @@ export default function EditorPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           prompt: text,
-          scene: { objects: sceneObjects, groups: sceneGroups }
+          scene: { objects: sceneObjects, groups: sceneGroups },
+          image_url: attachment?.url || null
         })
       });
 
@@ -695,6 +698,29 @@ export default function EditorPage() {
       setErrorMsg(msg);
       setPipelineRunning(false);
     }
+    // Clear attachment after send
+    setAttachment(null);
+  };
+
+  const handleUploadClick = async () => {
+    try {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+          // For demo: use a temporary blob URL. Replace with AWS S3 upload later.
+          const url = URL.createObjectURL(file);
+          setAttachment({ url, name: file.name });
+        } finally {
+          setUploading(false);
+        }
+      };
+      input.click();
+    } catch {}
   };
 
   // Skip auth for now - create a demo user
@@ -1105,6 +1131,15 @@ export default function EditorPage() {
                   </div>
                 ))
               )}
+              {attachment && (
+                <div className={`${styles.chatBubble} ${styles.fromUser}`}>
+                  <div className={styles.roleLabel}>Attachment</div>
+                  <div className={styles.attachmentPreview}>
+                    <img src={attachment.url} alt={attachment.name} className={styles.attachmentThumb} />
+                    <div>{attachment.name || 'Image'}</div>
+                  </div>
+                </div>
+              )}
               {errorMsg && (
                 <div className={`${styles.chatBubble} ${styles.fromAgent}`}>
                   <div className={styles.roleLabel}>Agent</div>
@@ -1117,6 +1152,9 @@ export default function EditorPage() {
               )}
             </div>
             <div className={styles.chatInputBar}>
+              <button className={styles.chatSendBtn} onClick={handleUploadClick} title="Add image" disabled={uploading} style={{ minWidth: 40 }}>
+                {uploading ? '...' : '+'}
+              </button>
               <input 
                 className={styles.chatInput} 
                 placeholder="Type a prompt..." 

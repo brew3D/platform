@@ -136,9 +136,10 @@
   border-color: rgba(124,58,237,0.45);
 }
 .fromAgent {
-  align-self: flex-start;
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.15);
+  align-self: stretch;
+  background: linear-gradient(135deg, rgba(17,24,39,0.6) 0%, rgba(31,41,55,0.55) 100%);
+  border-color: rgba(255,255,255,0.12);
+  text-align: center;
 }
 .roleLabel {
   font-size: 0.72rem;
@@ -150,6 +151,24 @@
 }
 .messageSuccess { color: #22c55e; }
 .messageError { color: #ef4444; }
+
+/* Attachment preview */
+.attachmentPreview {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px dashed rgba(255,255,255,0.25);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.05);
+}
+.attachmentThumb {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+}
 
 .chatToggleBtn { display: none; }
 

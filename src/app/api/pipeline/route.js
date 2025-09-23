@@ -5,6 +5,7 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const prompt = (body?.prompt || "").toString();
+    const imageUrl = body?.image_url || null;
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -61,7 +62,7 @@ export async function POST(request) {
           let genScene = null;
           if (openaiConnected) {
             send({ type: "status", message: "Generating model via OpenAI..." });
-            const byOpenAI = await tryGenerateSceneWithOpenAI(prompt, parsingResult.character);
+            const byOpenAI = await tryGenerateSceneWithOpenAI(prompt, parsingResult.character, imageUrl);
             if (byOpenAI && (Array.isArray(byOpenAI.objects) || Array.isArray(byOpenAI.groups))) {
               genScene = normalizeScene(byOpenAI);
               send({ type: "status", message: "OpenAI generation succeeded" });
@@ -258,7 +259,7 @@ async function tryParseWithOpenAI(input) {
   return parsed;
 }
 
-async function tryGenerateSceneWithOpenAI(userPrompt, character) {
+async function tryGenerateSceneWithOpenAI(userPrompt, character, imageUrl) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
   const system = [
@@ -302,7 +303,7 @@ async function tryGenerateSceneWithOpenAI(userPrompt, character) {
       temperature: 0,
       messages: [
         { role: 'system', content: system },
-        { role: 'user', content: prompt }
+        { role: 'user', content: imageUrl ? `${prompt}\nImage URL: ${imageUrl}` : prompt }
       ]
     }),
     signal: controller.signal,
