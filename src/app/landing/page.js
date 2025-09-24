@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, Suspense, forwardRef } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, useGLTF, Html } from "@react-three/drei";
 import Link from "next/link";
 import { useAuth } from '../contexts/AuthContext';
 import { gsap } from "gsap";
@@ -18,6 +20,153 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const { user, logout } = useAuth();
+  
+  // Demo playground state
+  const [demoObjects, setDemoObjects] = useState([]); // {id, type, pos}
+  const addPrimitive = (type) => {
+    const id = `${type}_${Date.now()}`;
+    setDemoObjects(prev => [...prev, { id, type, pos: [Math.random()*2-1, 0.5, Math.random()*2-1] }]);
+  };
+  const clearDemo = () => setDemoObjects([]);
+
+  // Mario demo state
+  const [marioAdded, setMarioAdded] = useState(false);
+  const [marioHasSound, setMarioHasSound] = useState(false);
+  const [marioHasJumped, setMarioHasJumped] = useState(false);
+  const marioRef = useRef();
+  const audioRef = useRef(null);
+  const [showItsThatEasy, setShowItsThatEasy] = useState(false);
+  const [isLooping, setIsLooping] = useState(false);
+  const loopRef = useRef(null);
+  const [showControls, setShowControls] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
+  const [showNextOptions, setShowNextOptions] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [stepsComplete, setStepsComplete] = useState(false);
+  const showOptionsOnce = () => {
+    setShowNextOptions(false);
+    // show briefly and then hide to avoid being "stuck"
+    setTimeout(() => setShowNextOptions(true), 0);
+  };
+  const [chatMessages, setChatMessages] = useState([
+    { role: 'bot', text: 'Hi! I can build interactive 3D for you.' },
+    { role: 'user', text: 'MAKE ME A MARIO THAT JUMPS WITH SOUND' },
+    { role: 'bot', text: 'Great! Click Start and I’ll guide you step-by-step.' }
+  ]);
+  const [marioScale, setMarioScale] = useState(0.25);
+  const [jumpScale, setJumpScale] = useState(1);
+  const [speechText, setSpeechText] = useState('It’s that easy!');
+  const [awaitingJumpScale, setAwaitingJumpScale] = useState(false);
+  const [awaitingSpeech, setAwaitingSpeech] = useState(false);
+  const [jumpScaleInput, setJumpScaleInput] = useState('');
+  const [speechInput, setSpeechInput] = useState('');
+
+  useEffect(() => {
+    if (marioAdded && marioHasSound && marioHasJumped) {
+      setShowItsThatEasy(true);
+    }
+  }, [marioAdded, marioHasSound, marioHasJumped]);
+
+  // When all steps are complete (including loop), show next options and stop loader
+  useEffect(() => {
+    const complete = marioAdded && marioHasSound && marioHasJumped && isLooping;
+    setStepsComplete(complete);
+    if (complete && !showNextOptions) {
+      setShowNextOptions(true);
+      setChatMessages(prev => ([...prev, { role: 'bot', text: 'How did you like that? Next I can:' }]));
+    }
+  }, [marioAdded, marioHasSound, marioHasJumped, isLooping]);
+
+  const onAddMario = () => {
+    setMarioAdded(true);
+  };
+
+  const onAddJumpSound = () => {
+    if (!audioRef.current) {
+      const src = "/Mario%20Jump%20-%20Gaming%20Sound%20Effect%20(HD).mp3";
+      audioRef.current = new Audio(src);
+      audioRef.current.volume = 0.6;
+    }
+    setMarioHasSound(true);
+    // Play once on add
+    try {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+    } catch {}
+  };
+
+  const onMarioJump = () => {
+    if (!marioRef.current) return;
+    // simple jump: up then down
+    const group = marioRef.current;
+    const startY = group.position.y;
+    const peak = startY + 1.2 * Math.max(1, Math.min(1000, jumpScale));
+    let t = 0;
+    const duration = 600; // ms total
+    const start = performance.now();
+    const step = (now) => {
+      t = (now - start) / duration;
+      if (t >= 1) t = 1;
+      // parabolic ease: up then down
+      const y = startY + (4 * (t <= 0.5 ? t : 1 - t)) * (peak - startY);
+      group.position.y = y;
+      if (t < 1) {
+        requestAnimationFrame(step);
+      } else {
+        group.position.y = startY;
+      }
+    };
+    requestAnimationFrame(step);
+
+    if (marioHasSound && audioRef.current) {
+      try { audioRef.current.currentTime = 0; audioRef.current.play(); } catch {}
+    }
+    setMarioHasJumped(true);
+  };
+
+  const startLoop = () => {
+    if (loopRef.current) return;
+    // immediately trigger once to feel responsive, then every 3s
+    onMarioJump();
+    loopRef.current = setInterval(() => {
+      onMarioJump();
+    }, 2000);
+    setIsLooping(true);
+  };
+
+  const stopLoop = () => {
+    if (loopRef.current) {
+      clearInterval(loopRef.current);
+      loopRef.current = null;
+    }
+    setIsLooping(false);
+  };
+
+  const MarioModel = useMemo(() => {
+    return forwardRef(function MarioModelInner(props, ref) {
+      const gltf = useGLTF('/mario.glb');
+      const { showBubble } = props;
+      return (
+        <group ref={ref} position={[0, 0, 0]} scale={[marioScale, marioScale, marioScale]} {...props}>
+          <primitive object={gltf.scene} />
+          {showBubble && (
+            <Html position={[0.3, 1.6, 0]} distanceFactor={6} transform>
+              <div className={styles.speechBubble}>{speechText}</div>
+            </Html>
+          )}
+        </group>
+      );
+    });
+  }, [marioScale, speechText]);
+  
+  useGLTF.preload('/mario.glb');
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (loopRef.current) clearInterval(loopRef.current);
+    };
+  }, []);
   
   // Refs for GSAP animations
   const featuresRef = useRef(null);
@@ -420,7 +569,7 @@ export default function LandingPage() {
               <div className={styles.navUnderline}></div>
             </Link>
             <Link 
-              href="#pricing" 
+              href="/pricing" 
               className={styles.navLink}
               ref={el => navLinksRef.current[1] = el}
             >
@@ -534,23 +683,22 @@ export default function LandingPage() {
         <div className={styles.heroContainer}>
           <div className={styles.heroContent}>
             <h1 className={styles.heroTitle}>
-              The Future of <span className={styles.gradientText}>3D Creation</span>
+              Build 3D Worlds. <span className={styles.gradientText}>Powered by AI.</span>
               <br />
-              <span className={styles.aiText}>AI-Powered • Collaborative • Stunning</span>
+              <span className={styles.aiText}>Without Breaking Your Computer.</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              Create stunning 3D scenes with real-time collaboration, AI assistance, 
-              and zero installation required. Perfect for designers, developers, and creators.
+              Collaborate in real-time, render in the cloud, and let AI guide your every move. Ruchi AI makes professional 3D creation effortless.
             </p>
             <div className={styles.heroButtons}>
-              <Link href="/editor" className={styles.primaryButton}>
-                Start Creating Free
+              <Link href="#playground" className={styles.primaryButton}>
+                Try the Demo
                 <span className={styles.buttonIcon}>→</span>
               </Link>
-              <button className={styles.secondaryButton}>
-                Watch Demo
+              <a href="#features" className={styles.secondaryButton}>
+                See AI in Action
                 <span className={styles.buttonIcon}>▶</span>
-              </button>
+              </a>
             </div>
             <div className={styles.heroStats}>
               <div className={styles.stat}>
@@ -636,6 +784,7 @@ export default function LandingPage() {
                   <div className={styles.userAvatar}></div>
                   <div className={styles.liveIndicator}>LIVE</div>
                 </div>
+                <div className={styles.aiCursor}></div>
               </div>
             </div>
           </div>
@@ -665,10 +814,9 @@ export default function LandingPage() {
                 </div>
                 <div className={styles.iconGlow}></div>
               </div>
-              <h3 className={styles.featureTitle}>Real-Time Collaboration</h3>
+              <h3 className={styles.featureTitle}>Cloud Rendering</h3>
               <p className={styles.featureDescription}>
-                Multiple users can edit the same 3D scene simultaneously. 
-                See changes instantly, no more file merging headaches.
+                Your computer stays fast while GPU-heavy rendering runs in the cloud.
               </p>
               <div className={styles.featureAccent}></div>
             </div>
@@ -683,10 +831,9 @@ export default function LandingPage() {
                 </div>
                 <div className={styles.iconGlow}></div>
               </div>
-              <h3 className={styles.featureTitle}>AI-Powered Assistance</h3>
+              <h3 className={styles.featureTitle}>Real-Time Collaboration</h3>
               <p className={styles.featureDescription}>
-                Smart cursor predicts your next move, auto-aligns objects, 
-                and suggests materials. Speed up your workflow by 10x.
+                See your team build together live with tiny colored cursors.
               </p>
               <div className={styles.featureAccent}></div>
             </div>
@@ -701,10 +848,9 @@ export default function LandingPage() {
                 </div>
                 <div className={styles.iconGlow}></div>
               </div>
-              <h3 className={styles.featureTitle}>Browser-First</h3>
+              <h3 className={styles.featureTitle}>AI-Assisted Editing</h3>
               <p className={styles.featureDescription}>
-                No installation required. Works on any device, any OS. 
-                Access your projects from anywhere, anytime.
+                Snap, align, generate primitives, and get smart suggestions.
               </p>
               <div className={styles.featureAccent}></div>
             </div>
@@ -719,10 +865,9 @@ export default function LandingPage() {
                 </div>
                 <div className={styles.iconGlow}></div>
               </div>
-              <h3 className={styles.featureTitle}>Cloud Storage & Versioning</h3>
+              <h3 className={styles.featureTitle}>Cross-Engine Ready</h3>
               <p className={styles.featureDescription}>
-                Automatic scene saving, history tracking, and undo/redo 
-                across all collaborators. Never lose your work.
+                Export to Unreal, Unity, Blender, or your own pipelines.
               </p>
               <div className={styles.featureAccent}></div>
             </div>
@@ -737,10 +882,9 @@ export default function LandingPage() {
                 </div>
                 <div className={styles.iconGlow}></div>
               </div>
-              <h3 className={styles.featureTitle}>Intuitive Interface</h3>
+              <h3 className={styles.featureTitle}>Browser-First</h3>
               <p className={styles.featureDescription}>
-                Clean, modern UI inspired by the best design tools. 
-                Easy for beginners, powerful for professionals.
+                No installs. Works anywhere. Pick up where you left off in seconds.
               </p>
               <div className={styles.featureAccent}></div>
             </div>
@@ -755,14 +899,172 @@ export default function LandingPage() {
                 </div>
                 <div className={styles.iconGlow}></div>
               </div>
-              <h3 className={styles.featureTitle}>Cloud Rendering</h3>
+              <h3 className={styles.featureTitle}>Versioning & History</h3>
               <p className={styles.featureDescription}>
-                Offload heavy rendering to the cloud. Create complex scenes 
-                without worrying about your hardware limitations.
+                Automatic saves with undo/redo across collaborators.
               </p>
               <div className={styles.featureAccent}></div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Playground Section */}
+      <section id="playground" className={styles.playgroundSection}>
+        <div className={styles.container}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Try the Mini 3D Playground</h2>
+            <p className={styles.sectionSubtitle}>Add objects and orbit the scene. AI-style snapping hints included.</p>
+          </div>
+          <div className={styles.playground}>
+            <div className={styles.playgroundCanvas}>
+              <Canvas shadows camera={{ position: [3, 3, 3], fov: 50 }}>
+                <ambientLight intensity={0.6} />
+                <directionalLight position={[5,5,5]} intensity={0.8} castShadow />
+                <gridHelper args={[10, 10, '#3b2f4a', '#1f1530']} />
+                <OrbitControls enableDamping />
+                {demoObjects.map(obj => (
+                  <mesh key={obj.id} position={obj.pos} castShadow receiveShadow>
+                    {obj.type === 'cube' && <boxGeometry args={[0.6,0.6,0.6]} />}
+                    {obj.type === 'sphere' && <sphereGeometry args={[0.35, 32, 32]} />}
+                    {obj.type === 'cylinder' && <cylinderGeometry args={[0.25,0.25,0.6, 32]} />}
+                    <meshStandardMaterial color={obj.type === 'cube' ? '#9b59b6' : obj.type === 'sphere' ? '#4ecdc4' : '#ffd93d'} emissiveIntensity={0.2} />
+                  </mesh>
+                ))}
+                {/* Fake AI snap hint */}
+                <mesh position={[0,0.01,0]} rotation={[-Math.PI/2,0,0]}>
+                  <ringGeometry args={[0.6,0.62, 64]} />
+                  <meshBasicMaterial color="#9b59b6" transparent opacity={0.4} />
+                </mesh>
+                {marioAdded && (
+                  <Suspense fallback={null}>
+                    <MarioModel ref={marioRef} position={[0, 0, 0]} showBubble={showItsThatEasy} />
+                  </Suspense>
+                )}
+              </Canvas>
+            </div>
+            <div className={styles.playgroundSidebar}>
+              <div className={styles.chatbotPanel}>
+                <div className={styles.chatHeader}>
+                  <div className={styles.botTitle}>AI Assistant</div>
+                </div>
+                <div className={styles.chatScroll}>
+                  {chatMessages.map((m, idx) => (
+                    <div key={idx} className={m.role === 'bot' ? styles.botMessage : styles.userMessage}>
+                      <span className={m.role === 'bot' ? styles.botName : styles.userName}>
+                        {m.role === 'bot' ? 'Ruchi' : 'You'}
+                      </span>
+                      <div className={m.role === 'bot' ? styles.messageBubble : styles.messageBubbleUser}>{m.text}</div>
+                    </div>
+                  ))}
+                  {showNextOptions && (
+                    <div className={styles.optionsGroup}>
+                      <button className={styles.optionButton} onClick={() => {
+                        setChatMessages(prev => ([...prev, { role: 'user', text: 'Make mario double in size' }, { role: 'bot', text: 'Gotcha!' }]));
+                        setMarioScale(prev => prev * 2);
+                        showOptionsOnce();
+                      }}>Make mario double in size</button>
+                      <button className={styles.optionButton} onClick={() => {
+                        setChatMessages(prev => ([...prev, { role: 'user', text: 'Make the jump higher' }, { role: 'bot', text: 'scale jump by Input' }]));
+                        setAwaitingJumpScale(true);
+                        setShowNextOptions(false);
+                      }}>Make the jump higher</button>
+                      <button className={styles.optionButton} onClick={() => {
+                        setChatMessages(prev => ([...prev, { role: 'user', text: 'Make him say something else' }]));
+                        setAwaitingSpeech(true);
+                        setShowNextOptions(false);
+                      }}>Make him say something else</button>
+                    </div>
+                  )}
+                  {awaitingJumpScale && (
+                    <div className={styles.chatInputRow}>
+                      <input type="number" min="1" max="1000" step="0.1" placeholder="Enter jump scale (1 - 1000)" className={styles.chatInput} value={jumpScaleInput} onChange={(e) => setJumpScaleInput(e.target.value)} />
+                      <button className={styles.primaryButton} onClick={() => {
+                        const val = parseFloat(jumpScaleInput);
+                        if (!isNaN(val) && val > 0) {
+                          const clamped = Math.max(1, Math.min(1000, val));
+                          setJumpScale(clamped);
+                          setChatMessages(prev => ([...prev, { role: 'user', text: String(val) }, { role: 'bot', text: `Jump scaled to ${clamped}x` }]));
+                          setAwaitingJumpScale(false);
+                          setJumpScaleInput('');
+                          showOptionsOnce();
+                        }
+                      }}>Set</button>
+                    </div>
+                  )}
+                  {awaitingSpeech && (
+                    <div className={styles.chatInputRow}>
+                      <input type="text" placeholder="What should Mario say while jumping?" className={styles.chatInput} value={speechInput} onChange={(e) => setSpeechInput(e.target.value)} />
+                      <button className={styles.primaryButton} onClick={() => {
+                        const txt = (speechInput || '').trim();
+                        if (txt) {
+                          setSpeechText(txt);
+                          setChatMessages(prev => ([...prev, { role: 'user', text: txt }, { role: 'bot', text: 'Updated speech!' }]));
+                          setAwaitingSpeech(false);
+                          setSpeechInput('');
+                          showOptionsOnce();
+                        }
+                      }}>Set</button>
+                    </div>
+                  )}
+                </div>
+                <div className={styles.chatFooter}>
+                  {!hasStarted ? (
+                    <button className={styles.primaryButton} onClick={() => { setShowControls(true); setHasStarted(true); }}>
+                      Start
+                    </button>
+                  ) : !showControls ? (
+                    <div className={styles.loaderDots} aria-label="Loading steps">...</div>
+                  ) : null}
+                  <button 
+                    className={styles.infoButton} 
+                    aria-label="Asset credits"
+                    title="Asset credits"
+                    onClick={() => setShowCredits(v => !v)}
+                  >
+                    i
+                  </button>
+                  {showCredits && (
+                    <div className={styles.creditsTooltip}>
+                      <span>“Mario obj” by MatiasH290 is licensed under </span>
+                      <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+                      <span>. Source: </span>
+                      <a href="https://skfb.ly/6X8o8" target="_blank" rel="noopener noreferrer">skfb.ly/6X8o8</a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+          {showControls && (
+            <div className={styles.playgroundFooter}>
+              <div className={styles.controlsCard}>
+                <div className={styles.controlsHeader}>Steps</div>
+                <div className={styles.playgroundControls}>
+                  <button className={styles.primaryButton} onClick={onAddMario} disabled={!showControls || marioAdded}>Add Mario</button>
+                  <button className={styles.secondaryButton} onClick={onMarioJump} disabled={!marioAdded || marioHasJumped}>Make Mario Jump</button>
+                  <button className={styles.secondaryButton} onClick={onAddJumpSound} disabled={!marioHasJumped || marioHasSound}>Add the jump sound</button>
+                  <button 
+                    className={styles.secondaryButton} 
+                    onClick={() => (isLooping ? stopLoop() : startLoop())}
+                    disabled={!marioAdded || !marioHasSound || !marioHasJumped}
+                  >
+                    {isLooping ? 'Stop Loop' : 'Loop and sync'}
+                  </button>
+                  <button className={styles.textButton} onClick={() => {
+                    // stop loop and audio, reset everything
+                    stopLoop();
+                    if (audioRef.current) { try { audioRef.current.pause(); audioRef.current.currentTime = 0; } catch {} }
+                    setMarioAdded(false);
+                    setMarioHasSound(false);
+                    setMarioHasJumped(false);
+                    setShowItsThatEasy(false);
+                    setDemoObjects([]);
+                  }}>Clear</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -845,86 +1147,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className={styles.pricing}>
-        <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Simple, Transparent Pricing</h2>
-            <p className={styles.sectionSubtitle}>
-              Start free, upgrade when you need more power
-            </p>
-          </div>
-          
-          <div className={styles.pricingGrid}>
-            <div className={styles.pricingCard}>
-              <div className={styles.pricingHeader}>
-                <h3 className={styles.pricingTitle}>Free</h3>
-                <div className={styles.pricingPrice}>
-                  <span className={styles.pricingAmount}>$0</span>
-                  <span className={styles.pricingPeriod}>/month</span>
-                </div>
-              </div>
-              <ul className={styles.pricingFeatures}>
-                <li>Basic 3D modeling</li>
-                <li>Up to 3 collaborators</li>
-                <li>1GB cloud storage</li>
-                <li>Basic AI suggestions</li>
-                <li>Community support</li>
-              </ul>
-              <Link href="/editor" className={styles.pricingButton}>
-                Get Started
-              </Link>
-            </div>
-            
-            <div className={`${styles.pricingCard} ${styles.pricingCardFeatured}`}>
-              <div className={styles.pricingBadge}>Most Popular</div>
-              <div className={styles.pricingHeader}>
-                <h3 className={styles.pricingTitle}>Pro</h3>
-                <div className={styles.pricingPrice}>
-                  <span className={styles.pricingAmount}>$29</span>
-                  <span className={styles.pricingPeriod}>/month</span>
-                </div>
-              </div>
-              <ul className={styles.pricingFeatures}>
-                <li>Everything in Free</li>
-                <li>Up to 10 collaborators</li>
-                <li>100GB cloud storage</li>
-                <li>Advanced AI assistance</li>
-                <li>Cloud rendering</li>
-                <li>Priority support</li>
-              </ul>
-              <Link href="/editor" className={styles.pricingButton}>
-                Start Pro Trial
-              </Link>
-            </div>
-            
-            <div className={styles.pricingCard}>
-              <div className={styles.pricingHeader}>
-                <h3 className={styles.pricingTitle}>Enterprise</h3>
-                <div className={styles.pricingPrice}>
-                  <span className={styles.pricingAmount}>Custom</span>
-                  <span className={styles.pricingPeriod}>pricing</span>
-                </div>
-              </div>
-              <ul className={styles.pricingFeatures}>
-                <li>Everything in Pro</li>
-                <li>Unlimited collaborators</li>
-                <li>1TB cloud storage</li>
-                <li>Custom AI models</li>
-                <li>On-premise deployment</li>
-                <li>Custom integrations</li>
-                <li>White-label solutions</li>
-                <li>24/7 phone support</li>
-                <li>SLA guarantees</li>
-                <li>Training & onboarding</li>
-              </ul>
-              <Link href="/editor" className={styles.pricingButton}>
-                Contact Sales
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section - Email Signup */}
       <section className={styles.cta}>
@@ -970,7 +1192,7 @@ export default function LandingPage() {
               <div className={styles.footerColumn}>
                 <h4>Product</h4>
                 <Link href="#features">Features</Link>
-                <Link href="#pricing">Pricing</Link>
+                <Link href="/pricing">Pricing</Link>
                 <Link href="/editor">Editor</Link>
               </div>
               

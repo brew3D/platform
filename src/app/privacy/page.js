@@ -17,7 +17,7 @@ export default function PrivacyPage() {
     <div className={styles.container}>
       {/* Header */}
       <header className={styles.header}>
-        <div className={styles.container}>
+        <div className={styles.inner}>
           <div className={styles.headerContent}>
             <div className={styles.logo}>
               <a href="/" className={styles.logoLink}>
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
             <nav className={styles.nav}>
               <a href="/landing" className={styles.navLink}>Home</a>
               <a href="/landing#features" className={styles.navLink}>Features</a>
-              <a href="/landing#pricing" className={styles.navLink}>Pricing</a>
+              <a href="/pricing" className={styles.navLink}>Pricing</a>
               <a href="/community" className={styles.navLink}>Community</a>
               <a href="/editor" className={styles.navButton}>Start Creating</a>
             </nav>
@@ -175,7 +175,7 @@ export default function PrivacyPage() {
 
       {/* Footer */}
       <footer className={styles.footer}>
-        <div className={styles.container}>
+        <div className={styles.inner}>
           <div className={styles.footerContent}>
             <div className={styles.footerBrand}>
               <div className={styles.logo}>
@@ -190,7 +190,7 @@ export default function PrivacyPage() {
               <div className={styles.footerColumn}>
                 <h4>Product</h4>
                 <a href="/landing#features">Features</a>
-                <a href="/landing#pricing">Pricing</a>
+                <a href="/pricing">Pricing</a>
                 <a href="/editor">Editor</a>
               </div>
               
