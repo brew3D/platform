@@ -422,6 +422,30 @@
   z-index: 5;
 }
 
+/* Right Column - 25% width, stacked panes */
+.rightColumn {
+  flex: 0 0 25%;
+  background: var(--panel-bg);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid var(--panel-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.rightPaneTop,
+.rightPaneBottom {
+  flex: 1 1 50%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rightPaneTop {
+  border-bottom: 1px solid var(--panel-border);
+}
+
 /* Left Panel - Outliner */
 .leftPanel {
   flex: 0 0 25%;
@@ -432,6 +456,70 @@
   flex-direction: column;
   flex-shrink: 0;
   position: relative;
+}
+
+/* Asset Library */
+.assetSearchRow {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.assetSearch {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--input-text);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.95rem;
+}
+
+.assetGrid {
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.75rem;
+  overflow: auto;
+}
+
+.assetCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--panel-border);
+  background: var(--item-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.assetCard:hover {
+  background: rgba(102, 126, 234, 0.12);
+  border-color: rgba(102, 126, 234, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+}
+
+.assetThumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--panel-border);
+  font-size: 1.25rem;
+  color: #667eea;
+}
+
+.assetName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 .leftPanel::before {
@@ -692,6 +780,29 @@
   border-color: #667eea;
   color: white;
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.clearSceneBtn {
+  background: var(--item-bg);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clearSceneBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
 }
 
 .viewport {
@@ -1412,4 +1523,136 @@ textarea:focus {
 
 .resizerHandle:hover {
   background: linear-gradient(180deg, rgba(102,126,234,0.25), rgba(118,75,162,0.25));
+}
+
+/* Delete Confirmation Toast */
+.deleteToast {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: toastFadeIn 0.3s ease;
+}
+
+@keyframes toastFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.deleteToastContent {
+  background: rgba(26, 26, 46, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 800px;
+  max-height: 300px;
+  width: 90%;
+  min-width: 300px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  animation: toastSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  overflow: hidden;
+}
+
+@keyframes toastSlideIn {
+  from { transform: translateY(-20px) scale(0.95); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.deleteToastIcon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #ef4444;
+}
+
+.deleteToastText {
+  flex: 1;
+  min-width: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.deleteToastText h4 {
+  margin: 0 0 0.5rem 0;
+  color: #ffffff;
+  font-size: clamp(1rem, 4vw, 1.25rem);
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.deleteToastText p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: clamp(0.875rem, 3.5vw, 1rem);
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.deleteToastActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.deleteCancelBtn,
+.deleteConfirmBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: clamp(0.875rem, 3vw, 0.95rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid;
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+}
+
+.deleteCancelBtn {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.deleteCancelBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.deleteConfirmBtn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-color: #ef4444;
+  color: white;
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+.deleteConfirmBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(239, 68, 68, 0.6);
 }

@@ -130,6 +130,17 @@ export default function EditorPage() {
   const [showTimeline, setShowTimeline] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
   const [showChat, setShowChat] = useState(true);
+  const [assetQuery, setAssetQuery] = useState("");
+  const assets = useMemo(() => ([
+    { id: 'cube', name: 'Cube', type: 'cube' },
+    { id: 'sphere', name: 'Sphere', type: 'sphere' },
+    { id: 'cylinder', name: 'Cylinder', type: 'cylinder' },
+    { id: 'plane', name: 'Plane', type: 'plane' },
+    { id: 'table', name: 'Table (preset)', type: 'preset_table' },
+    { id: 'chair', name: 'Chair (preset)', type: 'preset_chair' },
+    { id: 'lamp', name: 'Lamp (preset)', type: 'preset_lamp' },
+    { id: 'bookshelf', name: 'Bookshelf (preset)', type: 'preset_bookshelf' },
+  ]), []);
   
   // Resizable left panel
   const [leftPanelWidth, setLeftPanelWidth] = useState(0.25); // fraction of container
@@ -148,6 +159,9 @@ export default function EditorPage() {
   const [uploading, setUploading] = useState(false);
   const [attachment, setAttachment] = useState(null); // { url, name }
   const [isTransforming, setIsTransforming] = useState(false);
+  const [showDeleteToast, setShowDeleteToast] = useState(false);
+  const [objectToDelete, setObjectToDelete] = useState(null);
+  const [showClearToast, setShowClearToast] = useState(false);
 
   // Save / Load helpers
   const saveCurrentScene = async () => {
@@ -196,7 +210,7 @@ export default function EditorPage() {
     const onMove = (e) => {
       if (!isResizingRef.current || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const minPx = 220; // min width of left panel
+      const minPx = 120; // min width of left panel (reduced)
       const maxPx = Math.max(260, rect.width * 0.6); // keep some space for viewport
       const x = e.clientX - rect.left; // position within container
       const clamped = Math.max(minPx, Math.min(x, maxPx));
@@ -389,6 +403,43 @@ export default function EditorPage() {
         updateObject(newObj);
       }
     }
+  };
+
+  const confirmDeleteObject = (id) => {
+    const obj = sceneObjects.find(o => o.id === id);
+    if (obj) {
+      setObjectToDelete(obj);
+      setShowDeleteToast(true);
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (objectToDelete) {
+      removeObject(objectToDelete.id);
+      setSelectedId(null);
+    }
+    setShowDeleteToast(false);
+    setObjectToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteToast(false);
+    setObjectToDelete(null);
+  };
+
+  const confirmClearScene = () => {
+    setShowClearToast(true);
+  };
+
+  const handleClearConfirm = () => {
+    setSceneObjects([]);
+    setSceneGroups([]);
+    setSelectedId(null);
+    setShowClearToast(false);
+  };
+
+  const handleClearCancel = () => {
+    setShowClearToast(false);
   };
 
   const simulateAI = (text) => {
@@ -901,6 +952,19 @@ export default function EditorPage() {
 
   // No-op live updates during drag to avoid re-render interruptions; update occurs on release
 
+  // Keyboard listener for backspace delete
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Backspace' && selectedId && !isTransforming) {
+        e.preventDefault();
+        confirmDeleteObject(selectedId);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedId, isTransforming]);
+
   // Debounced autosave when scene objects change
   useEffect(() => {
     if (!currentScene) return;
@@ -1110,42 +1174,46 @@ export default function EditorPage() {
 
       {/* Main Layout */}
       <div className={styles.mainLayout}>
-        {/* Left Panel - Scene Info */}
+        {/* Left Panel - Asset Library */}
         {showOutliner && (
           <div className={styles.leftPanel} style={{ flex: `0 0 ${Math.round(leftPanelWidth * 100)}%` }}>
-            <SceneManager 
-              onSceneLoad={handleSceneLoad}
-              onSceneCreate={handleSceneCreate}
-            />
             <div className={styles.panelHeader}>
-              <h3>Objects</h3>
+              <h3>Asset Library</h3>
               <button onClick={() => setShowOutliner(false)}>
                 <FiX />
               </button>
             </div>
-            <div className={styles.outlinerContent}>
-              <div className={styles.outlinerItem}>
-                <span className={styles.outlinerFolder}>
-                  <FiChevronDown />
-                  <FiLayers />
-                  Scene
-                </span>
-                <div className={styles.outlinerChildren}>
-                  {sceneObjects.map((obj) => (
-                    <div 
-                      key={obj.id} 
-                      className={`${styles.outlinerObject} ${selectedId === obj.id ? styles.selected : ''}`}
-                      onClick={() => setSelectedId(obj.id)}
-                    >
-                      <span className={styles.objectIcon}>
-                        {obj.object === 'cube' ? <FiBox /> : obj.object === 'sphere' ? <FiCircle /> : <FiSquare />}
-                      </span>
-                      <span className={styles.objectName}>{obj.id} · pos({obj.position?.map(n=>Number(n).toFixed(2)).join(', ')})</span>
-                      
+            <div className={styles.assetSearchRow}>
+              <input
+                className={styles.assetSearch}
+                placeholder="Search assets..."
+                value={assetQuery}
+                onChange={(e) => setAssetQuery(e.target.value)}
+              />
+            </div>
+            <div className={styles.assetGrid}>
+              {assets
+                .filter(a => a.name.toLowerCase().includes((assetQuery||'').toLowerCase()))
+                .map(a => (
+                  <button
+                    key={a.id}
+                    className={styles.assetCard}
+                    onClick={() => {
+                      if (a.type.startsWith('preset_')) {
+                        const { objects, groups } = simulateAI(a.id);
+                        updateScene(mergeObjects(sceneObjects, objects), mergeGroups(sceneGroups, groups));
+                      } else {
+                        addPrimitive(a.type);
+                      }
+                    }}
+                    title={`Add ${a.name}`}
+                  >
+                    <div className={styles.assetThumb}>
+                      {a.type === 'cube' ? <FiBox /> : a.type === 'sphere' ? <FiCircle /> : <FiSquare />}
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <div className={styles.assetName}>{a.name}</div>
+                  </button>
+              ))}
             </div>
             {/* Resizer handle */}
             <div 
@@ -1170,6 +1238,10 @@ export default function EditorPage() {
               <button onClick={() => setShowAxes(!showAxes)} className={showAxes ? styles.active : ''}>
                 <FiLayers />
                 Axes
+              </button>
+              <button onClick={confirmClearScene} className={styles.clearSceneBtn} title="Clear all objects from scene">
+                <FiTrash2 />
+                Clear Scene
               </button>
               <button onClick={toggleTheme} className={theme === 'light' ? styles.active : ''} title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
                 {theme === 'light' ? <FiSun /> : <FiMoon />}
@@ -1287,66 +1359,99 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* Right Panel - Chatbot (default visible) */}
-        {showChat && (
-          <div className={styles.chatPanel}>
-            <div className={styles.chatHeader}>
-              <h3>Chatbot</h3>
-              <button className={styles.chatToggleBtn} onClick={() => setShowChat(false)}><FiX /> Hide</button>
+        {/* Right Column - Objects above Chatbot at 50/50 split */}
+        <div className={styles.rightColumn}>
+          <div className={styles.rightPaneTop}>
+            <div className={styles.panelHeader}>
+              <h3>Objects</h3>
             </div>
-            {statusMsg && (
-              <div className={styles.statusBar}>
-                {statusMsg}
-              </div>
-            )}
-            <div className={styles.chatBody} ref={chatBodyRef}>
-              {chatLog.length === 0 ? (
-                <p>Ask AI for help with modeling, materials, and more.</p>
-              ) : (
-                chatLog.map((m) => (
-                  <div key={m.id} className={`${styles.chatBubble} ${m.role === 'user' ? styles.fromUser : styles.fromAgent}`}>
-                    <div className={styles.roleLabel}>{m.role === 'user' ? 'You' : 'Agent'}</div>
-                    <div className={`${styles.messageText} ${m.variant === 'success' ? styles.messageSuccess : ''}`}>
-                      {m.text}
+            <div className={styles.outlinerContent}>
+              <div className={styles.outlinerItem}>
+                <span className={styles.outlinerFolder}>
+                  <FiChevronDown />
+                  <FiLayers />
+                  Scene
+                </span>
+                <div className={styles.outlinerChildren}>
+                  {sceneObjects.map((obj) => (
+                    <div 
+                      key={obj.id} 
+                      className={`${styles.outlinerObject} ${selectedId === obj.id ? styles.selected : ''}`}
+                      onClick={() => setSelectedId(obj.id)}
+                    >
+                      <span className={styles.objectIcon}>
+                        {obj.object === 'cube' ? <FiBox /> : obj.object === 'sphere' ? <FiCircle /> : <FiSquare />}
+                      </span>
+                      <span className={styles.objectName}>{obj.id} · pos({obj.position?.map(n=>Number(n).toFixed(2)).join(', ')})</span>
                     </div>
-                  </div>
-                ))
-              )}
-              {attachment && (
-                <div className={`${styles.chatBubble} ${styles.fromUser}`}>
-                  <div className={styles.roleLabel}>Attachment</div>
-                  <div className={styles.attachmentPreview}>
-                    <img src={attachment.url} alt={attachment.name} className={styles.attachmentThumb} />
-                    <div>{attachment.name || 'Image'}</div>
-                  </div>
+                  ))}
                 </div>
-              )}
-              {errorMsg && (
-                <div className={`${styles.chatBubble} ${styles.fromAgent}`}>
-                  <div className={styles.roleLabel}>Agent</div>
-                  <div className={`${styles.messageText} ${styles.messageError}`}>{errorMsg}</div>
-                  <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
-                    <button className={styles.chatSendBtn} onClick={() => setErrorMsg("")}>Dismiss</button>
-                    <button className={styles.chatSendBtn} onClick={() => { setErrorMsg(""); setChatInput(''); }}>New Prompt</button>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className={styles.chatInputBar}>
-              <button className={styles.chatSendBtn} onClick={handleUploadClick} title="Add image" disabled={uploading} style={{ minWidth: 40 }}>
-                {uploading ? '...' : '+'}
-              </button>
-              <input 
-                className={styles.chatInput} 
-                placeholder="Type a prompt..." 
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend(); }}
-              />
-              <button className={styles.chatSendBtn} onClick={handleChatSend}>Send</button>
+              </div>
             </div>
           </div>
-        )}
+          {showChat && (
+            <div className={styles.rightPaneBottom}>
+              <div className={styles.chatHeader}>
+                <h3>Chatbot</h3>
+                <button className={styles.chatToggleBtn} onClick={() => setShowChat(false)}><FiX /> Hide</button>
+              </div>
+              {statusMsg && (
+                <div className={styles.statusBar}>
+                  {statusMsg}
+                </div>
+              )}
+              <div className={styles.chatBody} ref={chatBodyRef}>
+                {chatLog.length === 0 ? (
+                  <p>Ask AI for help with modeling, materials, and more.</p>
+                ) : (
+                  chatLog.map((m) => (
+                    <div key={m.id} className={`${styles.chatBubble} ${m.role === 'user' ? styles.fromUser : styles.fromAgent}`}>
+                      <div className={styles.roleLabel}>{m.role === 'user' ? 'You' : 'Agent'}</div>
+                      <div className={`${styles.messageText} ${m.variant === 'success' ? styles.messageSuccess : ''}`}>
+                        {m.text}
+                      </div>
+                    </div>
+                  ))
+                )}
+                {attachment && (
+                  <div className={`${styles.chatBubble} ${styles.fromUser}`}>
+                    <div className={styles.roleLabel}>Attachment</div>
+                    <div className={styles.attachmentPreview}>
+                      <img src={attachment.url} alt={attachment.name} className={styles.attachmentThumb} />
+                      <div>{attachment.name || 'Image'}</div>
+                    </div>
+                  </div>
+                )}
+                {errorMsg && (
+                  <div className={`${styles.chatBubble} ${styles.fromAgent}`}>
+                    <div className={styles.roleLabel}>Agent</div>
+                    <div className={`${styles.messageText} ${styles.messageError}`}>{errorMsg}</div>
+                    <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                      <button className={styles.chatSendBtn} onClick={() => setErrorMsg("")}>Dismiss</button>
+                      <button className={styles.chatSendBtn} onClick={() => { setErrorMsg(""); setChatInput(''); }}>New Prompt</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className={styles.chatInputBar}>
+                <button className={styles.chatSendBtn} onClick={handleUploadClick} title="Add image" disabled={uploading} style={{ minWidth: 40 }}>
+                  {uploading ? '...' : '+'}
+                </button>
+                <input 
+                  className={styles.chatInput} 
+                  placeholder="Type a prompt..." 
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend(); }}
+                />
+                <button className={styles.chatSendBtn} onClick={handleChatSend}>Send</button>
+              </div>
+            </div>
+          )}
+          {!showChat && (
+            <button className={styles.chatFloatingBtn} onClick={() => setShowChat(true)}>Show Chat</button>
+          )}
+        </div>
 
         {!showChat && (
           <button className={styles.chatFloatingBtn} onClick={() => setShowChat(true)}>Show Chat</button>
@@ -1504,6 +1609,64 @@ export default function EditorPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Toast */}
+      {showDeleteToast && (
+        <div className={styles.deleteToast}>
+          <div className={styles.deleteToastContent}>
+            <div className={styles.deleteToastIcon}>
+              <FiAlertCircle />
+            </div>
+            <div className={styles.deleteToastText}>
+              <h4>Delete Object</h4>
+              <p>Are you sure you want to delete "{objectToDelete?.id}"?</p>
+            </div>
+            <div className={styles.deleteToastActions}>
+              <button 
+                className={styles.deleteCancelBtn} 
+                onClick={handleDeleteCancel}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.deleteConfirmBtn} 
+                onClick={handleDeleteConfirm}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear Scene Confirmation Toast */}
+      {showClearToast && (
+        <div className={styles.deleteToast}>
+          <div className={styles.deleteToastContent}>
+            <div className={styles.deleteToastIcon}>
+              <FiAlertCircle />
+            </div>
+            <div className={styles.deleteToastText}>
+              <h4>Clear Scene</h4>
+              <p>Are you sure you want to clear all objects from the scene? This action cannot be undone.</p>
+            </div>
+            <div className={styles.deleteToastActions}>
+              <button 
+                className={styles.deleteCancelBtn} 
+                onClick={handleClearCancel}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.deleteConfirmBtn} 
+                onClick={handleClearConfirm}
+              >
+                Clear Scene
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Timeline removed for simplicity */}
 
