@@ -5,7 +5,7 @@ import { useProjects } from "../contexts/ProjectsContext";
 import styles from "./HeroSection.module.css";
 
 export default function HeroSection({ activeProject, onCreateProject, onScrollToProjects }) {
-  const { projects } = useProjects();
+  const { projects, loading } = useProjects();
   
   // Get the most recent project
   const recentProject = projects && projects.length > 0 
@@ -38,7 +38,12 @@ export default function HeroSection({ activeProject, onCreateProject, onScrollTo
         </div>
 
         <div className={styles.heroActions}>
-          {recentProject ? (
+          {loading ? (
+            <div className={styles.loadingState}>
+              <div className={styles.loadingSpinner}></div>
+              <p>Loading projects...</p>
+            </div>
+          ) : recentProject ? (
             <div className={styles.recentProject}>
               <div className={styles.projectCard}>
                 <div className={styles.projectThumbnail}>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
 const ProjectsContext = createContext();
@@ -17,18 +17,24 @@ export const ProjectsProvider = ({ children }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const { user, token, isAuthenticated } = useAuth();
+
+  // Handle hydration
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   // Fetch projects when user is authenticated
   useEffect(() => {
-    if (isAuthenticated && token) {
+    if (isHydrated && isAuthenticated && token) {
       fetchProjects();
-    } else {
+    } else if (isHydrated && !isAuthenticated) {
       setProjects([]);
     }
-  }, [isAuthenticated, token]);
+  }, [isHydrated, isAuthenticated, token, fetchProjects]);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     if (!token) return;
     
     setLoading(true);
@@ -55,7 +61,7 @@ export const ProjectsProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   const createProject = async (projectData) => {
     if (!token) throw new Error('Not authenticated');
@@ -166,8 +172,8 @@ export const ProjectsProvider = ({ children }) => {
   };
 
   const value = {
-    projects,
-    loading,
+    projects: isHydrated ? projects : [],
+    loading: isHydrated ? loading : true,
     error,
     fetchProjects,
     createProject,
