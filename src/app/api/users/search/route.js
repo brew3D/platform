@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { scanTable, getUserByEmail } from '../../../../lib/dynamodb-operations.js';
-import { TABLE_NAMES } from '../../../../lib/dynamodb-schema.js';
+import { scanTable, getUserByEmail } from '../../../lib/dynamodb-operations.js';
+import { TABLE_NAMES } from '../../../lib/dynamodb-schema.js';
 
 function verifyToken(request) {
   const authHeader = request.headers.get('authorization');
