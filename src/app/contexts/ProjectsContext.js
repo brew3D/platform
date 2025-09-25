@@ -20,20 +20,7 @@ export const ProjectsProvider = ({ children }) => {
   const [isHydrated, setIsHydrated] = useState(false);
   const { user, token, isAuthenticated } = useAuth();
 
-  // Handle hydration
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-
-  // Fetch projects when user is authenticated
-  useEffect(() => {
-    if (isHydrated && isAuthenticated && token) {
-      fetchProjects();
-    } else if (isHydrated && !isAuthenticated) {
-      setProjects([]);
-    }
-  }, [isHydrated, isAuthenticated, token, fetchProjects]);
-
+  // Define fetchProjects BEFORE any effects that depend on it to avoid TDZ
   const fetchProjects = useCallback(async () => {
     if (!token) return;
     
@@ -62,6 +49,20 @@ export const ProjectsProvider = ({ children }) => {
       setLoading(false);
     }
   }, [token]);
+
+  // Handle hydration
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  // Fetch projects when user is authenticated
+  useEffect(() => {
+    if (isHydrated && isAuthenticated && token) {
+      fetchProjects();
+    } else if (isHydrated && !isAuthenticated) {
+      setProjects([]);
+    }
+  }, [isHydrated, isAuthenticated, token, fetchProjects]);
 
   const createProject = async (projectData) => {
     if (!token) throw new Error('Not authenticated');
