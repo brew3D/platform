@@ -226,7 +226,7 @@ export default function ProjectsSection({ projects = [], loading = false, active
           <p className={styles.emptyDescription}>
             Create your first game project or browse our template gallery to get started.
           </p>
-          <button className={styles.emptyAction}>
+          <button className={styles.emptyAction} onClick={() => onCreateNew?.()}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
               <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" strokeWidth="2"/>

@@ -40,7 +40,7 @@ export default function DashboardPage() {
         <div className={styles.content}>
           <HeroSection 
             activeProject={activeProject}
-            onCreateProject={() => setActiveProject('new')}
+            onCreateProject={() => setShowNewProject(true)}
           />
           
           <TemplateGallery />
