@@ -21,6 +21,13 @@ export default function DashboardPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showNewProject, setShowNewProject] = useState(false);
 
+  const handleScrollToProjects = () => {
+    const projectsSection = document.getElementById('projects-section');
+    if (projectsSection) {
+      projectsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
 
   return (
     <div className={styles.dashboard}>
@@ -41,17 +48,20 @@ export default function DashboardPage() {
           <HeroSection 
             activeProject={activeProject}
             onCreateProject={() => setShowNewProject(true)}
+            onScrollToProjects={handleScrollToProjects}
           />
           
           <TemplateGallery />
           
-          <ProjectsSection 
-            projects={projects}
-            loading={projectsLoading}
-            activeProject={activeProject}
-            onProjectSelect={setActiveProject}
-            onCreateNew={() => setShowNewProject(true)}
-          />
+          <div id="projects-section">
+            <ProjectsSection 
+              projects={projects}
+              loading={projectsLoading}
+              activeProject={activeProject}
+              onProjectSelect={setActiveProject}
+              onCreateNew={() => setShowNewProject(true)}
+            />
+          </div>
         </div>
       </div>
 

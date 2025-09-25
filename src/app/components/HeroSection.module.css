@@ -51,11 +51,17 @@
   gap: 1.5rem;
 }
 
-/* Current Project State */
-.currentProject {
+/* Recent Project State */
+.recentProject {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.projectCard {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1rem;
   background: linear-gradient(135deg, rgba(138, 43, 226, 0.1) 0%, rgba(102, 126, 234, 0.1) 100%);
   border: 1px solid rgba(138, 43, 226, 0.3);
   border-radius: 16px;
@@ -64,13 +70,30 @@
   transition: all 0.3s ease;
 }
 
-.currentProject:hover {
+.projectCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 30px rgba(138, 43, 226, 0.2);
 }
 
+.projectThumbnail {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: rgba(138, 43, 226, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.thumbnailPlaceholder {
+  color: #8a2be2;
+  opacity: 0.7;
+}
+
 .projectInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .projectTitle {
@@ -83,11 +106,21 @@
 }
 
 .projectName {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: white;
   margin: 0 0 0.5rem 0;
   font-family: var(--font-space-grotesk);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.projectMeta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .projectStatus {
@@ -111,6 +144,12 @@
   animation: pulse 2s infinite;
 }
 
+.lastModified {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.7; transform: scale(1.2); }
@@ -130,11 +169,39 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+  flex-shrink: 0;
 }
 
 .continueButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(138, 43, 226, 0.4);
+}
+
+.createNewSection {
+  display: flex;
+  justify-content: center;
+}
+
+.createNewButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.createNewButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 /* Create New Project State */
@@ -381,10 +448,14 @@
     flex-direction: column;
   }
   
-  .currentProject {
+  .projectCard {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
+  }
+  
+  .projectMeta {
+    justify-content: center;
   }
 }
 
