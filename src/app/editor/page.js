@@ -31,7 +31,8 @@ import {
   FiSun, FiMoon, FiVolume2, FiVolumeX, FiSave, FiDownload,
   FiUpload, FiRefreshCw, FiChevronDown, FiChevronRight,
   FiX, FiCheck, FiAlertCircle, FiInfo, FiHelpCircle,
-  FiMenu, FiMaximize, FiMinimize, FiMoreHorizontal
+  FiMenu, FiMaximize, FiMinimize, FiMoreHorizontal,
+  FiPackage, FiFolder, FiClock, FiChevronLeft, FiChevronUp
 } from "react-icons/fi";
 
 function MeshFromObj({ o }) {
@@ -82,6 +83,7 @@ export default function EditorPage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   // Theme (for viewport toggle)
   const [theme, setTheme] = useState('dark');
+  const [gridTheme, setGridTheme] = useState('dark');
   
   // Scene state
   const [sceneObjects, setSceneObjects] = useState([
@@ -125,7 +127,6 @@ export default function EditorPage() {
   const [fps, setFps] = useState(24);
   
   // Panels visibility
-  const [showOutliner, setShowOutliner] = useState(true);
   const [showProperties, setShowProperties] = useState(true);
   const [showTimeline, setShowTimeline] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
@@ -143,7 +144,8 @@ export default function EditorPage() {
   ]), []);
   
   // Resizable left panel
-  const [leftPanelWidth, setLeftPanelWidth] = useState(0.25); // fraction of container
+  const [leftPanelWidth, setLeftPanelWidth] = useState(0.125); // 1/8th of screen
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   const isResizingRef = useRef(false);
   const containerRef = useRef(null);
 
@@ -162,6 +164,40 @@ export default function EditorPage() {
   const [showDeleteToast, setShowDeleteToast] = useState(false);
   const [objectToDelete, setObjectToDelete] = useState(null);
   const [showClearToast, setShowClearToast] = useState(false);
+  const [showSaveToast, setShowSaveToast] = useState(false);
+  
+  // Sidebar sections
+  const [expandedSections, setExpandedSections] = useState({
+    assetLibrary: false,
+    fileStructure: false,
+    projectFlow: false,
+    timeline: false,
+    scenes: false
+  });
+  
+  // Scene management
+  const [scenes, setScenes] = useState([]);
+  const [sceneSearchQuery, setSceneSearchQuery] = useState("");
+  const [editingSceneId, setEditingSceneId] = useState(null);
+  const [editingSceneName, setEditingSceneName] = useState("");
+  
+  // File explorer
+  const [fileExplorerData, setFileExplorerData] = useState({
+    folders: [
+      { id: 'models', name: 'Models', parent: null, expanded: true },
+      { id: 'textures', name: 'Textures', parent: null, expanded: false },
+      { id: 'scripts', name: 'Scripts', parent: null, expanded: false },
+      { id: 'assets', name: 'Assets', parent: null, expanded: false }
+    ],
+    files: [
+      { id: 'mario', name: 'mario.glb', type: 'model', parent: 'models', size: '2.3 MB' },
+      { id: 'texture1', name: 'wood_texture.jpg', type: 'texture', parent: 'textures', size: '512 KB' },
+      { id: 'script1', name: 'animation.js', type: 'script', parent: 'scripts', size: '1.2 KB' }
+    ]
+  });
+  const [fileExplorerPath, setFileExplorerPath] = useState([]);
+  const [creatingNewItem, setCreatingNewItem] = useState(null); // 'folder' or 'file'
+  const [newItemName, setNewItemName] = useState("");
 
   // Save / Load helpers
   const saveCurrentScene = async () => {
@@ -260,6 +296,10 @@ export default function EditorPage() {
     } catch {}
   };
 
+  const toggleGridTheme = () => {
+    setGridTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
   // WebSocket event handlers
   useEffect(() => {
     if (!socket) return;
@@ -296,6 +336,11 @@ export default function EditorPage() {
       socket.off('object_deleted', handleObjectDeleted);
     };
   }, [socket]);
+
+  // Load scenes on mount
+  useEffect(() => {
+    loadScenes();
+  }, []);
 
   // Auto-join a default scene so real-time works without manual load
   useEffect(() => {
@@ -440,6 +485,224 @@ export default function EditorPage() {
 
   const handleClearCancel = () => {
     setShowClearToast(false);
+  };
+
+  // Save confirmation functions
+  const showSaveConfirmation = () => {
+    setShowSaveToast(true);
+  };
+
+  const handleSaveConfirm = async () => {
+    await saveCurrentScene();
+    setShowSaveToast(false);
+  };
+
+  const handleSaveCancel = () => {
+    setShowSaveToast(false);
+  };
+
+  // Sidebar section toggle
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // Scene management functions
+  const loadScenes = async () => {
+    try {
+      const res = await fetch('/api/scenes', { 
+        headers: { 'x-user-id': (user?.id || 'demo_user') } 
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setScenes(data.scenes || []);
+      }
+    } catch (e) {
+      console.error('Failed to load scenes', e);
+    }
+  };
+
+  const deleteScene = async (sceneId) => {
+    try {
+      const res = await fetch(`/api/scenes/${sceneId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setScenes(prev => prev.filter(s => s.id !== sceneId));
+        if (currentScene?.id === sceneId) {
+          setCurrentScene(null);
+          setSceneObjects([{
+            id: "box_1",
+            object: "cube",
+            dimensions: [1, 0.5, 1],
+            position: [0, 0.25, 0],
+            rotation: [0, 0, 0],
+            material: "#FF8C42",
+          }]);
+          setSceneGroups([]);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to delete scene', e);
+    }
+  };
+
+  const renameScene = async (sceneId, newName) => {
+    try {
+      const res = await fetch(`/api/scenes/${sceneId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName })
+      });
+      if (res.ok) {
+        setScenes(prev => prev.map(s => s.id === sceneId ? { ...s, name: newName } : s));
+        if (currentScene?.id === sceneId) {
+          setCurrentScene(prev => ({ ...prev, name: newName }));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to rename scene', e);
+    }
+  };
+
+  const startEditingScene = (scene) => {
+    setEditingSceneId(scene.id);
+    setEditingSceneName(scene.name);
+  };
+
+  const saveSceneEdit = () => {
+    if (editingSceneId && editingSceneName.trim()) {
+      renameScene(editingSceneId, editingSceneName.trim());
+    }
+    setEditingSceneId(null);
+    setEditingSceneName("");
+  };
+
+  const cancelSceneEdit = () => {
+    setEditingSceneId(null);
+    setEditingSceneName("");
+  };
+
+  const createNewScene = async () => {
+    try {
+      const res = await fetch('/api/scenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': (user?.id || 'demo_user') },
+        body: JSON.stringify({
+          name: `New Scene ${scenes.length + 1}`,
+          objects: [],
+          groups: [],
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setScenes(prev => [...prev, data.scene]);
+        setCurrentScene(data.scene);
+        setSceneObjects([]);
+        setSceneGroups([]);
+      }
+    } catch (e) {
+      console.error('Failed to create scene', e);
+    }
+  };
+
+  // File explorer functions
+  const getCurrentFolderContents = () => {
+    const currentFolderId = fileExplorerPath[fileExplorerPath.length - 1] || null;
+    const folders = fileExplorerData.folders.filter(f => f.parent === currentFolderId);
+    const files = fileExplorerData.files.filter(f => f.parent === currentFolderId);
+    return { folders, files };
+  };
+
+  const navigateToFolder = (folderId) => {
+    setFileExplorerPath(prev => [...prev, folderId]);
+  };
+
+  const navigateUp = () => {
+    setFileExplorerPath(prev => prev.slice(0, -1));
+  };
+
+  const toggleFolderExpansion = (folderId) => {
+    setFileExplorerData(prev => ({
+      ...prev,
+      folders: prev.folders.map(f => 
+        f.id === folderId ? { ...f, expanded: !f.expanded } : f
+      )
+    }));
+  };
+
+  const createNewFolder = () => {
+    if (newItemName.trim()) {
+      const newFolder = {
+        id: `folder_${Date.now()}`,
+        name: newItemName.trim(),
+        parent: fileExplorerPath[fileExplorerPath.length - 1] || null,
+        expanded: false
+      };
+      setFileExplorerData(prev => ({
+        ...prev,
+        folders: [...prev.folders, newFolder]
+      }));
+      setCreatingNewItem(null);
+      setNewItemName("");
+    }
+  };
+
+  const createNewFile = () => {
+    if (newItemName.trim()) {
+      const newFile = {
+        id: `file_${Date.now()}`,
+        name: newItemName.trim(),
+        type: 'file',
+        parent: fileExplorerPath[fileExplorerPath.length - 1] || null,
+        size: '0 KB'
+      };
+      setFileExplorerData(prev => ({
+        ...prev,
+        files: [...prev.files, newFile]
+      }));
+      setCreatingNewItem(null);
+      setNewItemName("");
+    }
+  };
+
+  const handleFileImport = async (file) => {
+    if (file.type === 'model/gltf-binary' || file.name.endsWith('.glb')) {
+      try {
+        // For now, just add to the models folder
+        const newFile = {
+          id: `imported_${Date.now()}`,
+          name: file.name,
+          type: 'model',
+          parent: 'models',
+          size: `${(file.size / 1024 / 1024).toFixed(1)} MB`
+        };
+        setFileExplorerData(prev => ({
+          ...prev,
+          files: [...prev.files, newFile]
+        }));
+        
+        // TODO: Actually load the GLB file into the scene
+        console.log('GLB file imported:', file.name);
+      } catch (e) {
+        console.error('Failed to import file', e);
+      }
+    }
+  };
+
+  const deleteFileOrFolder = (id, type) => {
+    if (type === 'folder') {
+      setFileExplorerData(prev => ({
+        ...prev,
+        folders: prev.folders.filter(f => f.id !== id),
+        files: prev.files.filter(f => f.parent !== id)
+      }));
+    } else {
+      setFileExplorerData(prev => ({
+        ...prev,
+        files: prev.files.filter(f => f.id !== id)
+      }));
+    }
   };
 
   const simulateAI = (text) => {
@@ -952,12 +1215,18 @@ export default function EditorPage() {
 
   // No-op live updates during drag to avoid re-render interruptions; update occurs on release
 
-  // Keyboard listener for backspace delete
+  // Keyboard listener for backspace delete and Cmd+S save
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Backspace' && selectedId && !isTransforming) {
         e.preventDefault();
         confirmDeleteObject(selectedId);
+      }
+      
+      // Cmd+S or Ctrl+S for save
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        showSaveConfirmation();
       }
     };
 
@@ -1150,7 +1419,7 @@ export default function EditorPage() {
         <div className={styles.toolbarSection}>
           <button 
             className={styles.actionBtn}
-            onClick={saveCurrentScene}
+            onClick={showSaveConfirmation}
             title={currentScene ? 'Save (updates current scene)' : 'Save (will create a new scene)'}
           >
             <FiSave />
@@ -1174,47 +1443,388 @@ export default function EditorPage() {
 
       {/* Main Layout */}
       <div className={styles.mainLayout}>
-        {/* Left Panel - Asset Library */}
-        {showOutliner && (
-          <div className={styles.leftPanel} style={{ flex: `0 0 ${Math.round(leftPanelWidth * 100)}%` }}>
+        {/* Left Panel - Collapsible Sidebar */}
+        <div className={`${styles.leftPanel} ${isLeftPanelCollapsed ? styles.collapsed : ''}`} style={{ flex: `0 0 ${isLeftPanelCollapsed ? '60px' : Math.round(leftPanelWidth * 100) + '%'}` }}>
             <div className={styles.panelHeader}>
-              <h3>Asset Library</h3>
-              <button onClick={() => setShowOutliner(false)}>
-                <FiX />
-              </button>
-            </div>
-            <div className={styles.assetSearchRow}>
-              <input
-                className={styles.assetSearch}
-                placeholder="Search assets..."
-                value={assetQuery}
-                onChange={(e) => setAssetQuery(e.target.value)}
-              />
-            </div>
-            <div className={styles.assetGrid}>
-              {assets
-                .filter(a => a.name.toLowerCase().includes((assetQuery||'').toLowerCase()))
-                .map(a => (
-                  <button
-                    key={a.id}
-                    className={styles.assetCard}
-                    onClick={() => {
-                      if (a.type.startsWith('preset_')) {
-                        const { objects, groups } = simulateAI(a.id);
-                        updateScene(mergeObjects(sceneObjects, objects), mergeGroups(sceneGroups, groups));
-                      } else {
-                        addPrimitive(a.type);
-                      }
-                    }}
-                    title={`Add ${a.name}`}
+              <h3>{isLeftPanelCollapsed ? '' : 'Workspace'}</h3>
+              <div className={styles.headerButtons}>
+                {!isLeftPanelCollapsed && (
+                  <button 
+                    onClick={() => setIsLeftPanelCollapsed(true)}
+                    title="Collapse Sidebar"
+                    className={styles.collapseButton}
                   >
-                    <div className={styles.assetThumb}>
-                      {a.type === 'cube' ? <FiBox /> : a.type === 'sphere' ? <FiCircle /> : <FiSquare />}
-                    </div>
-                    <div className={styles.assetName}>{a.name}</div>
+                    <FiChevronLeft />
                   </button>
-              ))}
+                )}
+              </div>
             </div>
+            
+            {/* Collapsed Icon Bar */}
+            {isLeftPanelCollapsed && (
+              <div className={styles.collapsedIconBar}>
+                <button 
+                  className={styles.expandButton}
+                  onClick={() => setIsLeftPanelCollapsed(false)}
+                  title="Expand Sidebar"
+                >
+                  <FiChevronRight />
+                </button>
+                <button 
+                  className={`${styles.iconButton} ${expandedSections.assetLibrary ? styles.active : ''}`}
+                  onClick={() => toggleSection('assetLibrary')}
+                  title="Asset Library"
+                >
+                  <FiPackage />
+                </button>
+                <button 
+                  className={`${styles.iconButton} ${expandedSections.fileStructure ? styles.active : ''}`}
+                  onClick={() => toggleSection('fileStructure')}
+                  title="File Structure"
+                >
+                  <FiFolder />
+                </button>
+                <button 
+                  className={`${styles.iconButton} ${expandedSections.projectFlow ? styles.active : ''}`}
+                  onClick={() => toggleSection('projectFlow')}
+                  title="Project Flow"
+                >
+                  <FiLayers />
+                </button>
+                <button 
+                  className={`${styles.iconButton} ${expandedSections.timeline ? styles.active : ''}`}
+                  onClick={() => toggleSection('timeline')}
+                  title="Timeline"
+                >
+                  <FiClock />
+                </button>
+                <button 
+                  className={`${styles.iconButton} ${expandedSections.scenes ? styles.active : ''}`}
+                  onClick={() => toggleSection('scenes')}
+                  title="Scenes"
+                >
+                  <FiPlay />
+                </button>
+              </div>
+            )}
+            
+            {!isLeftPanelCollapsed && (
+              <div className={styles.sidebarContent}>
+              {/* Asset Library Section */}
+              <div className={styles.sidebarSection}>
+                <div 
+                  className={styles.sidebarSectionHeader}
+                  onClick={() => toggleSection('assetLibrary')}
+                >
+                  <span>Asset Library</span>
+                  <FiChevronRight className={`${styles.sectionChevron} ${expandedSections.assetLibrary ? styles.expanded : ''}`} />
+                </div>
+                {expandedSections.assetLibrary && (
+                  <div className={styles.sidebarSectionContent}>
+                    <div className={styles.assetSearchRow}>
+                      <input
+                        className={styles.assetSearch}
+                        placeholder="Search assets..."
+                        value={assetQuery}
+                        onChange={(e) => setAssetQuery(e.target.value)}
+                      />
+                    </div>
+                    <div className={styles.assetGrid}>
+                      {assets
+                        .filter(a => a.name.toLowerCase().includes((assetQuery||'').toLowerCase()))
+                        .map(a => (
+                          <button
+                            key={a.id}
+                            className={styles.assetCard}
+                            onClick={() => {
+                              if (a.type.startsWith('preset_')) {
+                                const { objects, groups } = simulateAI(a.id);
+                                updateScene(mergeObjects(sceneObjects, objects), mergeGroups(sceneGroups, groups));
+                              } else {
+                                addPrimitive(a.type);
+                              }
+                            }}
+                            title={`Add ${a.name}`}
+                          >
+                            <div className={styles.assetThumb}>
+                              {a.type === 'cube' ? <FiBox /> : a.type === 'sphere' ? <FiCircle /> : <FiSquare />}
+                            </div>
+                            <div className={styles.assetName}>{a.name}</div>
+                          </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* File Structure Section */}
+              <div className={styles.sidebarSection}>
+                <div 
+                  className={styles.sidebarSectionHeader}
+                  onClick={() => toggleSection('fileStructure')}
+                >
+                  <span>File Structure</span>
+                  <FiChevronRight className={`${styles.sectionChevron} ${expandedSections.fileStructure ? styles.expanded : ''}`} />
+                </div>
+                {expandedSections.fileStructure && (
+                  <div className={styles.sidebarSectionContent}>
+                    <div className={styles.fileExplorer}>
+                      {/* Breadcrumb */}
+                      <div className={styles.fileBreadcrumb}>
+                        <button 
+                          className={styles.breadcrumbBtn}
+                          onClick={navigateUp}
+                          disabled={fileExplorerPath.length === 0}
+                        >
+                          <FiChevronRight style={{ transform: 'rotate(-90deg)' }} />
+                        </button>
+                        <span className={styles.breadcrumbPath}>
+                          {fileExplorerPath.length === 0 ? 'Root' : fileExplorerPath.join(' / ')}
+                        </span>
+                      </div>
+                      
+                      {/* Action buttons */}
+                      <div className={styles.fileActions}>
+                        <button 
+                          className={styles.fileActionBtn}
+                          onClick={() => setCreatingNewItem('folder')}
+                          title="New folder"
+                        >
+                          <FiPlus /> Folder
+                        </button>
+                        <button 
+                          className={styles.fileActionBtn}
+                          onClick={() => setCreatingNewItem('file')}
+                          title="New file"
+                        >
+                          <FiPlus /> File
+                        </button>
+                        <label className={styles.fileActionBtn} title="Import GLB model">
+                          <FiUpload />
+                          <input
+                            type="file"
+                            accept=".glb,.gltf"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileImport(file);
+                            }}
+                            style={{ display: 'none' }}
+                          />
+                          Import
+                        </label>
+                      </div>
+
+                      {/* Create new item form */}
+                      {creatingNewItem && (
+                        <div className={styles.createItemForm}>
+                          <input
+                            className={styles.createItemInput}
+                            placeholder={`New ${creatingNewItem} name...`}
+                            value={newItemName}
+                            onChange={(e) => setNewItemName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                creatingNewItem === 'folder' ? createNewFolder() : createNewFile();
+                              }
+                              if (e.key === 'Escape') {
+                                setCreatingNewItem(null);
+                                setNewItemName("");
+                              }
+                            }}
+                            autoFocus
+                          />
+                          <div className={styles.createItemActions}>
+                            <button 
+                              className={styles.createItemBtn}
+                              onClick={creatingNewItem === 'folder' ? createNewFolder : createNewFile}
+                            >
+                              <FiCheck />
+                            </button>
+                            <button 
+                              className={styles.createItemBtn}
+                              onClick={() => {
+                                setCreatingNewItem(null);
+                                setNewItemName("");
+                              }}
+                            >
+                              <FiX />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Folder and file list */}
+                      <div className={styles.fileList}>
+                        {(() => {
+                          const { folders, files } = getCurrentFolderContents();
+                          return (
+                            <>
+                              {folders.map(folder => (
+                                <div key={folder.id} className={styles.fileItem}>
+                                  <div 
+                                    className={styles.fileItemContent}
+                                    onClick={() => navigateToFolder(folder.id)}
+                                  >
+                                    <FiChevronRight className={`${styles.fileIcon} ${folder.expanded ? styles.expanded : ''}`} />
+                                    <FiLayers className={styles.fileIcon} />
+                                    <span className={styles.fileName}>{folder.name}</span>
+                                  </div>
+                                  <button 
+                                    className={styles.fileActionBtn}
+                                    onClick={() => deleteFileOrFolder(folder.id, 'folder')}
+                                    title="Delete folder"
+                                  >
+                                    <FiTrash2 />
+                                  </button>
+                                </div>
+                              ))}
+                              {files.map(file => (
+                                <div key={file.id} className={styles.fileItem}>
+                                  <div className={styles.fileItemContent}>
+                                    {file.type === 'model' ? <FiBox className={styles.fileIcon} /> :
+                                     file.type === 'texture' ? <FiSquare className={styles.fileIcon} /> :
+                                     file.type === 'script' ? <FiCpu className={styles.fileIcon} /> :
+                                     <FiSquare className={styles.fileIcon} />}
+                                    <span className={styles.fileName}>{file.name}</span>
+                                    <span className={styles.fileSize}>{file.size}</span>
+                                  </div>
+                                  <button 
+                                    className={styles.fileActionBtn}
+                                    onClick={() => deleteFileOrFolder(file.id, 'file')}
+                                    title="Delete file"
+                                  >
+                                    <FiTrash2 />
+                                  </button>
+                                </div>
+                              ))}
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Project Flow Section */}
+              <div className={styles.sidebarSection}>
+                <div 
+                  className={styles.sidebarSectionHeader}
+                  onClick={() => toggleSection('projectFlow')}
+                >
+                  <span>Project Flow</span>
+                  <FiChevronRight className={`${styles.sectionChevron} ${expandedSections.projectFlow ? styles.expanded : ''}`} />
+                </div>
+                {expandedSections.projectFlow && (
+                  <div className={styles.sidebarSectionContent}>
+                    <p>Project flow view coming soon...</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Timeline Section */}
+              <div className={styles.sidebarSection}>
+                <div 
+                  className={styles.sidebarSectionHeader}
+                  onClick={() => toggleSection('timeline')}
+                >
+                  <span>Timeline</span>
+                  <FiChevronRight className={`${styles.sectionChevron} ${expandedSections.timeline ? styles.expanded : ''}`} />
+                </div>
+                {expandedSections.timeline && (
+                  <div className={styles.sidebarSectionContent}>
+                    <p>Timeline view coming soon...</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Scenes Section */}
+              <div className={styles.sidebarSection}>
+                <div 
+                  className={styles.sidebarSectionHeader}
+                  onClick={() => toggleSection('scenes')}
+                >
+                  <span>Scenes</span>
+                  <FiChevronRight className={`${styles.sectionChevron} ${expandedSections.scenes ? styles.expanded : ''}`} />
+                </div>
+                {expandedSections.scenes && (
+                  <div className={styles.sidebarSectionContent}>
+                    <div className={styles.sceneSearchRow}>
+                      <input
+                        className={styles.sceneSearch}
+                        placeholder="Search scenes..."
+                        value={sceneSearchQuery}
+                        onChange={(e) => setSceneSearchQuery(e.target.value)}
+                      />
+                      <button 
+                        className={styles.newSceneBtn}
+                        onClick={createNewScene}
+                        title="Create new scene"
+                      >
+                        <FiPlus />
+                      </button>
+                    </div>
+                    <div className={styles.sceneList}>
+                      {scenes
+                        .filter(s => s.name.toLowerCase().includes(sceneSearchQuery.toLowerCase()))
+                        .map(scene => (
+                          <div key={scene.id} className={styles.sceneItem}>
+                            {editingSceneId === scene.id ? (
+                              <div className={styles.sceneEditForm}>
+                                <input
+                                  className={styles.sceneEditInput}
+                                  value={editingSceneName}
+                                  onChange={(e) => setEditingSceneName(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') saveSceneEdit();
+                                    if (e.key === 'Escape') cancelSceneEdit();
+                                  }}
+                                  autoFocus
+                                />
+                                <div className={styles.sceneEditActions}>
+                                  <button className={styles.sceneEditBtn} onClick={saveSceneEdit}>
+                                    <FiCheck />
+                                  </button>
+                                  <button className={styles.sceneEditBtn} onClick={cancelSceneEdit}>
+                                    <FiX />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className={styles.sceneItemContent}>
+                                <div 
+                                  className={`${styles.sceneName} ${currentScene?.id === scene.id ? styles.activeScene : ''}`}
+                                  onClick={() => handleSceneLoad(scene)}
+                                >
+                                  {scene.name}
+                                </div>
+                                <div className={styles.sceneActions}>
+                                  <button 
+                                    className={styles.sceneActionBtn}
+                                    onClick={() => startEditingScene(scene)}
+                                    title="Rename"
+                                  >
+                                    <FiEdit3 />
+                                  </button>
+                                  <button 
+                                    className={styles.sceneActionBtn}
+                                    onClick={() => deleteScene(scene.id)}
+                                    title="Delete"
+                                  >
+                                    <FiTrash2 />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            )}
+            
             {/* Resizer handle */}
             <div 
               className={styles.resizerHandle}
@@ -1222,7 +1832,6 @@ export default function EditorPage() {
               title="Drag to resize"
             />
           </div>
-        )}
 
         {/* Center - 3D Viewport */}
         <div className={styles.viewportContainer}>
@@ -1243,8 +1852,8 @@ export default function EditorPage() {
                 <FiTrash2 />
                 Clear Scene
               </button>
-              <button onClick={toggleTheme} className={theme === 'light' ? styles.active : ''} title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
-                {theme === 'light' ? <FiSun /> : <FiMoon />}
+              <button onClick={toggleGridTheme} className={gridTheme === 'light' ? styles.active : ''} title={gridTheme === 'light' ? 'Switch to dark background' : 'Switch to light background'}>
+                {gridTheme === 'light' ? <FiSun /> : <FiMoon />}
               </button>
             </div>
           </div>
@@ -1258,6 +1867,7 @@ export default function EditorPage() {
                 // Deselect when clicking empty space
                 if (!isTransforming) setSelectedId(null);
               }}
+              style={{ background: gridTheme === 'light' ? '#f0f0f0' : '#1a1a1a' }}
             >
               <ambientLight intensity={ambientIntensity} />
               <directionalLight position={[5, 10, 5]} intensity={directionalIntensity} />
@@ -1662,6 +2272,35 @@ export default function EditorPage() {
                 onClick={handleClearConfirm}
               >
                 Clear Scene
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save Confirmation Toast */}
+      {showSaveToast && (
+        <div className={styles.deleteToast}>
+          <div className={styles.deleteToastContent}>
+            <div className={styles.saveToastIcon}>
+              <FiSave />
+            </div>
+            <div className={styles.deleteToastText}>
+              <h4>Save Scene</h4>
+              <p>Do you want to save to current scene "{currentScene?.name || 'Untitled Scene'}"?</p>
+            </div>
+            <div className={styles.deleteToastActions}>
+              <button 
+                className={styles.deleteCancelBtn} 
+                onClick={handleSaveCancel}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.deleteConfirmBtn} 
+                onClick={handleSaveConfirm}
+              >
+                Save
               </button>
             </div>
           </div>

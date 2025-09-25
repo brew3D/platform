@@ -88,7 +88,8 @@ export default function SelectableMesh({
   transformMode = 'translate',
   coordinateSystem = 'global',
   snapEnabled = false,
-  snapValue = 0.1
+  snapValue = 0.1,
+  isInGroup = false
 }) {
   const ref = useRef();
   const isSelected = selectedId === o.id;
@@ -301,6 +302,11 @@ export default function SelectableMesh({
       {/* Resize handles disabled per request */}
     </group>
   );
+
+  // Only render TransformControls if not in a group (groups handle their own transforms)
+  if (isInGroup) {
+    return mesh;
+  }
 
   // Always mount TransformControls; toggle enabled to avoid attach timing issues
   return (

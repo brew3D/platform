@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,6 +16,8 @@ export default function SignupPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const router = useRouter();
   const { register } = useAuth();
 
@@ -105,31 +108,51 @@ export default function SignupPage() {
 
           <div className={styles.inputGroup}>
             <label htmlFor="password" className={styles.label}>Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={styles.input}
-              placeholder="Create a strong password"
-              required
-              minLength={8}
-            />
+            <div className={styles.inputWithIcon}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={styles.input}
+                placeholder="Create a strong password"
+                required
+                minLength={8}
+              />
+              <button
+                type="button"
+                className={styles.eyeToggle}
+                onClick={() => setShowPassword(prev => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+              </button>
+            </div>
           </div>
 
           <div className={styles.inputGroup}>
             <label htmlFor="confirmPassword" className={styles.label}>Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className={styles.input}
-              placeholder="Confirm your password"
-              required
-            />
+            <div className={styles.inputWithIcon}>
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={styles.input}
+                placeholder="Confirm your password"
+                required
+              />
+              <button
+                type="button"
+                className={styles.eyeToggle}
+                onClick={() => setShowConfirm(prev => !prev)}
+                aria-label={showConfirm ? 'Hide password' : 'Show password'}
+              >
+                {showConfirm ? <FaRegEyeSlash /> : <FaRegEye />}
+              </button>
+            </div>
           </div>
 
           <button

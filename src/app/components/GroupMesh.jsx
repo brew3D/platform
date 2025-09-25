@@ -40,6 +40,7 @@ export default function GroupMesh({ group, updateGroup, updateChild, selectedId,
             selectedId={selectedId}
             setSelectedId={setSelectedId}
             updateObject={(id, field, value) => updateChild?.(group.id, id, field, value)}
+            isInGroup={true}
           />
         ))}
       </group>
