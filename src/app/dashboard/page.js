@@ -77,22 +77,32 @@ export default function DashboardPage() {
         open={showNewProject}
         onClose={() => setShowNewProject(false)}
         searchUsers={async (q) => {
-          const token = localStorage.getItem('auth_token');
-          const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${token}` } });
+          const authToken = typeof window !== 'undefined' ? (localStorage.getItem('auth_token') || '') : '';
+          const bearer = user && user.userId ? (authToken ? authToken : (typeof token !== 'undefined' ? token : '')) : authToken;
+          const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${bearer}` } });
           if (!res.ok) return [];
           const data = await res.json();
           return data.users || [];
         }}
         onCreate={async ({ name, description, teamMembers }) => {
-          const token = localStorage.getItem('auth_token');
+          const authToken = typeof window !== 'undefined' ? (localStorage.getItem('auth_token') || '') : '';
+          const bearer = user && user.userId ? (authToken ? authToken : (typeof token !== 'undefined' ? token : '')) : authToken;
           const res = await fetch('/api/projects', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bearer}` },
             body: JSON.stringify({ name, description, teamMembers })
           });
+          if (res.status === 401) {
+            alert('Your session has expired. Please sign in again.');
+            window.location.href = '/auth/signin';
+            return;
+          }
           if (res.ok) {
             const data = await res.json();
             window.location.href = `/dashboard/projects/${data.project.projectId}`;
+          } else {
+            const err = await res.json().catch(() => ({}));
+            alert(err.message || 'Failed to create project. Please try again.');
           }
         }}
       />
