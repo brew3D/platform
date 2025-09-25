@@ -1,80 +1,80 @@
+import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { userStorage } from '../../../lib/userStorage';
+import { createUser, getUserByEmail } from '../../../../lib/dynamodb-operations.js';
 
 export async function POST(request) {
   try {
     const { name, email, password } = await request.json();
 
-    // Validate input
+    // Validate required fields
     if (!name || !email || !password) {
-      return Response.json(
-        { message: 'All fields are required' },
+      return NextResponse.json(
+        { message: 'Name, email, and password are required' },
         { status: 400 }
       );
     }
 
-    if (password.length < 8) {
-      return Response.json(
-        { message: 'Password must be at least 8 characters long' },
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { message: 'Invalid email format' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      return NextResponse.json(
+        { message: 'Password must be at least 6 characters long' },
         { status: 400 }
       );
     }
 
     // Check if user already exists
-    if (userStorage.has(email)) {
-      return Response.json(
+    const existingUser = await getUserByEmail(email);
+    if (existingUser) {
+      return NextResponse.json(
         { message: 'User with this email already exists' },
         { status: 409 }
       );
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // Generate user ID
-    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    // Create user object
-    const user = {
-      userId,
+    // Create user in DynamoDB
+    const { user } = await createUser({
       name,
       email,
-      password: hashedPassword,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isVerified: false,
-      profilePicture: null,
-      preferences: {
-        theme: 'dark',
-        notifications: true,
-      },
-    };
-
-    // Save user to in-memory storage
-    userStorage.set(email, user);
+      passwordHash
+    });
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId, email },
-      process.env.JWT_SECRET,
+      { 
+        userId: user.userId, 
+        email: user.email,
+        name: user.name
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
 
-    return Response.json({
+    // Return user data (without password hash)
+    const { passwordHash: _, ...userWithoutPassword } = user;
+
+    return NextResponse.json({
       message: 'User created successfully',
-      token,
-      user: {
-        userId: user.userId,
-        name: user.name,
-        email: user.email,
-        isVerified: user.isVerified,
-      },
-    });
+      user: userWithoutPassword,
+      token
+    }, { status: 201 });
 
   } catch (error) {
     console.error('Signup error:', error);
-    return Response.json(
+    return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
     );

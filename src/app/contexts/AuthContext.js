@@ -18,13 +18,10 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored token on mount (temporarily bypass verify)
+    // Check for stored token on mount
     const storedToken = localStorage.getItem('auth_token');
     if (storedToken) {
-      // TEMP: Trust token presence and create a minimal user session
-      setUser((prev) => prev || { name: 'User' });
-      setToken(storedToken);
-      setLoading(false);
+      verifyToken(storedToken);
     } else {
       setLoading(false);
     }
@@ -32,7 +29,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyToken = async (tokenToVerify) => {
     try {
-      const response = await fetch('http://localhost:5000/verify', {
+      const response = await fetch('/api/auth/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,10 +44,14 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('auth_token', tokenToVerify);
       } else {
         localStorage.removeItem('auth_token');
+        setUser(null);
+        setToken(null);
       }
     } catch (error) {
       console.error('Token verification failed:', error);
       localStorage.removeItem('auth_token');
+      setUser(null);
+      setToken(null);
     } finally {
       setLoading(false);
     }

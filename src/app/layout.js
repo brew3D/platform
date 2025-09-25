@@ -1,6 +1,7 @@
 import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ProjectsProvider } from "./contexts/ProjectsContext";
 import { CollaborationProvider } from "./contexts/CollaborationContext";
 import AppWrapper from "./components/AppWrapper";
 
@@ -34,13 +35,15 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning
         className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        <AppWrapper>
-          <AuthProvider>
-            <CollaborationProvider>
-              {children}
-            </CollaborationProvider>
-          </AuthProvider>
-        </AppWrapper>
+              <AppWrapper>
+                <AuthProvider>
+                  <ProjectsProvider>
+                    <CollaborationProvider>
+                      {children}
+                    </CollaborationProvider>
+                  </ProjectsProvider>
+                </AuthProvider>
+              </AppWrapper>
       </body>
     </html>
   );

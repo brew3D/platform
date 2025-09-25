@@ -1,69 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+import { useProjects } from "../contexts/ProjectsContext";
 import styles from "./ProjectsSection.module.css";
 
-const mockProjects = [
-  {
-    id: 'space-adventure',
-    name: 'Space Adventure',
-    description: 'Epic space exploration game with procedurally generated worlds',
-    lastModified: '2 hours ago',
-    status: 'In Progress',
-    teamMembers: [
-      { name: 'John Doe', avatar: 'JD', color: '#8a2be2' },
-      { name: 'Jane Smith', avatar: 'JS', color: '#667eea' },
-      { name: 'Mike Johnson', avatar: 'MJ', color: '#ff6b6b' }
-    ],
-    thumbnail: '/api/placeholder/200/150',
-    progress: 75,
-    tags: ['3D', 'Space', 'Adventure']
-  },
-  {
-    id: 'pixel-platformer',
-    name: 'Pixel Platformer',
-    description: 'Retro-style 2D platformer with pixel art graphics',
-    lastModified: '1 day ago',
-    status: 'Review',
-    teamMembers: [
-      { name: 'Sarah Wilson', avatar: 'SW', color: '#4ecdc4' },
-      { name: 'Tom Brown', avatar: 'TB', color: '#ffd93d' }
-    ],
-    thumbnail: '/api/placeholder/200/150',
-    progress: 90,
-    tags: ['2D', 'Pixel Art', 'Platformer']
-  },
-  {
-    id: 'mystery-puzzle',
-    name: 'Mystery Puzzle',
-    description: 'Mind-bending puzzle game with atmospheric storytelling',
-    lastModified: '3 days ago',
-    status: 'Draft',
-    teamMembers: [
-      { name: 'Alex Chen', avatar: 'AC', color: '#a8e6cf' }
-    ],
-    thumbnail: '/api/placeholder/200/150',
-    progress: 45,
-    tags: ['Puzzle', 'Mystery', 'Story']
-  },
-  {
-    id: 'racing-game',
-    name: 'Racing Game',
-    description: 'High-speed racing with realistic physics and multiplayer',
-    lastModified: '1 week ago',
-    status: 'Completed',
-    teamMembers: [
-      { name: 'Emma Davis', avatar: 'ED', color: '#ff9a9e' },
-      { name: 'Chris Lee', avatar: 'CL', color: '#fecfef' },
-      { name: 'Lisa Wang', avatar: 'LW', color: '#c7ceea' }
-    ],
-    thumbnail: '/api/placeholder/200/150',
-    progress: 100,
-    tags: ['Racing', 'Multiplayer', '3D']
-  }
-];
-
-export default function ProjectsSection({ activeProject, onProjectSelect }) {
+export default function ProjectsSection({ projects = [], loading = false, activeProject, onProjectSelect }) {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [sortBy, setSortBy] = useState('lastModified');
 
@@ -77,14 +18,27 @@ export default function ProjectsSection({ activeProject, onProjectSelect }) {
     }
   };
 
-  const sortedProjects = [...mockProjects].sort((a, b) => {
+  const formatLastModified = (timestamp) => {
+    if (!timestamp) return 'Unknown';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const sortedProjects = [...projects].sort((a, b) => {
     switch (sortBy) {
       case 'name':
         return a.name.localeCompare(b.name);
       case 'lastModified':
-        return new Date(b.lastModified) - new Date(a.lastModified);
-      case 'progress':
-        return b.progress - a.progress;
+        return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+      case 'created':
+        return new Date(b.createdAt) - new Date(a.createdAt);
       default:
         return 0;
     }
@@ -137,7 +91,7 @@ export default function ProjectsSection({ activeProject, onProjectSelect }) {
           >
             <option value="lastModified">Last Modified</option>
             <option value="name">Name</option>
-            <option value="progress">Progress</option>
+            <option value="created">Created</option>
           </select>
 
           <button className={styles.newProjectButton}>
@@ -151,13 +105,19 @@ export default function ProjectsSection({ activeProject, onProjectSelect }) {
         </div>
       </div>
 
-      <div className={`${styles.projectsContainer} ${viewMode === 'list' ? styles.listView : styles.gridView}`}>
-        {sortedProjects.map((project) => (
-          <div
-            key={project.id}
-            className={`${styles.projectCard} ${activeProject === project.id ? styles.active : ''}`}
-            onClick={() => onProjectSelect(project.id)}
-          >
+      {loading ? (
+        <div className={styles.loadingState}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Loading projects...</p>
+        </div>
+      ) : (
+        <div className={`${styles.projectsContainer} ${viewMode === 'list' ? styles.listView : styles.gridView}`}>
+          {sortedProjects.map((project) => (
+            <div
+              key={project.projectId}
+              className={`${styles.projectCard} ${activeProject === project.projectId ? styles.active : ''}`}
+              onClick={() => onProjectSelect(project.projectId)}
+            >
             <div className={styles.projectThumbnail}>
               <div className={styles.thumbnailPlaceholder}>
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -202,42 +162,36 @@ export default function ProjectsSection({ activeProject, onProjectSelect }) {
               <p className={styles.projectDescription}>{project.description}</p>
 
               <div className={styles.projectMeta}>
-                <div className={styles.progressContainer}>
-                  <div className={styles.progressLabel}>
-                    <span>Progress</span>
-                    <span>{project.progress}%</span>
+                <div className={styles.projectInfo}>
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoLabel}>Type:</span>
+                    <span className={styles.infoValue}>{project.settings?.gameType || 'Unknown'}</span>
                   </div>
-                  <div className={styles.progressBar}>
-                    <div 
-                      className={styles.progressFill}
-                      style={{ width: `${project.progress}%` }}
-                    ></div>
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoLabel}>Platform:</span>
+                    <span className={styles.infoValue}>{project.settings?.platform || 'Web'}</span>
                   </div>
                 </div>
 
                 <div className={styles.projectTags}>
-                  {project.tags.map((tag, index) => (
-                    <span key={index} className={styles.tag}>
-                      {tag}
-                    </span>
-                  ))}
+                  <span className={styles.tag}>{project.settings?.template || 'Blank'}</span>
+                  <span className={styles.tag}>{project.settings?.gameType || 'Game'}</span>
                 </div>
               </div>
 
               <div className={styles.projectFooter}>
                 <div className={styles.teamMembers}>
                   <div className={styles.memberAvatars}>
-                    {project.teamMembers.slice(0, 3).map((member, index) => (
+                    {project.teamMembers?.slice(0, 3).map((memberId, index) => (
                       <div
                         key={index}
                         className={styles.memberAvatar}
-                        style={{ '--member-color': member.color }}
-                        title={member.name}
+                        title={`Member ${index + 1}`}
                       >
-                        {member.avatar}
+                        {memberId.substring(0, 2).toUpperCase()}
                       </div>
                     ))}
-                    {project.teamMembers.length > 3 && (
+                    {project.teamMembers?.length > 3 && (
                       <div className={styles.moreMembers}>
                         +{project.teamMembers.length - 3}
                       </div>
@@ -250,7 +204,7 @@ export default function ProjectsSection({ activeProject, onProjectSelect }) {
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                     <polyline points="12,6 12,12 16,14" stroke="currentColor" strokeWidth="2"/>
                   </svg>
-                  {project.lastModified}
+                  {formatLastModified(project.updatedAt || project.createdAt)}
                 </div>
               </div>
             </div>
@@ -258,7 +212,10 @@ export default function ProjectsSection({ activeProject, onProjectSelect }) {
         ))}
       </div>
 
-      {sortedProjects.length === 0 && (
+        )}
+      )}
+
+      {!loading && sortedProjects.length === 0 && (
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
