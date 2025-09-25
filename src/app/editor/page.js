@@ -81,6 +81,7 @@ export default function EditorPage() {
   const { socket, updateObject, deleteObject, joinScene } = useCollaboration();
   const searchParams = useSearchParams();
   const templateName = searchParams.get('template');
+  const projectName = searchParams.get('project');
   
   // Auth state
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -1260,7 +1261,7 @@ export default function EditorPage() {
 
   return (
     <div className={styles.editorContainer} ref={containerRef}>
-      <Topbar onExport={handleExport} templateName={templateName} />
+      <Topbar onExport={handleExport} templateName={projectName || templateName} />
       
       {/* Quick Save Buttons moved into toolbar */}
       

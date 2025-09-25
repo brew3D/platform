@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import DashboardSidebar from "../../components/DashboardSidebar";
 import DashboardTopbar from "../../components/DashboardTopbar";
 import TemplateGalleryHeader from "../../components/TemplateGalleryHeader";
@@ -210,6 +211,7 @@ export default function TemplatesPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [user, setUser] = useState({ name: 'User' }); // Mock user for testing
+  const router = useRouter();
 
   const categories = ['all', '2D Platformer', 'RPG', 'Puzzle', 'Arcade', 'FPS', 'Strategy', 'Racing', 'Simulation', 'VR', 'Web3', 'AI', 'Metaverse'];
 
@@ -227,6 +229,12 @@ export default function TemplatesPage() {
     ...tier,
     templates: filteredTemplates.filter(template => template.tier === tier.id)
   }));
+
+  const handleCreateProject = (projectData) => {
+    // Navigate to editor with the new project name
+    const projectName = encodeURIComponent(projectData.name);
+    router.push(`/editor?project=${projectName}&template=${encodeURIComponent(projectData.template.name)}`);
+  };
 
   return (
     <div className={styles.templatesPage}>
@@ -257,6 +265,7 @@ export default function TemplatesPage() {
           <TemplateGrid 
             groupedTemplates={groupedTemplates}
             searchQuery={searchQuery}
+            onCreateProject={handleCreateProject}
           />
         </div>
       </div>

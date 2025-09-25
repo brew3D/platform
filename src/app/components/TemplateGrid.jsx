@@ -2,11 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import TemplatePreview from "./TemplatePreview";
+import TemplateRenameModal from "./TemplateRenameModal";
 import styles from "./TemplateGrid.module.css";
 
-export default function TemplateGrid({ groupedTemplates, searchQuery }) {
+export default function TemplateGrid({ groupedTemplates, searchQuery, onCreateProject }) {
   const [visibleTiers, setVisibleTiers] = useState(new Set());
   const [hoveredTemplate, setHoveredTemplate] = useState(null);
+  const [previewTemplate, setPreviewTemplate] = useState(null);
+  const [renameModal, setRenameModal] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -21,15 +25,26 @@ export default function TemplateGrid({ groupedTemplates, searchQuery }) {
   }, [groupedTemplates]);
 
   const handleStartProject = (template) => {
-    // TODO: Implement project creation with template
-    console.log('Starting project with template:', template);
-    // This would typically open a modal or redirect to project creation
+    setRenameModal(template);
   };
 
   const handlePreviewTemplate = (template) => {
-    // Navigate to editor with template name as URL parameter
-    const templateName = encodeURIComponent(template.name);
-    router.push(`/editor?template=${templateName}`);
+    setPreviewTemplate(template);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewTemplate(null);
+  };
+
+  const handleCloseRenameModal = () => {
+    setRenameModal(null);
+  };
+
+  const handleConfirmRename = (projectData) => {
+    if (onCreateProject) {
+      onCreateProject(projectData);
+    }
+    setRenameModal(null);
   };
 
   return (
@@ -201,6 +216,25 @@ export default function TemplateGrid({ groupedTemplates, searchQuery }) {
             Clear Filters
           </button>
         </div>
+      )}
+
+      {/* Template Preview Modal */}
+      {previewTemplate && (
+        <TemplatePreview
+          template={previewTemplate}
+          onClose={handleClosePreview}
+          onStartProject={handleStartProject}
+        />
+      )}
+
+      {/* Template Rename Modal */}
+      {renameModal && (
+        <TemplateRenameModal
+          isOpen={!!renameModal}
+          onClose={handleCloseRenameModal}
+          template={renameModal}
+          onConfirm={handleConfirmRename}
+        />
       )}
     </div>
   );
