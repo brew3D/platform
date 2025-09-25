@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./TemplateGrid.module.css";
 
 export default function TemplateGrid({ groupedTemplates, searchQuery }) {
   const [visibleTiers, setVisibleTiers] = useState(new Set());
   const [hoveredTemplate, setHoveredTemplate] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     // Animate tiers in sequence
@@ -25,9 +27,9 @@ export default function TemplateGrid({ groupedTemplates, searchQuery }) {
   };
 
   const handlePreviewTemplate = (template) => {
-    // TODO: Implement template preview
-    console.log('Previewing template:', template);
-    // This would typically open a preview modal or new tab
+    // Navigate to editor with template name as URL parameter
+    const templateName = encodeURIComponent(template.name);
+    router.push(`/editor?template=${templateName}`);
   };
 
   return (
