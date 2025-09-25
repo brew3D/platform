@@ -2,12 +2,14 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import styles from "./Topbar.module.css"; // ✅ CSS module import
 
 
-function Topbar({ onExport }) {
+function Topbar({ onExport, templateName }) {
     const [exportFormat, setExportFormat] = useState("json");
     const [theme, setTheme] = useState("dark");
+    const router = useRouter();
 
     useEffect(() => {
       const saved = typeof window !== 'undefined' ? (localStorage.getItem('theme') || 'dark') : 'dark';
@@ -35,6 +37,25 @@ function Topbar({ onExport }) {
           <Link href="/landing" className={styles.brandLink}>
             Ruchi AI
           </Link>
+          {templateName && (
+            <div className={styles.templateInfo}>
+              <div className={styles.templateDivider}></div>
+              <div className={styles.templateName}>
+                <span className={styles.templateLabel}>Previewing:</span>
+                <span className={styles.templateTitle}>{decodeURIComponent(templateName)}</span>
+              </div>
+              <button 
+                className={styles.backButton}
+                onClick={() => router.push('/dashboard/templates')}
+                title="Back to Templates"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+                Back
+              </button>
+            </div>
+          )}
         </div>
         <div className={styles.topActions}>
           <Link href="/landing" className={styles.navLink}>Home</Link>

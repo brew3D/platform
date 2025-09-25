@@ -1260,32 +1260,7 @@ export default function EditorPage() {
 
   return (
     <div className={styles.editorContainer} ref={containerRef}>
-      <Topbar onExport={handleExport} />
-      
-      {/* Template Name Display */}
-      {templateName && (
-        <div className={styles.templateHeader}>
-          <div className={styles.templateHeaderContent}>
-            <div className={styles.templateIcon}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-            </div>
-            <div className={styles.templateInfo}>
-              <h2 className={styles.templateTitle}>Previewing: {decodeURIComponent(templateName)}</h2>
-              <p className={styles.templateSubtitle}>Template Preview Mode</p>
-            </div>
-            <button 
-              className={styles.closeTemplateButton}
-              onClick={() => window.history.replaceState({}, '', '/editor')}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
+      <Topbar onExport={handleExport} templateName={templateName} />
       
       {/* Quick Save Buttons moved into toolbar */}
       
