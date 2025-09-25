@@ -59,7 +59,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch('/api/auth/signin', {
+      // Try the main signin endpoint first
+      let response = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,13 +68,29 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify({ email, password }),
       });
 
+      // If it fails with AWS/database error, try dev endpoint
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.message.includes('AWS credentials') || 
+            errorData.message.includes('Database table not found')) {
+          console.log('AWS not configured, falling back to dev mode...');
+          response = await fetch('/api/auth/dev-signin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+          });
+        }
+      }
+
       const data = await response.json();
 
       if (response.ok) {
         setUser(data.user);
         setToken(data.token);
         localStorage.setItem('auth_token', data.token);
-        return { success: true };
+        return { success: true, warning: data.warning };
       } else {
         return { success: false, error: data.message };
       }
@@ -85,7 +102,8 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password) => {
     try {
-      const response = await fetch('/api/auth/signup', {
+      // Try the main signup endpoint first
+      let response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,13 +111,29 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify({ name, email, password }),
       });
 
+      // If it fails with AWS/database error, try dev endpoint
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.message.includes('AWS credentials') || 
+            errorData.message.includes('Database table not found')) {
+          console.log('AWS not configured, falling back to dev mode...');
+          response = await fetch('/api/auth/dev-signup', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, email, password }),
+          });
+        }
+      }
+
       const data = await response.json();
 
       if (response.ok) {
         setUser(data.user);
         setToken(data.token);
         localStorage.setItem('auth_token', data.token);
-        return { success: true };
+        return { success: true, warning: data.warning };
       } else {
         return { success: false, error: data.message };
       }

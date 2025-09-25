@@ -74,8 +74,30 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Signup error:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
+    // Check if it's an AWS credentials error
+    if (error.name === 'CredentialsProviderError' || error.message.includes('credentials')) {
+      return NextResponse.json(
+        { message: 'AWS credentials not configured. Please set up your environment variables.' },
+        { status: 500 }
+      );
+    }
+    
+    // Check if it's a DynamoDB table error
+    if (error.name === 'ResourceNotFoundException') {
+      return NextResponse.json(
+        { message: 'Database table not found. Please ensure your DynamoDB tables are set up.' },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: `Internal server error: ${error.message}` },
       { status: 500 }
     );
   }
