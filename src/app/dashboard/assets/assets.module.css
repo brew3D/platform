@@ -1,0 +1,31 @@
+.assetsPage { display: flex; min-height: 100vh; background: var(--background); color: var(--foreground); }
+.mainContent { flex: 1; display: flex; flex-direction: column; margin-left: 280px; transition: margin-left .3s ease; }
+.sidebarCollapsed { margin-left: 80px; }
+.content { flex: 1; padding: 2rem; background: linear-gradient(135deg,#ffffff,#f8f9ff); overflow: auto; }
+.header { margin-bottom: 1rem; }
+.title { font-size: 2rem; font-weight: 900; background: linear-gradient(135deg,#8a2be2,#667eea); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin:0; }
+.subtitle { color:#666; margin:.25rem 0 0; }
+.filters { background:#fff; border:1px solid rgba(138,43,226,.15); border-radius:14px; padding:1rem; box-shadow:0 4px 18px rgba(0,0,0,.06); margin-bottom:1rem; }
+.searchRow { display:flex; gap:.5rem; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+.searchBox { display:flex; align-items:center; background:#fff; border:2px solid rgba(138,43,226,.2); border-radius:10px; padding:.5rem .75rem; min-width:260px; }
+.searchBox svg{ color:#8a2be2; margin-right:.5rem; }
+.searchBox input{ border:none; outline:none; background:transparent; color:#1a1a2e; width:100%; }
+.uploadButton{ background:linear-gradient(135deg,#8a2be2,#667eea); color:#fff; border:none; border-radius:10px; padding:.6rem 1rem; font-weight:700; box-shadow:0 8px 24px rgba(138,43,226,.28); cursor:pointer; }
+.filterRow{ display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap; }
+.select{ background:#fff; border:2px solid rgba(138,43,226,.2); border-radius:10px; padding:.6rem .75rem; color:#1a1a2e; }
+.gridSection{ margin-top:1rem; }
+.assetsGrid{ display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:1rem; }
+.assetCard{ background:#fff; border:1px solid rgba(138,43,226,.12); border-radius:12px; overflow:hidden; box-shadow:0 4px 18px rgba(0,0,0,.06); transition:transform .25s ease, box-shadow .25s ease; }
+.assetCard:hover{ transform: translateY(-4px); box-shadow:0 12px 34px rgba(138,43,226,.14); border-color: rgba(138,43,226,.35); }
+.thumb{ position:relative; height:140px; background: linear-gradient(135deg,#e9defa,#fbfcdb); }
+.thumbInner{ position:absolute; inset:0; background: radial-gradient(circle at 30% 30%, rgba(138,43,226,.25), transparent 50%); animation: spin 8s linear infinite; }
+@keyframes spin{ 0%{ transform: rotate(0deg);} 100%{ transform: rotate(360deg);} }
+.thumbOverlay{ position:absolute; inset:0; display:flex; align-items:end; justify-content:center; gap:.5rem; padding:.5rem; opacity:0; transition:opacity .25s ease; background: linear-gradient(to top, rgba(0,0,0,.35), rgba(0,0,0,0)); }
+.assetCard:hover .thumbOverlay{ opacity:1; }
+.previewBtn,.addBtn,.purchaseBtn{ background: rgba(255,255,255,.9); border:none; border-radius:8px; padding:.4rem .6rem; font-weight:700; cursor:pointer; }
+.purchaseBtn{ background: linear-gradient(135deg,#8a2be2,#667eea); color:#fff; }
+.assetInfo{ padding:.6rem .75rem; }
+.assetTitle{ font-weight:800; color:#1a1a2e; }
+.assetMeta{ color:#666; font-size:.85rem; }
+@media(max-width:1024px){ .mainContent{ margin-left:0;} .sidebarCollapsed{ margin-left:0;} }
+

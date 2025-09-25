@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../contexts/AuthContext";
 import styles from "./DashboardSidebar.module.css";
 
 const sidebarItems = [
@@ -49,6 +51,30 @@ const sidebarItems = [
     href: '/dashboard/revenue'
   },
   {
+    id: 'assets',
+    label: 'Asset Library',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2l9 5-9 5-9-5 9-5z" stroke="currentColor" strokeWidth="2"/>
+        <path d="M21 12l-9 5-9-5" stroke="currentColor" strokeWidth="2"/>
+        <path d="M21 17l-9 5-9-5" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+    href: '/dashboard/assets'
+  },
+  {
+    id: 'tutorials',
+    label: 'Tutorials',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" strokeWidth="2"/>
+        <path d="M6 3h12a2 2 0 012 2v12H6a2 2 0 00-2 2V5a2 2 0 012-2z" stroke="currentColor" strokeWidth="2"/>
+        <path d="M8 7h8M8 10h8M8 13h5" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+    href: '/dashboard/tutorials'
+  },
+  {
     id: 'community',
     label: 'Community',
     icon: (
@@ -88,6 +114,8 @@ const bottomItems = [
 
 export default function DashboardSidebar({ collapsed, onToggle, activeProject, onProjectSelect, activeItem = 'projects' }) {
   const [internalActiveItem, setInternalActiveItem] = useState(activeItem);
+  const router = useRouter();
+  const { logout } = useAuth?.() || { logout: undefined };
 
   const handleItemClick = (itemId) => {
     setInternalActiveItem(itemId);
@@ -168,7 +196,22 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
           ))}
           
           {/* Logout */}
-          <button className={`${styles.navItem} ${styles.bottomItem} ${styles.logoutItem}`}>
+          <button 
+            className={`${styles.navItem} ${styles.bottomItem} ${styles.logoutItem}`}
+            onClick={async () => {
+              try {
+                if (logout) {
+                  await logout();
+                } else {
+                  // Fallback: clear local storage token for testing
+                  if (typeof window !== 'undefined') {
+                    localStorage.removeItem('auth_token');
+                  }
+                }
+              } catch (e) {}
+              router.push('/landing');
+            }}
+          >
             <div className={styles.navIcon}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" strokeWidth="2"/>
