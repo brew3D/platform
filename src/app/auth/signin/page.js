@@ -45,8 +45,8 @@ export default function SigninPage() {
       const result = await login(formData.email, formData.password);
       
       if (result.success) {
-        // Redirect to editor or dashboard
-        router.push('/editor');
+        // Redirect to dashboard
+        router.push('/dashboard');
       } else {
         setError(result.error || 'Sign in failed');
       }

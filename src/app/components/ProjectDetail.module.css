@@ -1,0 +1,346 @@
+/* Project Detail - Purple & White Theme */
+.projectDetail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.projectHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  background: rgba(26, 26, 46, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+.projectInfo {
+  flex: 1;
+}
+
+.projectTitle {
+  font-size: 2rem;
+  font-weight: 900;
+  color: white;
+  margin: 0 0 0.5rem 0;
+  font-family: var(--font-space-grotesk);
+  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.projectSubtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.closeButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.tabNavigation {
+  display: flex;
+  background: rgba(22, 33, 62, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+  overflow-x: auto;
+  padding: 0 1rem;
+}
+
+.tabButton {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  min-width: 200px;
+  text-align: left;
+  position: relative;
+}
+
+.tabButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.1) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tabButton:hover::before {
+  opacity: 1;
+}
+
+.tabButton:hover {
+  color: white;
+  background: rgba(138, 43, 226, 0.1);
+}
+
+.tabButton.active {
+  color: white;
+  border-bottom-color: #8a2be2;
+  background: rgba(138, 43, 226, 0.15);
+}
+
+.tabButton.active::before {
+  opacity: 1;
+}
+
+.tabIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.tabButton.active .tabIcon {
+  color: #8a2be2;
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  position: relative;
+  z-index: 2;
+}
+
+.tabLabel {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.tabDescription {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  line-height: 1.3;
+}
+
+.tabPanel {
+  flex: 1;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  position: relative;
+}
+
+.tabPanel::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(138, 43, 226, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tabContent {
+  padding: 3rem;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.placeholderContent {
+  text-align: center;
+  max-width: 500px;
+}
+
+.placeholderIcon {
+  margin-bottom: 2rem;
+  color: rgba(138, 43, 226, 0.5);
+}
+
+.placeholderContent h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1rem;
+  font-family: var(--font-space-grotesk);
+}
+
+.placeholderContent p {
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.actionButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.actionButton:hover::before {
+  left: 100%;
+}
+
+.actionButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(138, 43, 226, 0.4);
+}
+
+/* Scrollbar Styling */
+.tabPanel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tabPanel::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.tabPanel::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #8a2be2, #667eea);
+  border-radius: 4px;
+}
+
+.tabPanel::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #9d3be8, #7c8ef0);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .tabNavigation {
+    padding: 0 0.5rem;
+  }
+  
+  .tabButton {
+    min-width: 150px;
+    padding: 1rem 1.5rem;
+  }
+  
+  .tabContent {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .projectHeader {
+    padding: 1.5rem;
+  }
+  
+  .projectTitle {
+    font-size: 1.5rem;
+  }
+  
+  .tabNavigation {
+    flex-direction: column;
+    padding: 0;
+  }
+  
+  .tabButton {
+    min-width: auto;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+    border-right: none;
+  }
+  
+  .tabButton.active {
+    border-bottom-color: #8a2be2;
+    border-right: 3px solid #8a2be2;
+  }
+  
+  .tabContent {
+    padding: 1.5rem;
+  }
+  
+  .placeholderContent h3 {
+    font-size: 1.25rem;
+  }
+  
+  .placeholderContent p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .projectHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .closeButton {
+    align-self: flex-end;
+  }
+  
+  .tabButton {
+    padding: 0.75rem 1rem;
+  }
+  
+  .tabLabel {
+    font-size: 0.9rem;
+  }
+  
+  .tabDescription {
+    font-size: 0.75rem;
+  }
+}

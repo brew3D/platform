@@ -1,0 +1,83 @@
+/* Dashboard Layout - Purple & White Theme */
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 280px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 100vh;
+}
+
+.sidebarCollapsed {
+  margin-left: 80px;
+}
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  position: relative;
+}
+
+.content::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(138, 43, 226, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Scrollbar Styling */
+.content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #8a2be2, #667eea);
+  border-radius: 4px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #9d3be8, #7c8ef0);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .mainContent {
+    margin-left: 0;
+  }
+  
+  .sidebarCollapsed {
+    margin-left: 0;
+  }
+  
+  .content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 1rem;
+  }
+}

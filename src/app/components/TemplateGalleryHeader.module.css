@@ -1,0 +1,485 @@
+/* Template Gallery Header - Purple & White Theme */
+.header {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+  border-bottom: 1px solid rgba(138, 43, 226, 0.1);
+  padding: 3rem 0 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(138, 43, 226, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+.titleSection {
+  flex: 1;
+}
+
+.mainTitle {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #1a1a2e;
+  margin: 0 0 0.5rem 0;
+  font-family: var(--font-space-grotesk);
+  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(138, 43, 226, 0.1);
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.createCustomButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.createCustomButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.createCustomButton:hover::before {
+  left: 100%;
+}
+
+.createCustomButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(138, 43, 226, 0.4);
+}
+
+/* Search Section */
+.searchSection {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+.searchContainer {
+  flex: 1;
+  max-width: 600px;
+}
+
+.searchInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  color: #8a2be2;
+  z-index: 1;
+}
+
+.searchInput {
+  width: 100%;
+  background: white;
+  border: 2px solid rgba(138, 43, 226, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1rem 1rem 3rem;
+  font-size: 1rem;
+  color: #1a1a2e;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(138, 43, 226, 0.1);
+}
+
+.searchInput::placeholder {
+  color: #999;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #8a2be2;
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+}
+
+.clearButton {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.clearButton:hover {
+  color: #8a2be2;
+  background: rgba(138, 43, 226, 0.1);
+}
+
+/* Filters */
+.filtersContainer {
+  position: relative;
+}
+
+.filterToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 2px solid rgba(138, 43, 226, 0.2);
+  color: #8a2be2;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(138, 43, 226, 0.1);
+}
+
+.filterToggle:hover {
+  border-color: #8a2be2;
+  background: rgba(138, 43, 226, 0.05);
+}
+
+.filterToggle.active {
+  border-color: #8a2be2;
+  background: rgba(138, 43, 226, 0.1);
+}
+
+.filterCount {
+  background: #8a2be2;
+  color: white;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.filtersDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: white;
+  border: 1px solid rgba(138, 43, 226, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  min-width: 300px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filterGroup {
+  margin-bottom: 1.5rem;
+}
+
+.filterGroup:last-child {
+  margin-bottom: 0;
+}
+
+.filterLabel {
+  display: block;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.filterOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filterOption {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: none;
+  border: 1px solid rgba(138, 43, 226, 0.2);
+  color: #666;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.filterOption:hover {
+  background: rgba(138, 43, 226, 0.05);
+  border-color: #8a2be2;
+  color: #8a2be2;
+}
+
+.filterOption.active {
+  background: rgba(138, 43, 226, 0.1);
+  border-color: #8a2be2;
+  color: #8a2be2;
+  font-weight: 600;
+}
+
+.tierIndicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--tier-color, #8a2be2);
+  flex-shrink: 0;
+}
+
+.filterActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(138, 43, 226, 0.1);
+}
+
+.clearFiltersButton {
+  flex: 1;
+  background: none;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.clearFiltersButton:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.applyFiltersButton {
+  flex: 1;
+  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.applyFiltersButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+}
+
+/* Tier Navigation */
+.tierNavigation {
+  display: flex;
+  gap: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.tierNavButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: white;
+  border: 2px solid rgba(138, 43, 226, 0.2);
+  color: #666;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.tierNavButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--tier-color, #8a2be2) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tierNavButton:hover::before {
+  opacity: 0.1;
+}
+
+.tierNavButton:hover {
+  border-color: var(--tier-color, #8a2be2);
+  color: var(--tier-color, #8a2be2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.2);
+}
+
+.tierNavButton.active {
+  border-color: var(--tier-color, #8a2be2);
+  background: rgba(138, 43, 226, 0.05);
+  color: var(--tier-color, #8a2be2);
+  font-weight: 600;
+}
+
+.tierNavButton.active::before {
+  opacity: 0.1;
+}
+
+.tierNavIndicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--tier-color, #8a2be2);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.tierNavName {
+  font-weight: 600;
+  position: relative;
+  z-index: 2;
+}
+
+.tierNavDescription {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  position: relative;
+  z-index: 2;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .headerContent {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+  
+  .searchSection {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .tierNavigation {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 2rem 0 1.5rem;
+  }
+  
+  .mainTitle {
+    font-size: 2.5rem;
+  }
+  
+  .subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .createCustomButton {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .searchInput {
+    padding: 0.875rem 0.875rem 0.875rem 2.5rem;
+  }
+  
+  .filterToggle {
+    padding: 0.875rem 1.25rem;
+  }
+  
+  .tierNavButton {
+    padding: 0.875rem 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .mainTitle {
+    font-size: 2rem;
+  }
+  
+  .filtersDropdown {
+    right: -1rem;
+    left: -1rem;
+    min-width: auto;
+  }
+  
+  .tierNavButton {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .tierNavDescription {
+    display: none;
+  }
+}

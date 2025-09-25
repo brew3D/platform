@@ -39,6 +39,7 @@ function Topbar({ onExport }) {
         <div className={styles.topActions}>
           <Link href="/landing" className={styles.navLink}>Home</Link>
           <Link href="/editor" className={styles.navLink}>Editor</Link>
+          <Link href="/dashboard" className={styles.navLink}>Dashboard</Link>
           <Link href="#pricing" className={styles.navLink}>Pricing</Link>
           <Link href="/community" className={styles.navLink}>Community</Link>
           <button className={styles.topButton} onClick={toggleTheme}>
