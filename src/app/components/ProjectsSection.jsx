@@ -212,7 +212,6 @@ export default function ProjectsSection({ projects = [], loading = false, active
         ))}
       </div>
 
-        )}
       )}
 
       {!loading && sortedProjects.length === 0 && (
