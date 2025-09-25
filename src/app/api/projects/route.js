@@ -52,7 +52,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const decoded = verifyToken(request);
-    const { name, description, template, gameType, platform } = await request.json();
+    const { name, description, template, gameType, platform, teamMembers } = await request.json();
 
     // Validate required fields
     if (!name) {
@@ -69,7 +69,8 @@ export async function POST(request) {
       userId: decoded.userId,
       template: template || 'blank',
       gameType: gameType || 'platformer',
-      platform: platform || 'web'
+      platform: platform || 'web',
+      teamMembers: Array.isArray(teamMembers) ? teamMembers : []
     });
 
     return NextResponse.json({

@@ -10,6 +10,7 @@ import HeroSection from "../components/HeroSection";
 import TemplateGallery from "../components/TemplateGallery";
 import ProjectsSection from "../components/ProjectsSection";
 import ProjectDetail from "../components/ProjectDetail";
+import NewProjectModal from "../components/NewProjectModal";
 import styles from "./dashboard.module.css";
 
 export default function DashboardPage() {
@@ -18,6 +19,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [activeProject, setActiveProject] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showNewProject, setShowNewProject] = useState(false);
 
 
   return (
@@ -48,6 +50,7 @@ export default function DashboardPage() {
             loading={projectsLoading}
             activeProject={activeProject}
             onProjectSelect={setActiveProject}
+            onCreateNew={() => setShowNewProject(true)}
           />
         </div>
       </div>
@@ -59,6 +62,30 @@ export default function DashboardPage() {
           onClose={() => setActiveProject(null)}
         />
       )}
+
+      <NewProjectModal 
+        open={showNewProject}
+        onClose={() => setShowNewProject(false)}
+        searchUsers={async (q) => {
+          const token = localStorage.getItem('auth_token');
+          const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${token}` } });
+          if (!res.ok) return [];
+          const data = await res.json();
+          return data.users || [];
+        }}
+        onCreate={async ({ name, description, teamMembers }) => {
+          const token = localStorage.getItem('auth_token');
+          const res = await fetch('/api/projects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ name, description, teamMembers })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            window.location.href = `/dashboard/projects/${data.project.projectId}`;
+          }
+        }}
+      />
     </div>
   );
 }

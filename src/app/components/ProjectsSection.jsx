@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useProjects } from "../contexts/ProjectsContext";
 import styles from "./ProjectsSection.module.css";
 
-export default function ProjectsSection({ projects = [], loading = false, activeProject, onProjectSelect }) {
+export default function ProjectsSection({ projects = [], loading = false, activeProject, onProjectSelect, onCreateNew }) {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [sortBy, setSortBy] = useState('lastModified');
 
@@ -94,7 +94,7 @@ export default function ProjectsSection({ projects = [], loading = false, active
             <option value="created">Created</option>
           </select>
 
-          <button className={styles.newProjectButton}>
+          <button className={styles.newProjectButton} onClick={() => onCreateNew?.()}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
               <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" strokeWidth="2"/>
