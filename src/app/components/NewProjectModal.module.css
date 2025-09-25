@@ -6,13 +6,16 @@
 .closeBtn{ border:none; background:transparent; font-size:1.25rem; cursor:pointer; color:#8a2be2; }
 .body{ padding:1rem 1.25rem; display:grid; gap:.9rem; }
 .field{ display:grid; gap:.35rem; }
-.field span{ color:#333; font-weight:700; }
-.field input,.field textarea{ border:2px solid rgba(138,43,226,.2); border-radius:10px; padding:.6rem .75rem; }
+.field span{ color:#1a1a2e; font-weight:700; }
+.field input,.field textarea{ border:2px solid rgba(138,43,226,.2); border-radius:10px; padding:.6rem .75rem; color:#1a1a2e; }
+.field input::placeholder,.field textarea::placeholder{ color:#999; }
 .teamSection{ display:grid; gap:.5rem; }
 .teamHeader{ display:flex; align-items:center; justify-content:space-between; }
+.teamHeader span{ color:#1a1a2e; font-weight:700; }
 .inviteLink{ color:#8a2be2; font-weight:700; text-decoration:none; }
 .teamPicker{ position:relative; display:grid; gap:.35rem; }
-.teamPicker input{ border:2px solid rgba(138,43,226,.2); border-radius:10px; padding:.6rem .75rem; }
+.teamPicker input{ border:2px solid rgba(138,43,226,.2); border-radius:10px; padding:.6rem .75rem; color:#1a1a2e; }
+.teamPicker input::placeholder{ color:#999; }
 .searching{ color:#666; font-size:.9rem; }
 .noResults{ color:#666; font-size:.9rem; }
 .noResults a{ color:#8a2be2; font-weight:700; }
@@ -21,11 +24,11 @@
 .resultItem:hover{ background:rgba(138,43,226,.06);} 
 .avatar{ width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,#8a2be2,#667eea); color:#fff; display:grid; place-items:center; font-weight:900; }
 .resultInfo{ display:grid; }
-.resultName{ font-weight:700; }
+.resultName{ font-weight:700; color:#1a1a2e; }
 .resultEmail{ color:#666; font-size:.85rem; }
 .selectedList{ display:flex; flex-wrap:wrap; gap:.4rem; }
 .selectedChip{ display:flex; align-items:center; gap:.35rem; background:rgba(138,43,226,.08); border:1px solid rgba(138,43,226,.2); color:#1a1a2e; padding:.25rem .5rem; border-radius:999px; }
-.selectedChip button{ border:none; background:transparent; cursor:pointer; }
+.selectedChip button{ border:none; background:transparent; cursor:pointer; color:#1a1a2e; }
 .footer{ display:flex; align-items:center; justify-content:flex-end; gap:.5rem; padding:1rem 1.25rem; border-top:1px solid rgba(138,43,226,.15);} 
 .cancelBtn{ background:#fff; border:2px solid rgba(138,43,226,.2); color:#8a2be2; border-radius:10px; padding:.6rem .9rem; font-weight:700; }
 .createBtn{ background:linear-gradient(135deg,#8a2be2,#667eea); color:#fff; border:none; border-radius:10px; padding:.6rem 1rem; font-weight:800; }
