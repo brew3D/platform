@@ -1,11 +1,13 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { useProjects } from "../contexts/ProjectsContext";
 import styles from "./HeroSection.module.css";
 
 export default function HeroSection({ activeProject, onCreateProject, onScrollToProjects }) {
   const { projects, loading } = useProjects();
+  const router = useRouter();
   
   // Get the most recent project
   const recentProject = projects && projects.length > 0 
@@ -69,7 +71,7 @@ export default function HeroSection({ activeProject, onCreateProject, onScrollTo
                 
                 <button 
                   className={styles.continueButton}
-                  onClick={() => onCreateProject && onCreateProject(recentProject.projectId)}
+                  onClick={() => router.push(`/dashboard/projects/${recentProject.projectId}`)}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2"/>
