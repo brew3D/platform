@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useRouter, useParams } from "next/navigation";
-import DashboardSidebar from "../../../components/DashboardSidebar";
-import DashboardTopbar from "../../../components/DashboardTopbar";
 import { useTheme } from "../../../contexts/ThemeContext";
 import styles from "./project.module.css";
 
@@ -18,7 +16,6 @@ const cards = [
 ];
 
 export default function ProjectDetailPage() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const params = useParams();
   const projectId = params?.id;
   const router = useRouter();
@@ -26,10 +23,6 @@ export default function ProjectDetailPage() {
 
   return (
     <div className={styles.projectPage}>
-      <DashboardSidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} activeItem="projects" />
-      <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-        <DashboardTopbar user={{ name: 'User' }} onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
-        <div className={styles.content}>
           <header className={styles.header}>
             <button 
               className={styles.backButton}
@@ -69,8 +62,6 @@ export default function ProjectDetailPage() {
               <div className={styles.metric}><div className={styles.metricLabel}>Last Edited</div><div className={styles.metricValue}>2h ago</div></div>
             </div>
           </section>
-        </div>
-      </div>
     </div>
   );
 }

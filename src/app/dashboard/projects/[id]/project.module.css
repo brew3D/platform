@@ -1,44 +1,7 @@
 /* Project Page - Theme-aware design */
 .projectPage {
-  display: flex;
-  min-height: 100vh;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-}
-
-.mainContent {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  margin-left: 280px;
-  transition: margin-left 0.3s ease;
-}
-
-.sidebarCollapsed {
-  margin-left: 80px;
-}
-
-.content {
-  flex: 1;
-  padding: 2rem;
-  background: var(--gradient-bg);
-  overflow: auto;
   position: relative;
-}
-
-.content::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 20%, rgba(138, 43, 226, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
+  z-index: 1;
 }
 
 /* Header with back button */
@@ -253,18 +216,6 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .mainContent {
-    margin-left: 0;
-  }
-  
-  .sidebarCollapsed {
-    margin-left: 0;
-  }
-  
-  .content {
-    padding: 1.5rem;
-  }
-  
   .grid {
     grid-template-columns: repeat(auto-fill, 180px);
     gap: 1rem;
@@ -277,10 +228,6 @@
 }
 
 @media (max-width: 768px) {
-  .content {
-    padding: 1rem;
-  }
-  
   .grid {
     grid-template-columns: repeat(auto-fill, 160px);
     gap: 0.75rem;
