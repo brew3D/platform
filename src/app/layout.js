@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProjectsProvider } from "./contexts/ProjectsContext";
 import { CollaborationProvider } from "./contexts/CollaborationContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import AppWrapper from "./components/AppWrapper";
 
 const inter = Inter({
@@ -36,13 +37,15 @@ export default function RootLayout({ children }) {
         className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased`}
       >
               <AppWrapper>
-                <AuthProvider>
-                  <ProjectsProvider>
-                    <CollaborationProvider>
-                      {children}
-                    </CollaborationProvider>
-                  </ProjectsProvider>
-                </AuthProvider>
+                <ThemeProvider>
+                  <AuthProvider>
+                    <ProjectsProvider>
+                      <CollaborationProvider>
+                        {children}
+                      </CollaborationProvider>
+                    </ProjectsProvider>
+                  </AuthProvider>
+                </ThemeProvider>
               </AppWrapper>
       </body>
     </html>
