@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import SimpleLoader from './SimpleLoader';
+import { ThemeProvider } from '../contexts/ThemeContext';
+import { AuthProvider } from '../contexts/AuthContext';
+import { ProjectsProvider } from '../contexts/ProjectsContext';
+import { CollaborationProvider } from '../contexts/CollaborationProvider';
 
 export default function AppWrapper({ children }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -16,9 +20,15 @@ export default function AppWrapper({ children }) {
   }, []);
 
   return (
-    <>
-      <SimpleLoader isLoading={isLoading} />
-      {!isLoading && children}
-    </>
+    <ThemeProvider>
+      <AuthProvider>
+        <ProjectsProvider>
+          <CollaborationProvider>
+            <SimpleLoader isLoading={isLoading} />
+            {!isLoading && children}
+          </CollaborationProvider>
+        </ProjectsProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
