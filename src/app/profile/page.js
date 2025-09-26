@@ -7,7 +7,7 @@ import Link from 'next/link';
 import styles from './profile.module.css';
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, authenticatedFetch } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(false);
@@ -102,12 +102,8 @@ export default function ProfilePage() {
     setMessage('');
 
     try {
-      const response = await fetch('/api/profile/update', {
+      const response = await authenticatedFetch('/api/profile/update', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
         body: JSON.stringify({ profile: profileData })
       });
 
@@ -120,6 +116,10 @@ export default function ProfilePage() {
         setError(data.message || 'Failed to update profile');
       }
     } catch (err) {
+      if (err.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return;
+      }
       setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);
@@ -133,12 +133,8 @@ export default function ProfilePage() {
     setMessage('');
 
     try {
-      const response = await fetch('/api/profile/preferences', {
+      const response = await authenticatedFetch('/api/profile/preferences', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
         body: JSON.stringify({ preferences })
       });
 
@@ -151,6 +147,10 @@ export default function ProfilePage() {
         setError(data.message || 'Failed to update preferences');
       }
     } catch (err) {
+      if (err.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return;
+      }
       setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);
@@ -170,12 +170,8 @@ export default function ProfilePage() {
     }
 
     try {
-      const response = await fetch('/api/profile/security', {
+      const response = await authenticatedFetch('/api/profile/security', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
         body: JSON.stringify(securityData)
       });
 
@@ -194,6 +190,10 @@ export default function ProfilePage() {
         setError(data.message || 'Failed to update security settings');
       }
     } catch (err) {
+      if (err.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return;
+      }
       setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);

@@ -26,7 +26,7 @@ const handler = NextAuth({
         try {
           // Check if user exists
           const existingUser = await docClient.send(new QueryCommand({
-            TableName: process.env.DYNAMODB_TABLE_NAME,
+            TableName: process.env.DYNAMODB_TABLE_NAME || 'ruchi-ai-users',
             IndexName: 'email-index',
             KeyConditionExpression: 'email = :email',
             ExpressionAttributeValues: {
@@ -55,7 +55,7 @@ const handler = NextAuth({
             };
 
             await docClient.send(new PutCommand({
-              TableName: process.env.DYNAMODB_TABLE_NAME,
+              TableName: process.env.DYNAMODB_TABLE_NAME || 'ruchi-ai-users',
               Item: newUser,
             }));
           }

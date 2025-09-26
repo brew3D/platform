@@ -25,8 +25,8 @@ export function getDynamoDocClient() {
 }
 
 export function getScenesTableName() {
-  // Prefer new var, fall back to legacy name if present, then default
-  return process.env.DDB_SCENES_TABLE || process.env.DYNAMODB_TABLE_NAME || "ruchi-ai-scenes";
+  // Use scenes-specific environment variable or default
+  return process.env.DDB_SCENES_TABLE || "ruchi-ai-scenes";
 }
 
 

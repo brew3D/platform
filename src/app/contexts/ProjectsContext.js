@@ -18,7 +18,7 @@ export const ProjectsProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const { user, token, isAuthenticated } = useAuth();
+  const { user, token, isAuthenticated, authenticatedFetch } = useAuth();
 
   // Define fetchProjects BEFORE any effects that depend on it to avoid TDZ
   const fetchProjects = useCallback(async () => {
@@ -28,12 +28,7 @@ export const ProjectsProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await fetch('/api/projects', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await authenticatedFetch('/api/projects');
 
       if (response.ok) {
         const data = await response.json();
@@ -43,12 +38,16 @@ export const ProjectsProvider = ({ children }) => {
         setError(errorData.message || 'Failed to fetch projects');
       }
     } catch (error) {
+      if (error.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return;
+      }
       console.error('Error fetching projects:', error);
       setError('Network error while fetching projects');
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, authenticatedFetch]);
 
   // Handle hydration
   useEffect(() => {
@@ -71,12 +70,8 @@ export const ProjectsProvider = ({ children }) => {
     setError(null);
 
     try {
-      const response = await fetch('/api/projects', {
+      const response = await authenticatedFetch('/api/projects', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(projectData),
       });
 
@@ -90,6 +85,10 @@ export const ProjectsProvider = ({ children }) => {
         return { success: false, error: errorData.message };
       }
     } catch (error) {
+      if (error.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return { success: false, error: 'Session expired' };
+      }
       console.error('Error creating project:', error);
       setError('Network error while creating project');
       return { success: false, error: 'Network error' };
@@ -105,12 +104,8 @@ export const ProjectsProvider = ({ children }) => {
     setError(null);
 
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
+      const response = await authenticatedFetch(`/api/projects/${projectId}`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(updateData),
       });
 
@@ -128,6 +123,10 @@ export const ProjectsProvider = ({ children }) => {
         return { success: false, error: errorData.message };
       }
     } catch (error) {
+      if (error.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return { success: false, error: 'Session expired' };
+      }
       console.error('Error updating project:', error);
       setError('Network error while updating project');
       return { success: false, error: 'Network error' };
@@ -143,12 +142,8 @@ export const ProjectsProvider = ({ children }) => {
     setError(null);
 
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
+      const response = await authenticatedFetch(`/api/projects/${projectId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
       });
 
       if (response.ok) {
@@ -160,6 +155,10 @@ export const ProjectsProvider = ({ children }) => {
         return { success: false, error: errorData.message };
       }
     } catch (error) {
+      if (error.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return { success: false, error: 'Session expired' };
+      }
       console.error('Error deleting project:', error);
       setError('Network error while deleting project');
       return { success: false, error: 'Network error' };

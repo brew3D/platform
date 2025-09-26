@@ -16,7 +16,24 @@ export async function POST(request) {
     }
 
     // Get user by email
-    const user = await getUserByEmail(email);
+    let user;
+    try {
+      user = await getUserByEmail(email);
+    } catch (error) {
+      console.log('🔍 getUserByEmail error:', error.name, error.message);
+      // If it's a DynamoDB table error, let it be handled by the main catch block
+      if (error.name === 'ResourceNotFoundException') {
+        console.log('🚨 Throwing ResourceNotFoundException to main catch block');
+        throw error;
+      }
+      // For other errors, return 401
+      console.log('❌ Returning 401 for non-ResourceNotFoundException');
+      return NextResponse.json(
+        { message: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+    
     if (!user) {
       return NextResponse.json(
         { message: 'Invalid email or password' },

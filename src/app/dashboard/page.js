@@ -14,7 +14,7 @@ import NewProjectModal from "../components/NewProjectModal";
 import styles from "./dashboard.module.css";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, authenticatedFetch } = useAuth();
   const { projects, loading: projectsLoading } = useProjects();
   const router = useRouter();
   const [activeProject, setActiveProject] = useState(null);
@@ -77,32 +77,36 @@ export default function DashboardPage() {
         open={showNewProject}
         onClose={() => setShowNewProject(false)}
         searchUsers={async (q) => {
-          const authToken = typeof window !== 'undefined' ? (localStorage.getItem('auth_token') || '') : '';
-          const bearer = user && user.userId ? (authToken ? authToken : (typeof token !== 'undefined' ? token : '')) : authToken;
-          const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${bearer}` } });
-          if (!res.ok) return [];
-          const data = await res.json();
-          return data.users || [];
+          try {
+            const res = await authenticatedFetch(`/api/users/search?q=${encodeURIComponent(q)}`);
+            if (!res.ok) return [];
+            const data = await res.json();
+            return data.users || [];
+          } catch (error) {
+            console.error('User search failed:', error);
+            return [];
+          }
         }}
         onCreate={async ({ name, description, teamMembers }) => {
-          const authToken = typeof window !== 'undefined' ? (localStorage.getItem('auth_token') || '') : '';
-          const bearer = user && user.userId ? (authToken ? authToken : (typeof token !== 'undefined' ? token : '')) : authToken;
-          const res = await fetch('/api/projects', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bearer}` },
-            body: JSON.stringify({ name, description, teamMembers })
-          });
-          if (res.status === 401) {
-            alert('Your session has expired. Please sign in again.');
-            window.location.href = '/auth/signin';
-            return;
-          }
-          if (res.ok) {
-            const data = await res.json();
-            window.location.href = `/dashboard/projects/${data.project.projectId}`;
-          } else {
-            const err = await res.json().catch(() => ({}));
-            alert(err.message || 'Failed to create project. Please try again.');
+          try {
+            const res = await authenticatedFetch('/api/projects', {
+              method: 'POST',
+              body: JSON.stringify({ name, description, teamMembers })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              window.location.href = `/dashboard/projects/${data.project.projectId}`;
+            } else {
+              const err = await res.json().catch(() => ({}));
+              alert(err.message || 'Failed to create project. Please try again.');
+            }
+          } catch (error) {
+            if (error.message === 'Session expired') {
+              // User will be redirected automatically by authenticatedFetch
+              return;
+            }
+            console.error('Project creation failed:', error);
+            alert('Failed to create project. Please try again.');
           }
         }}
       />

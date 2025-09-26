@@ -10,7 +10,7 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
   const [loading, setLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newSceneName, setNewSceneName] = useState('');
-  const { token } = useAuth();
+  const { token, authenticatedFetch } = useAuth();
   const { joinScene, leaveScene, currentSceneId } = useCollaboration();
   const { user } = useAuth();
   const userId = user?.id || 'demo_user';
@@ -46,12 +46,18 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
   const loadScenes = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/scenes', { headers: commonHeaders });
+      const response = await authenticatedFetch('/api/scenes', { 
+        headers: commonHeaders 
+      });
       if (response.ok) {
         const data = await response.json();
         setScenes((data.scenes || []).sort((a,b) => new Date(b.updated_at||0) - new Date(a.updated_at||0)));
       }
     } catch (error) {
+      if (error.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return;
+      }
       console.error('Failed to load scenes:', error);
       pushToast('Failed to load scenes', 'error');
     } finally {
@@ -63,9 +69,9 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
     if (!newSceneName.trim()) return;
     setLoading(true);
     try {
-      const response = await fetch('/api/scenes', {
+      const response = await authenticatedFetch('/api/scenes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...commonHeaders },
+        headers: { ...commonHeaders },
         body: JSON.stringify({ name: newSceneName, objects: [], groups: [] }),
       });
       if (response.ok) {
@@ -86,6 +92,10 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
         pushToast('Scene created', 'success');
       }
     } catch (error) {
+      if (error.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return;
+      }
       console.error('Failed to create scene:', error);
       pushToast('Create failed', 'error');
     } finally {
@@ -96,7 +106,7 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
   const loadScene = async (sceneId) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/scenes/${sceneId}`);
+      const response = await authenticatedFetch(`/api/scenes/${sceneId}`);
       if (response.ok) {
         const data = await response.json();
         try {
@@ -112,6 +122,10 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
         pushToast('Scene loaded', 'success');
       }
     } catch (error) {
+      if (error.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return;
+      }
       console.error('Failed to load scene:', error);
       pushToast('Load failed', 'error');
     } finally {
@@ -133,11 +147,11 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
   const commitRename = async (scene) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/scenes/${scene.id}`);
+      const res = await authenticatedFetch(`/api/scenes/${scene.id}`);
       let latest = scene;
       if (res.ok) { const data = await res.json(); latest = data.scene || scene; }
-      const put = await fetch(`/api/scenes/${scene.id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      const put = await authenticatedFetch(`/api/scenes/${scene.id}`, {
+        method: 'PUT',
         body: JSON.stringify({ name: renameValue || 'Untitled Scene', objects: latest.objects || [], groups: latest.groups || [] })
       });
       if (put.ok) {
@@ -147,6 +161,10 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
         pushToast('Scene renamed', 'success');
       }
     } catch (e) {
+      if (e.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return;
+      }
       console.error('Rename failed', e);
       pushToast('Rename failed', 'error');
     } finally {
@@ -163,7 +181,7 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
 
   const performDelete = async (sceneId) => {
     try {
-      const res = await fetch(`/api/scenes/${sceneId}`, { method: 'DELETE' });
+      const res = await authenticatedFetch(`/api/scenes/${sceneId}`, { method: 'DELETE' });
       if (res.ok) {
         setScenes(prev => prev.filter(s => s.id !== sceneId));
         if (currentSceneId === sceneId) { leaveCurrentScene(); }
@@ -172,6 +190,10 @@ export default function SceneManager({ onSceneLoad, onSceneCreate }) {
         pushToast('Delete failed', 'error');
       }
     } catch (e) {
+      if (e.message === 'Session expired') {
+        // User will be redirected automatically by authenticatedFetch
+        return;
+      }
       console.error('Delete failed', e);
       pushToast('Delete failed', 'error');
     } finally {

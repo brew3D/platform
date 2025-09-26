@@ -19,7 +19,7 @@ import time
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this')
 # CORS for dev: allow frontend at :3000 and credentials
-origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+origins = "*"
 CORS(
     app,
     resources={r"/*": {"origins": origins, "allow_headers": ["Content-Type", "Authorization"],}},
@@ -27,7 +27,7 @@ CORS(
 )
 socketio = SocketIO(
     app,
-    cors_allowed_origins=origins,
+    cors_allowed_origins="*",
 )
 
 # Set your OpenAI API key here or in environment variables

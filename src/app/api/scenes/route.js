@@ -13,7 +13,7 @@ export async function GET(request) {
       const TableName = getScenesTableName();
       const result = await doc.send(new QueryCommand({
         TableName,
-        IndexName: process.env.DDB_SCENES_USER_INDEX || "user_id-index",
+        IndexName: process.env.DDB_SCENES_USER_INDEX || "email-index",
         KeyConditionExpression: "user_id = :u",
         ExpressionAttributeValues: { ":u": userId },
       }));
