@@ -9,7 +9,6 @@ import DashboardTopbar from "../components/DashboardTopbar";
 import HeroSection from "../components/HeroSection";
 import TemplateGallery from "../components/TemplateGallery";
 import ProjectsSection from "../components/ProjectsSection";
-import ProjectDetail from "../components/ProjectDetail";
 import NewProjectModal from "../components/NewProjectModal";
 import styles from "./dashboard.module.css";
 
@@ -58,20 +57,13 @@ export default function DashboardPage() {
               projects={projects}
               loading={projectsLoading}
               activeProject={activeProject}
-              onProjectSelect={setActiveProject}
+              onProjectSelect={(projectId) => router.push(`/dashboard/projects/${projectId}`)}
               onCreateNew={() => setShowNewProject(true)}
             />
           </div>
         </div>
       </div>
 
-      {activeProject && activeProject !== 'new' && (
-        <ProjectDetail
-          projectId={activeProject}
-          projectName={activeProject}
-          onClose={() => setActiveProject(null)}
-        />
-      )}
 
       <NewProjectModal 
         open={showNewProject}
