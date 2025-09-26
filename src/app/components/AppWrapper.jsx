@@ -5,7 +5,7 @@ import SimpleLoader from './SimpleLoader';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { AuthProvider } from '../contexts/AuthContext';
 import { ProjectsProvider } from '../contexts/ProjectsContext';
-import { CollaborationProvider } from '../contexts/CollaborationProvider';
+import { CollaborationProvider } from '../contexts/CollaborationContext';
 
 export default function AppWrapper({ children }) {
   const [isLoading, setIsLoading] = useState(true);
