@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import DashboardSidebar from "../../../components/DashboardSidebar";
 import DashboardTopbar from "../../../components/DashboardTopbar";
+import { useTheme } from "../../../contexts/ThemeContext";
 import styles from "./project.module.css";
 
 const cards = [
@@ -20,6 +21,8 @@ export default function ProjectDetailPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const params = useParams();
   const projectId = params?.id;
+  const router = useRouter();
+  const { theme, isDark } = useTheme();
 
   return (
     <div className={styles.projectPage}>
@@ -28,15 +31,31 @@ export default function ProjectDetailPage() {
         <DashboardTopbar user={{ name: 'User' }} onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
         <div className={styles.content}>
           <header className={styles.header}>
+            <button 
+              className={styles.backButton}
+              onClick={() => router.push('/dashboard')}
+              aria-label="Go back to dashboard"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Back to Dashboard
+            </button>
             <h1 className={styles.title}>Project Overview</h1>
             <p className={styles.subtitle}>Manage every part of your project</p>
           </header>
 
           <section className={styles.grid}>
             {cards.map((c) => (
-              <a key={c.id} href={c.href} className={styles.card}>
-                <div className={styles.cardTitle}>{c.label}</div>
-                <div className={styles.cardAction}>Open →</div>
+              <a key={c.id} href={c.href} className={`${styles.card} ${isDark ? styles.cardDark : styles.cardLight}`}>
+                <div className={styles.cardContent}>
+                  <div className={styles.cardTitle}>{c.label}</div>
+                  <div className={styles.cardAction}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M5 12H19M12 5L19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
               </a>
             ))}
           </section>
