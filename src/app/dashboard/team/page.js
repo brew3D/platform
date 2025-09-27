@@ -9,11 +9,21 @@ import styles from "./team.module.css";
 const roleOptions = ['owner', 'admin', 'editor', 'viewer'];
 
 export default function TeamPage() {
-  const { user } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Debug user state
-  console.log('TeamPage - User state:', user);
+  console.log('TeamPage - User state:', user, 'isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
+  console.log('User object details:', {
+    id: user?.id,
+    userId: user?.userId,
+    name: user?.name,
+    email: user?.email,
+    hasId: !!user?.id,
+    hasUserId: !!user?.userId
+  });
+  console.log('Current user email:', user?.email);
+  console.log('Current user ID:', user?.userId);
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [members, setMembers] = useState([]);
@@ -29,25 +39,26 @@ export default function TeamPage() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [forceUpdate, setForceUpdate] = useState(0);
+  const [teamProjects, setTeamProjects] = useState([]);
   const statusIntervalRef = useRef(null);
 
   // Watch for user changes
   useEffect(() => {
-    console.log('User changed:', user);
-    if (user?.id && teams.length === 0) {
+    console.log('User changed:', user, 'isAuthenticated:', isAuthenticated);
+    if (isAuthenticated && user?.userId && teams.length === 0) {
       // User just logged in, load teams
       loadTeams();
     }
     // Force re-render when user changes
     setForceUpdate(prev => prev + 1);
-  }, [user]);
+  }, [user, isAuthenticated]);
 
   // Load teams on mount
   useEffect(() => {
-    if (user?.id) {
+    if (isAuthenticated && user?.userId) {
       loadTeams();
-    } else {
-      // If no user, stop loading and show empty state
+    } else if (!authLoading) {
+      // If not authenticated and not loading, stop loading and show empty state
       setLoading(false);
     }
 
@@ -60,7 +71,7 @@ export default function TeamPage() {
     }, 10000); // 10 second timeout
 
     return () => clearTimeout(timeout);
-  }, [user?.id, loading]);
+  }, [user?.userId, isAuthenticated, authLoading, loading]);
 
   // Update online status periodically
   useEffect(() => {
@@ -77,10 +88,12 @@ export default function TeamPage() {
   }, [selectedTeam]);
 
   const loadTeams = async () => {
-    console.log('Loading teams for user:', user?.id);
+    console.log('Loading teams for user:', user?.userId);
+    console.log('User object:', user);
     try {
-      const response = await fetch(`/api/teams?userId=${user.id}`);
+      const response = await fetch(`/api/teams?userId=${user.userId}`);
       console.log('Teams API response:', response.status);
+      console.log('Response URL:', response.url);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -93,17 +106,36 @@ export default function TeamPage() {
       if (data.teams?.length > 0) {
         setSelectedTeam(data.teams[0]);
         loadTeamMembers(data.teams[0].teamId);
+        loadTeamProjects(data.teams[0].teamId);
       } else {
         // No teams found, set empty state
         setSelectedTeam(null);
         setMembers([]);
+        setTeamProjects([]);
       }
     } catch (error) {
       console.error('Error loading teams:', error);
-      // On error, still show empty state instead of loading forever
-      setTeams([]);
-      setSelectedTeam(null);
-      setMembers([]);
+      // Fallback to localStorage for development
+      try {
+        const storedTeams = localStorage.getItem(`teams_${user.userId}`);
+        if (storedTeams) {
+          const teams = JSON.parse(storedTeams);
+          setTeams(teams);
+          if (teams.length > 0) {
+            setSelectedTeam(teams[0]);
+            loadTeamMembers(teams[0].teamId);
+          }
+        } else {
+          setTeams([]);
+          setSelectedTeam(null);
+          setMembers([]);
+        }
+      } catch (localError) {
+        console.error('Error loading from localStorage:', localError);
+        setTeams([]);
+        setSelectedTeam(null);
+        setMembers([]);
+      }
     } finally {
       console.log('Setting loading to false');
       setLoading(false);
@@ -114,9 +146,46 @@ export default function TeamPage() {
     try {
       const response = await fetch(`/api/teams/${teamId}/members`);
       const data = await response.json();
-      setMembers(data.members || []);
+      
+      if (data.members) {
+        // Sort members by role: owner first, then admin, editor, viewer
+        const roleOrder = { owner: 0, admin: 1, editor: 2, viewer: 3, member: 4 };
+        const sortedMembers = data.members.sort((a, b) => {
+          const aOrder = roleOrder[a.role] || 5;
+          const bOrder = roleOrder[b.role] || 5;
+          return aOrder - bOrder;
+        });
+        setMembers(sortedMembers);
+      }
     } catch (error) {
       console.error('Error loading team members:', error);
+    }
+  };
+
+  const loadTeamProjects = async (teamId) => {
+    try {
+      // For now, we'll use mock data. In the future, this would fetch from a projects API
+      const mockProjects = [
+        {
+          id: 'proj_1',
+          name: 'Main Project',
+          description: 'Primary team project',
+          status: 'active',
+          lastModified: '2025-09-27T19:30:00.000Z',
+          owner: 'Rhythm Chawla'
+        },
+        {
+          id: 'proj_2', 
+          name: 'Side Project',
+          description: 'Secondary team project',
+          status: 'planning',
+          lastModified: '2025-09-27T18:45:00.000Z',
+          owner: 'mahekd.2105'
+        }
+      ];
+      setTeamProjects(mockProjects);
+    } catch (error) {
+      console.error('Error loading team projects:', error);
     }
   };
 
@@ -136,22 +205,25 @@ export default function TeamPage() {
     if (!newTeamName.trim()) return;
     
     // Check if user is available
-    if (!user?.id) {
+    if (!isAuthenticated || !user?.userId) {
       console.error('Cannot create team: user not available');
       alert('Please log in to create a team');
       return;
     }
     
     try {
+      const teamData = {
+        name: newTeamName,
+        description: newTeamDescription,
+        ownerId: user.userId,
+        ownerName: user.name || user.email || 'Unknown User'
+      };
+      console.log('Creating team with data:', teamData);
+      
       const response = await fetch('/api/teams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newTeamName,
-          description: newTeamDescription,
-          ownerId: user.id,
-          ownerName: user.name || user.email || 'Unknown User'
-        })
+        body: JSON.stringify(teamData)
       });
       
       if (!response.ok) {
@@ -166,10 +238,54 @@ export default function TeamPage() {
         setNewTeamName('');
         setNewTeamDescription('');
         loadTeamMembers(data.team.teamId);
+        
+        // Save to localStorage as backup
+        try {
+          const updatedTeams = [data.team, ...teams];
+          localStorage.setItem(`teams_${user.userId}`, JSON.stringify(updatedTeams));
+        } catch (localError) {
+          console.error('Error saving to localStorage:', localError);
+        }
       }
     } catch (error) {
       console.error('Error creating team:', error);
-      alert('Failed to create team. Please try again.');
+      // Fallback: create team in localStorage for development
+      try {
+        const teamId = `team_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const now = new Date().toISOString();
+        const team = {
+          teamId,
+          name: newTeamName,
+          description: newTeamDescription,
+          ownerId: user.userId,
+          ownerName: user.name || user.email || 'Unknown',
+          members: [user.userId],
+          memberDetails: [{
+            userId: user.userId,
+            name: user.name || user.email || 'Unknown',
+            role: 'owner',
+            joinedAt: now,
+            online: false
+          }],
+          createdAt: now,
+          updatedAt: now
+        };
+        
+        const updatedTeams = [team, ...teams];
+        setTeams(updatedTeams);
+        setSelectedTeam(team);
+        setShowCreateTeam(false);
+        setNewTeamName('');
+        setNewTeamDescription('');
+        
+        // Save to localStorage
+        localStorage.setItem(`teams_${user.userId}`, JSON.stringify(updatedTeams));
+        
+        alert('Team created successfully (saved locally for development)');
+      } catch (fallbackError) {
+        console.error('Error creating team fallback:', fallbackError);
+        alert('Failed to create team. Please try again.');
+      }
     }
   };
 
@@ -195,7 +311,7 @@ export default function TeamPage() {
       if (data.team) {
         setSelectedTeam(data.team);
         loadTeamMembers(selectedTeam.teamId);
-        setInviteEmail('');
+    setInviteEmail('');
       }
     } catch (error) {
       console.error('Error adding member:', error);
@@ -236,12 +352,26 @@ export default function TeamPage() {
     return matchesSearch && matchesRole;
   });
 
+  const handleTeamSelect = (team) => {
+    setSelectedTeam(team);
+    loadTeamMembers(team.teamId);
+    loadTeamProjects(team.teamId);
+  };
+
   // Helper function to get button text
   const getCreateTeamButtonText = () => {
-    if (!user?.id) return 'Please Log In';
+    if (!isAuthenticated || !user?.userId) return 'Please Log In';
     if (teams.length === 0) return 'Create Your First Team';
     return 'Create New Team';
   };
+
+  if (authLoading) {
+    return (
+      <div className={styles.teamPage}>
+        <div className={styles.loading}>Loading authentication...</div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -273,22 +403,43 @@ export default function TeamPage() {
               <p className={styles.subtitle}>Manage your teams, members, and real-time collaboration.</p>
               {/* Debug info - remove in production */}
               <div style={{fontSize: '12px', color: '#666', marginTop: '4px'}}>
-                Debug: User ID: {user?.id || 'null'}, Teams: {teams.length}
+                Debug: User ID: {user?.userId || 'null'}, isAuthenticated: {isAuthenticated ? 'true' : 'false'}, authLoading: {authLoading ? 'true' : 'false'}, Teams: {teams.length}
+                <br />
+                User object: {JSON.stringify(user, null, 2)}
+                <br />
+                Button should show: {getCreateTeamButtonText()}
+                <br />
+                <button 
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/test-user');
+                      const data = await response.json();
+                      console.log('Test user API response:', data);
+                      alert(`Current user: ${data.email} (ID: ${data.userId})`);
+                    } catch (error) {
+                      console.error('Test user API error:', error);
+                      alert('Error testing user API');
+                    }
+                  }}
+                  style={{fontSize: '10px', padding: '2px 4px', marginTop: '4px'}}
+                >
+                  Test User API
+                </button>
               </div>
             </div>
             <div className={styles.headerActions}>
               <button 
                 className={styles.createTeamButton}
                 onClick={() => {
-                  if (!user?.id) {
+                  if (!isAuthenticated || !user?.userId) {
                     alert('Please log in to create a team');
                     return;
                   }
                   setShowCreateTeam(true);
                 }}
-                disabled={!user?.id}
+                disabled={!isAuthenticated || !user?.userId}
               >
-                {!user?.id ? 'Please Log In' : `+ ${getCreateTeamButtonText()}`}
+                {!isAuthenticated || !user?.userId ? 'Please Log In' : `+ ${getCreateTeamButtonText()}`}
               </button>
             </div>
           </header>
@@ -301,8 +452,7 @@ export default function TeamPage() {
                 value={selectedTeam?.teamId || ''} 
                 onChange={(e) => {
                   const team = teams.find(t => t.teamId === e.target.value);
-                  setSelectedTeam(team);
-                  if (team) loadTeamMembers(team.teamId);
+                  handleTeamSelect(team);
                 }}
                 className={styles.teamSelect}
               >
@@ -312,132 +462,220 @@ export default function TeamPage() {
                   </option>
                 ))}
               </select>
+              {selectedTeam && (
+                <div className={styles.teamInfo}>
+                  <div className={styles.teamId}>Team ID: {selectedTeam.teamId}</div>
+                  <div className={styles.teamDescription}>{selectedTeam.description}</div>
+                </div>
+              )}
             </div>
           )}
 
           {selectedTeam ? (
             <>
-              {/* Controls */}
-              <div className={styles.controlsRow}>
-                <div className={styles.searchBox}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2"/></svg>
-                  <input 
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search members by name..."
-                  />
-                </div>
-                <select className={styles.roleFilter} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-                  <option>All</option>
-                  {roleOptions.map(r => <option key={r}>{r}</option>)}
-                </select>
-              </div>
+          {/* Controls */}
+          <div className={styles.controlsRow}>
+            <div className={styles.searchBox}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2"/></svg>
+              <input 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search members by name..."
+              />
+            </div>
+            <select className={styles.roleFilter} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+              <option>All</option>
+              {roleOptions.map(r => <option key={r}>{r}</option>)}
+            </select>
+          </div>
 
-              <div className={styles.layoutGrid}>
-                {/* Members Panel */}
-                <section className={styles.membersPanel}>
-                  <div className={styles.panelHeader}>
+          <div className={styles.layoutGrid}>
+            {/* Members Panel */}
+            <section className={styles.membersPanel}>
+              <div className={styles.panelHeader}>
                     <h2>{selectedTeam.name} Members</h2>
-                    <span className={styles.count}>{filteredMembers.length} members</span>
-                  </div>
-                  <div className={styles.membersGrid}>
-                    {filteredMembers.map((m) => (
-                      <div key={m.userId} className={styles.memberCard}>
-                        <div className={styles.memberHeader}>
-                          <div className={styles.avatar} data-online={m.online} title={m.online ? 'Online' : 'Offline'}>
-                            {m.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className={styles.memberInfo}>
-                            <div className={styles.memberName}>{m.name}</div>
-                            <div className={styles.memberMeta}>
-                              <span className={styles.role}>{m.role}</span>
-                              <span className={styles.dot}>•</span>
-                              <span className={styles.lastActive}>
-                                {m.online ? 'Online now' : `Last seen ${new Date(m.lastSeen).toLocaleDateString()}`}
-                              </span>
-                            </div>
-                          </div>
-                          <div className={styles.quickActions}>
-                            <button className={styles.iconButton} title="Message">
-                              💬
-                            </button>
-                            {selectedTeam.ownerId === user.id && m.userId !== user.id && (
+                <span className={styles.count}>{filteredMembers.length} members</span>
+              </div>
+              <div className={styles.membersTable}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Joined</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                {filteredMembers.map((m) => (
+                      <tr key={m.userId} className={styles.memberRow}>
+                        <td>
+                          <div className={styles.memberCell}>
+                      <div className={styles.avatar} data-online={m.online} title={m.online ? 'Online' : 'Offline'}>
+                              {m.name.charAt(0).toUpperCase()}
+                      </div>
+                            <span className={styles.memberName}>{m.name}</span>
+                        </div>
+                        </td>
+                        <td>
+                          <span className={`${styles.role} ${styles[`role_${m.role}`]}`}>
+                            {m.role.charAt(0).toUpperCase() + m.role.slice(1)}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={m.online ? styles.online : styles.offline}>
+                            {m.online ? 'Online' : 'Offline'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={styles.joinedDate}>
+                            {new Date(m.joinedAt).toLocaleDateString()}
+                          </span>
+                        </td>
+                        <td>
+                      <div className={styles.quickActions}>
+                        <button className={styles.iconButton} title="Message">
+                          💬
+                        </button>
+                            {selectedTeam.ownerId === user?.userId && m.userId !== user?.userId && (
                               <button 
                                 className={styles.iconButton} 
                                 title="Remove" 
                                 onClick={() => removeMember(m.userId)}
                               >
-                                ❌
-                              </button>
+                          ❌
+                        </button>
                             )}
-                          </div>
-                        </div>
                       </div>
+                        </td>
+                      </tr>
                     ))}
-                  </div>
-                </section>
+                  </tbody>
+                </table>
+              </div>
+            </section>
 
-                {/* Invite Panel */}
-                <aside className={styles.invitePanel}>
-                  <h3>Invite Members</h3>
-                  <div className={styles.inviteRow}>
-                    <input 
-                      type="email" 
-                      placeholder="email@company.com" 
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                    />
-                    <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
-                      {roleOptions.map(r => <option key={r}>{r}</option>)}
-                    </select>
-                  </div>
+            {/* Invite Panel */}
+            <aside className={styles.invitePanel}>
+              <h3>Invite Members</h3>
+              <div className={styles.inviteRow}>
+                <input 
+                  type="email" 
+                  placeholder="email@company.com" 
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                />
+                <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
+                  {roleOptions.map(r => <option key={r}>{r}</option>)}
+                </select>
+              </div>
                   <button className={styles.inviteButton} onClick={addMember}>Add Member</button>
-                  <div className={styles.inviteHint}>Or share a link with your team</div>
-                  <button className={styles.linkButton}>Copy Invite Link</button>
+              <div className={styles.inviteHint}>Or share a link with your team</div>
+              <button className={styles.linkButton}>Copy Invite Link</button>
 
-                  <div className={styles.permissionsBox}>
-                    <h4>Roles & Permissions</h4>
-                    <ul className={styles.permList}>
+              <div className={styles.permissionsBox}>
+                <h4>Roles & Permissions</h4>
+                <ul className={styles.permList}>
                       <li><strong>Owner</strong>: full access, manage team & billing</li>
                       <li><strong>Admin</strong>: manage members, edit projects</li>
-                      <li><strong>Editor</strong>: edit projects, scenes, characters, scripts</li>
-                      <li><strong>Viewer</strong>: read-only, can comment</li>
-                    </ul>
-                  </div>
-                </aside>
+                  <li><strong>Editor</strong>: edit projects, scenes, characters, scripts</li>
+                  <li><strong>Viewer</strong>: read-only, can comment</li>
+                </ul>
               </div>
+            </aside>
+          </div>
 
-              {/* Activity & Chat */}
-              <div className={styles.bottomGrid}>
-                <section className={styles.activityPanel}>
-                  <div className={styles.panelHeader}>
-                    <h2>Activity Feed</h2>
-                  </div>
-                  <ul className={styles.activityList}>
-                    <li><span className={styles.actor}>Alex</span> edited <strong>Map: Level 2</strong> <span className={styles.time}>2m ago</span></li>
-                    <li><span className={styles.actor}>Jamie</span> added <strong>3 assets</strong> <span className={styles.time}>1h ago</span></li>
-                    <li><span className={styles.actor}>Morgan</span> generated <strong>AI script</strong> <span className={styles.time}>yesterday</span></li>
-                  </ul>
-                </section>
+          {/* Team Projects */}
+          <section className={styles.projectsPanel}>
+            <div className={styles.panelHeader}>
+              <h2>Team Projects</h2>
+              <span className={styles.count}>{teamProjects.length} projects</span>
+            </div>
+            <div className={styles.projectsTable}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Project Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Owner</th>
+                    <th>Last Modified</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {teamProjects.map((project) => (
+                    <tr key={project.id} className={styles.projectRow}>
+                      <td>
+                        <div className={styles.projectCell}>
+                          <span className={styles.projectName}>{project.name}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={styles.projectDescription}>{project.description}</span>
+                      </td>
+                      <td>
+                        <span className={`${styles.status} ${styles[`status_${project.status}`]}`}>
+                          {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={styles.projectOwner}>{project.owner}</span>
+                      </td>
+                      <td>
+                        <span className={styles.lastModified}>
+                          {new Date(project.lastModified).toLocaleDateString()}
+                        </span>
+                      </td>
+                      <td>
+                        <div className={styles.projectActions}>
+                          <button className={styles.actionButton} title="Open Project">
+                            📂
+                          </button>
+                          <button className={styles.actionButton} title="Edit Project">
+                            ✏️
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-                <section className={styles.chatPanel}>
-                  <div className={styles.panelHeader}><h2>Team Chat</h2></div>
-                  <div className={styles.chatMessages}>
-                    {messages.map(m => (
-                      <div key={m.id} className={styles.message}><strong>{m.author}</strong> <span className={styles.messageTime}>{m.time}</span><div>{m.text}</div></div>
-                    ))}
-                  </div>
-                  <div className={styles.chatInputRow}>
-                    <input 
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Message the team..."
-                      onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
-                    />
-                    <button onClick={sendMessage} className={styles.sendButton}>Send</button>
-                  </div>
-                </section>
+          {/* Activity & Chat */}
+          <div className={styles.bottomGrid}>
+            <section className={styles.activityPanel}>
+              <div className={styles.panelHeader}>
+                <h2>Activity Feed</h2>
               </div>
+              <ul className={styles.activityList}>
+                <li><span className={styles.actor}>Alex</span> edited <strong>Map: Level 2</strong> <span className={styles.time}>2m ago</span></li>
+                <li><span className={styles.actor}>Jamie</span> added <strong>3 assets</strong> <span className={styles.time}>1h ago</span></li>
+                <li><span className={styles.actor}>Morgan</span> generated <strong>AI script</strong> <span className={styles.time}>yesterday</span></li>
+              </ul>
+            </section>
+
+            <section className={styles.chatPanel}>
+              <div className={styles.panelHeader}><h2>Team Chat</h2></div>
+              <div className={styles.chatMessages}>
+                {messages.map(m => (
+                  <div key={m.id} className={styles.message}><strong>{m.author}</strong> <span className={styles.messageTime}>{m.time}</span><div>{m.text}</div></div>
+                ))}
+              </div>
+              <div className={styles.chatInputRow}>
+                <input 
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Message the team..."
+                  onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
+                />
+                <button onClick={sendMessage} className={styles.sendButton}>Send</button>
+              </div>
+            </section>
+          </div>
             </>
           ) : (
             <div className={styles.noTeam}>
@@ -460,13 +698,13 @@ export default function TeamPage() {
                   <button 
                     className={styles.createTeamButton}
                     onClick={() => {
-                      if (!user?.id) {
+                      if (!isAuthenticated || !user?.userId) {
                         alert('Please log in to create a team');
                         return;
                       }
                       setShowCreateTeam(true);
                     }}
-                    disabled={!user?.id}
+                    disabled={!isAuthenticated || !user?.userId}
                   >
                     {getCreateTeamButtonText()}
                   </button>
@@ -554,9 +792,9 @@ export default function TeamPage() {
                   <button 
                     className={styles.createButton}
                     onClick={createTeam}
-                    disabled={!newTeamName.trim() || !user?.id}
+                    disabled={!newTeamName.trim() || !isAuthenticated || !user?.userId}
                   >
-                    {!user?.id ? 'Please Log In' : 'Create Team'}
+                    {!isAuthenticated || !user?.userId ? 'Please Log In' : 'Create Team'}
                   </button>
                 </div>
               </div>

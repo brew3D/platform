@@ -103,6 +103,9 @@ export const AuthProvider = ({ children }) => {
           const devData = await devResponse.json();
           
           if (devResponse.ok) {
+            // Clear any existing user data before setting new user
+            clearUserData();
+            
             setUser(devData.user);
             setToken(devData.token);
             localStorage.setItem('auth_token', devData.token);
@@ -192,10 +195,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  // Helper function to clear user data and cached data
+  const clearUserData = () => {
+    console.log('🧹 Clearing user data and cached data');
     setUser(null);
     setToken(null);
     localStorage.removeItem('auth_token');
+    // Clear cached data for any previous user
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('teams_')) {
+        localStorage.removeItem(key);
+      }
+    });
+  };
+
+  const logout = () => {
+    console.log('🚪 Logging out user:', user?.email);
+    clearUserData();
   };
 
   // Helper function to make authenticated API calls with automatic token verification

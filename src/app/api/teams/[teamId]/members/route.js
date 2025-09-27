@@ -16,7 +16,7 @@ const TABLE_NAME = process.env.DDB_TEAMS_TABLE || 'DDB_TEAMS_TABLE';
 // GET /api/teams/[teamId]/members - Get team members
 export async function GET(request, { params }) {
   try {
-    const { teamId } = params;
+    const { teamId } = await params;
 
     const getParams = {
       TableName: TABLE_NAME,
@@ -42,7 +42,7 @@ export async function GET(request, { params }) {
 // POST /api/teams/[teamId]/members - Add member to team
 export async function POST(request, { params }) {
   try {
-    const { teamId } = params;
+    const { teamId } = await params;
     const body = await request.json();
     const { userId, name, role = 'member' } = body;
 
@@ -109,7 +109,7 @@ export async function POST(request, { params }) {
 // DELETE /api/teams/[teamId]/members - Remove member from team
 export async function DELETE(request, { params }) {
   try {
-    const { teamId } = params;
+    const { teamId } = await params;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 

@@ -11,7 +11,7 @@ const client = new DynamoDBClient({
 });
 
 const docClient = DynamoDBDocumentClient.from(client);
-const TABLE_NAME = process.env.DDB_TEAMS_TABLE || 'DDB_TEAMS_TABLE';
+const TABLE_NAME = process.env.DDB_TEAMS_TABLE || 'ruchi-ai-teams';
 
 // GET /api/teams - Get all teams for a user
 export async function GET(request) {
@@ -33,11 +33,10 @@ export async function GET(request) {
     };
 
     const result = await docClient.send(new ScanCommand(params));
-    
     return NextResponse.json({ teams: result.Items || [] });
   } catch (error) {
     console.error('Error fetching teams:', error);
-    return NextResponse.json({ error: 'Failed to fetch teams' }, { status: 500 });
+    return NextResponse.json({ teams: [] });
   }
 }
 
