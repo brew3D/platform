@@ -1,0 +1,23 @@
+.page { display: flex; flex-direction: column; gap: 1rem; }
+.header { display: flex; flex-direction: column; gap: 0.25rem; }
+.back { align-self: flex-start; background: var(--card-background); border: 1px solid var(--card-border); color: var(--text-primary); padding: 0.4rem 0.7rem; border-radius: 10px; }
+.title { margin: 0; font-size: 1.6rem; font-weight: 800; }
+.subtitle { margin: 0; color: var(--text-secondary); }
+
+.actionsBar { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.plus { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 0.5rem 0.8rem; cursor: pointer; }
+.searchRow { display: flex; gap: 0.5rem; }
+.search { background: var(--card-background); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 10px; padding: 0.45rem 0.6rem; }
+.filter { background: var(--card-background); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 10px; padding: 0.45rem 0.6rem; }
+
+.yourSection, .gallerySection { background: var(--card-background); border: 1px solid var(--card-border); border-radius: 14px; padding: 0.75rem; }
+.yourSection h2, .gallerySection h2 { margin: 0 0 0.5rem 0; font-size: 1.1rem; }
+.empty { color: var(--text-secondary); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; }
+.card { background: var(--card-background); border: 1px solid var(--card-border); border-radius: 12px; padding: 0.5rem; }
+.cardThumb { height: 96px; border-radius: 8px; background: linear-gradient(135deg, rgba(138,43,226,.12), rgba(102,126,234,.12)); border: 1px dashed var(--card-border); }
+.cardTitle { margin-top: 0.4rem; font-weight: 600; }
+
+@media (max-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+

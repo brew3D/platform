@@ -6,13 +6,12 @@ import { useTheme } from "../../../contexts/ThemeContext";
 import styles from "./project.module.css";
 
 const cards = [
-  { id: 'flow', label: 'Flow', href: '#flow' },
-  { id: 'scenes', label: 'Scenes', href: '#scenes' },
-  { id: 'maps', label: 'Maps', href: '#maps' },
-  { id: 'assets', label: 'Asset Library', href: '#assets' },
-  { id: 'characters', label: 'Characters', href: '#characters' },
-  { id: 'script', label: 'Script', href: '#script' },
-  { id: 'settings', label: 'Project Settings', href: '#settings' },
+  { id: 'flow', label: 'Flow ( Script )' },
+  { id: 'scenes', label: 'Animated Scenes' },
+  { id: 'maps', label: 'Maps' },
+  { id: 'assets', label: 'Asset Library' },
+  { id: 'characters', label: 'Characters' },
+  { id: 'settings', label: 'Project Settings' },
 ];
 
 export default function ProjectDetailPage() {
@@ -40,7 +39,12 @@ export default function ProjectDetailPage() {
 
           <section className={styles.grid}>
             {cards.map((c) => (
-              <a key={c.id} href={c.href} className={`${styles.card} ${isDark ? styles.cardDark : styles.cardLight}`}>
+              <button
+                key={c.id}
+                className={`${styles.card} ${isDark ? styles.cardDark : styles.cardLight}`}
+                onClick={() => router.push(`/dashboard/projects/${projectId}/${c.id}`)}
+                aria-label={`Open ${c.label}`}
+              >
                 <div className={styles.cardContent}>
                   <div className={styles.cardTitle}>{c.label}</div>
                   <div className={styles.cardAction}>
@@ -49,7 +53,7 @@ export default function ProjectDetailPage() {
                     </svg>
                   </div>
                 </div>
-              </a>
+              </button>
             ))}
           </section>
 

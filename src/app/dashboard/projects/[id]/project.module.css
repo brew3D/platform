@@ -64,16 +64,15 @@
 /* Grid for 200x200px cards */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 200px);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   margin-bottom: 2rem;
-  justify-content: start;
 }
 
 /* Card styles */
 .card {
-  width: 200px;
-  height: 200px;
+  aspect-ratio: 1 / 1;
+  min-height: 160px;
   border-radius: 16px;
   text-decoration: none;
   color: inherit;
@@ -217,25 +216,15 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, 180px);
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
-  }
-  
-  .card {
-    width: 180px;
-    height: 180px;
   }
 }
 
 @media (max-width: 768px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, 160px);
+    grid-template-columns: 1fr;
     gap: 0.75rem;
-  }
-  
-  .card {
-    width: 160px;
-    height: 160px;
   }
   
   .title {
