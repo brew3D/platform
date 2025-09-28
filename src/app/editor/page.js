@@ -22,6 +22,7 @@ import UserStatus from "../components/UserStatus";
 import { useAuth } from "../contexts/AuthContext";
 import { useCollaboration } from "../contexts/CollaborationContext";
 import LogsPanel from "../components/LogsPanel";
+import Tooltip from "../components/Tooltip";
 import Link from "next/link";
 
 // React Icons
@@ -177,16 +178,88 @@ export default function EditorPage() {
   const [showChat, setShowChat] = useState(true);
   const [showLogs, setShowLogs] = useState(false);
   const [assetQuery, setAssetQuery] = useState("");
-  const assets = useMemo(() => ([
-    { id: 'cube', name: 'Cube', type: 'cube' },
-    { id: 'sphere', name: 'Sphere', type: 'sphere' },
-    { id: 'cylinder', name: 'Cylinder', type: 'cylinder' },
-    { id: 'plane', name: 'Plane', type: 'plane' },
-    { id: 'table', name: 'Table (preset)', type: 'preset_table' },
-    { id: 'chair', name: 'Chair (preset)', type: 'preset_chair' },
-    { id: 'lamp', name: 'Lamp (preset)', type: 'preset_lamp' },
-    { id: 'bookshelf', name: 'Bookshelf (preset)', type: 'preset_bookshelf' },
-  ]), []);
+  const [assets, setAssets] = useState([]);
+  const [assetPacks, setAssetPacks] = useState([]);
+  const [selectedPack, setSelectedPack] = useState(null);
+  const [loadingAssets, setLoadingAssets] = useState(false);
+
+  // Load asset packs and assets
+  useEffect(() => {
+    const loadAssets = async () => {
+      try {
+        setLoadingAssets(true);
+        
+        // Load asset packs
+        const packsResponse = await fetch('/api/assets?type=packs');
+        const packsData = await packsResponse.json();
+        
+        if (packsData.success) {
+          setAssetPacks(packsData.packs);
+          
+          // Load all assets
+          const assetsResponse = await fetch('/api/assets');
+          const assetsData = await assetsResponse.json();
+          
+          if (assetsData.success) {
+            setAssets(assetsData.assets);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading assets:', error);
+      } finally {
+        setLoadingAssets(false);
+      }
+    };
+
+    loadAssets();
+  }, []);
+
+  // Handle pack selection
+  const handlePackSelect = async (packId) => {
+    try {
+      setLoadingAssets(true);
+      const response = await fetch(`/api/assets?packId=${packId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setSelectedPack(data.packInfo);
+        setAssets(data.assets);
+      }
+    } catch (error) {
+      console.error('Error loading pack assets:', error);
+    } finally {
+      setLoadingAssets(false);
+    }
+  };
+
+  // Handle search
+  const handleAssetSearch = async (query) => {
+    if (!query.trim()) {
+      // Reset to all assets
+      const response = await fetch('/api/assets');
+      const data = await response.json();
+      if (data.success) {
+        setAssets(data.assets);
+        setSelectedPack(null);
+      }
+      return;
+    }
+
+    try {
+      setLoadingAssets(true);
+      const response = await fetch(`/api/assets?search=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAssets(data.assets);
+        setSelectedPack(null);
+      }
+    } catch (error) {
+      console.error('Error searching assets:', error);
+    } finally {
+      setLoadingAssets(false);
+    }
+  };
   
   // Resizable left panel
   const [leftPanelWidth, setLeftPanelWidth] = useState(0.125); // 1/8th of screen
@@ -501,6 +574,75 @@ export default function EditorPage() {
     // Sync with server
     if (currentScene) {
       updateObject(newObj);
+    }
+  };
+
+  const addMultiPartAsset = (asset) => {
+    if (!asset.parts || asset.parts.length === 0) {
+      // Fallback to single primitive if no parts defined
+      addPrimitive(asset.type);
+      return;
+    }
+
+    const newObjects = asset.parts.map((part, index) => {
+      const newId = `${asset.assetType || asset.type}_${Date.now() % 10000}_${index}`;
+      
+      // Convert part shape to object type and dimensions
+      let objectType = part.shape;
+      let dimensions = [1, 1, 1];
+      
+      if (part.shape === 'cube' || part.shape === 'cuboid') {
+        dimensions = [part.width || 1, part.height || 1, part.depth || 1];
+      } else if (part.shape === 'sphere') {
+        dimensions = [part.radius || 0.5, part.radius || 0.5, part.radius || 0.5];
+      } else if (part.shape === 'cylinder') {
+        dimensions = [part.radius || 0.5, part.height || 1, part.radius || 0.5];
+      } else if (part.shape === 'cone') {
+        dimensions = [part.radius || 0.5, part.height || 1, part.radius || 0.5];
+      } else if (part.shape === 'torus') {
+        dimensions = [part.radius || 0.5, part.tube || 0.2, part.radius || 0.5];
+      } else if (part.shape === 'capsule') {
+        dimensions = [part.radius || 0.3, part.height || 1, part.radius || 0.3];
+      } else if (part.shape === 'plane') {
+        dimensions = [part.width || 2, part.height || 2, 0.01];
+      } else if (part.shape === 'pyramid') {
+        dimensions = [part.width || 1, part.height || 1, part.depth || 1];
+      } else if (part.shape === 'prism-triangular') {
+        dimensions = [part.width || 1, part.height || 1, part.depth || 1];
+      } else if (part.shape === 'prism-hexagonal') {
+        dimensions = [part.width || 1, part.height || 1, part.depth || 1];
+      }
+      
+      const defaultY = part.shape === 'plane' ? 0.001 : (dimensions[1] || 1) / 2;
+      const position = part.position ? [part.position[0], part.position[1], part.position[2]] : [0, defaultY, 0];
+      const rotation = part.rotation ? [part.rotation[0], part.rotation[1], part.rotation[2]] : [0, 0, 0];
+      const material = part.color || "#FF8C42";
+      
+      return {
+        id: newId,
+        object: objectType,
+        dimensions,
+        position,
+        rotation,
+        material,
+        // Additional properties for advanced rendering
+        name: part.name || `${objectType}_${index}`,
+        transparency: part.transparency || 1,
+        emissive: part.emissive || false,
+        color: part.color || material
+      };
+    });
+    
+    setSceneObjects([...sceneObjects, ...newObjects]);
+    
+    // Log the action
+    if (typeof window !== 'undefined' && window.addCollaborationLog) {
+      window.addCollaborationLog(`Added ${asset.name} (${asset.parts.length} parts) to scene`);
+    }
+    
+    // Sync with server for each part
+    if (currentScene) {
+      newObjects.forEach(obj => updateObject(obj));
     }
   };
 
@@ -1366,165 +1508,362 @@ export default function EditorPage() {
       {/* Main Toolbar */}
       <div className={styles.toolbar}>
         <div className={styles.toolbarSection}>
-          <button 
-            className={`${styles.toolbarBtn} ${activeMode === 'object' ? styles.active : ''}`}
-            onClick={() => setActiveMode('object')}
-            title="Object Mode"
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Object Mode</div>
+                <div className="tooltipDescription">Select and manipulate objects in the scene. Click to select, drag to move.</div>
+                <div className="tooltipShortcut">Tab</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiTarget />
-          </button>
-          <button 
-            className={`${styles.toolbarBtn} ${activeMode === 'edit' ? styles.active : ''}`}
-            onClick={() => setActiveMode('edit')}
-            title="Edit Mode"
+            <button 
+              className={`${styles.toolbarBtn} ${activeMode === 'object' ? styles.active : ''}`}
+              onClick={() => setActiveMode('object')}
+            >
+              <FiTarget />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Edit Mode</div>
+                <div className="tooltipDescription">Edit individual vertices, edges, and faces of selected objects.</div>
+                <div className="tooltipShortcut">Tab</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiEdit3 />
-          </button>
-          <button 
-            className={`${styles.toolbarBtn} ${activeMode === 'sculpt' ? styles.active : ''}`}
-            onClick={() => setActiveMode('sculpt')}
-            title="Sculpt Mode"
+            <button 
+              className={`${styles.toolbarBtn} ${activeMode === 'edit' ? styles.active : ''}`}
+              onClick={() => setActiveMode('edit')}
+            >
+              <FiEdit3 />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Sculpt Mode</div>
+                <div className="tooltipDescription">Sculpt and deform objects using brush-based tools.</div>
+                <div className="tooltipShortcut">Tab</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiTool />
-          </button>
+            <button 
+              className={`${styles.toolbarBtn} ${activeMode === 'sculpt' ? styles.active : ''}`}
+              onClick={() => setActiveMode('sculpt')}
+            >
+              <FiTool />
+            </button>
+          </Tooltip>
         </div>
 
         <div className={styles.toolbarSection}>
-          <button 
-            className={`${styles.toolbarBtn} ${transformMode === 'translate' ? styles.active : ''}`}
-            onClick={() => setTransformMode('translate')}
-            title="Move (G)"
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Move Tool</div>
+                <div className="tooltipDescription">Move selected objects along X, Y, or Z axes. Drag the colored handles to move in specific directions.</div>
+                <div className="tooltipShortcut">G</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiMove />
-          </button>
-          <button 
-            className={`${styles.toolbarBtn} ${transformMode === 'rotate' ? styles.active : ''}`}
-            onClick={() => setTransformMode('rotate')}
-            title="Rotate (R)"
+            <button 
+              className={`${styles.toolbarBtn} ${transformMode === 'translate' ? styles.active : ''}`}
+              onClick={() => setTransformMode('translate')}
+            >
+              <FiMove />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Rotate Tool</div>
+                <div className="tooltipDescription">Rotate selected objects around their center point. Use the colored rings to rotate around specific axes.</div>
+                <div className="tooltipShortcut">R</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiRotateCw />
-          </button>
-          <button 
-            className={`${styles.toolbarBtn} ${transformMode === 'scale' ? styles.active : ''}`}
-            onClick={() => setTransformMode('scale')}
-            title="Scale (S)"
+            <button 
+              className={`${styles.toolbarBtn} ${transformMode === 'rotate' ? styles.active : ''}`}
+              onClick={() => setTransformMode('rotate')}
+            >
+              <FiRotateCw />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Scale Tool</div>
+                <div className="tooltipDescription">Resize selected objects uniformly or along specific axes. Drag the colored handles to scale in different directions.</div>
+                <div className="tooltipShortcut">S</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiMaximize2 />
-          </button>
+            <button 
+              className={`${styles.toolbarBtn} ${transformMode === 'scale' ? styles.active : ''}`}
+              onClick={() => setTransformMode('scale')}
+            >
+              <FiMaximize2 />
+            </button>
+          </Tooltip>
         </div>
 
         <div className={styles.toolbarSection}>
-          <button 
-            className={`${styles.toolbarBtn} ${coordinateSystem === 'global' ? styles.active : ''}`}
-            onClick={() => setCoordinateSystem('global')}
-            title="Global Coordinates"
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Global Coordinates</div>
+                <div className="tooltipDescription">Transform objects relative to the world coordinate system (X, Y, Z axes).</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiGlobe />
-          </button>
-          <button 
-            className={`${styles.toolbarBtn} ${coordinateSystem === 'local' ? styles.active : ''}`}
-            onClick={() => setCoordinateSystem('local')}
-            title="Local Coordinates"
+            <button 
+              className={`${styles.toolbarBtn} ${coordinateSystem === 'global' ? styles.active : ''}`}
+              onClick={() => setCoordinateSystem('global')}
+            >
+              <FiGlobe />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Local Coordinates</div>
+                <div className="tooltipDescription">Transform objects relative to their own orientation and rotation.</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiLayers />
-          </button>
-          <button 
-            className={styles.toolbarBtn}
-            onClick={() => addPrimitive('cube')}
-            title="Add Cube"
+            <button 
+              className={`${styles.toolbarBtn} ${coordinateSystem === 'local' ? styles.active : ''}`}
+              onClick={() => setCoordinateSystem('local')}
+            >
+              <FiLayers />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Add Cube</div>
+                <div className="tooltipDescription">Create a new cube primitive in the scene. Default size is 1×1×1 units.</div>
+                <div className="tooltipShortcut">Shift+A → Mesh → Cube</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiBox />
-          </button>
-          <button 
-            className={styles.toolbarBtn}
-            onClick={() => addPrimitive('sphere')}
-            title="Add Sphere"
+            <button 
+              className={styles.toolbarBtn}
+              onClick={() => addPrimitive('cube')}
+            >
+              <FiBox />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Add Sphere</div>
+                <div className="tooltipDescription">Create a new sphere primitive in the scene. Default radius is 0.5 units.</div>
+                <div className="tooltipShortcut">Shift+A → Mesh → Sphere</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiCircle />
-          </button>
-          <button 
-            className={styles.toolbarBtn}
-            onClick={() => addPrimitive('cylinder')}
-            title="Add Cylinder"
+            <button 
+              className={styles.toolbarBtn}
+              onClick={() => addPrimitive('sphere')}
+            >
+              <FiCircle />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Add Cylinder</div>
+                <div className="tooltipDescription">Create a new cylinder primitive in the scene. Default radius is 0.5, height is 1 unit.</div>
+                <div className="tooltipShortcut">Shift+A → Mesh → Cylinder</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiMaximize2 />
-          </button>
-          <button 
-            className={styles.toolbarBtn}
-            onClick={() => addPrimitive('plane')}
-            title="Add Plane"
+            <button 
+              className={styles.toolbarBtn}
+              onClick={() => addPrimitive('cylinder')}
+            >
+              <FiMaximize2 />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Add Plane</div>
+                <div className="tooltipDescription">Create a new plane primitive in the scene. Default size is 2×2 units.</div>
+                <div className="tooltipShortcut">Shift+A → Mesh → Plane</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiSquare />
-          </button>
+            <button 
+              className={styles.toolbarBtn}
+              onClick={() => addPrimitive('plane')}
+            >
+              <FiSquare />
+            </button>
+          </Tooltip>
         </div>
 
         <div className={styles.toolbarSection}>
-          <button 
-            className={`${styles.toolbarBtn} ${snapEnabled ? styles.active : ''}`}
-            onClick={() => setSnapEnabled(!snapEnabled)}
-            title="Snap to Grid"
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Snap to Grid</div>
+                <div className="tooltipDescription">Enable grid snapping for precise object placement. Objects will snap to grid intersections when moved.</div>
+                <div className="tooltipShortcut">Ctrl+Shift+Tab</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiGrid />
-          </button>
-          <input 
-            type="number" 
-            value={snapValue} 
-            onChange={(e) => setSnapValue(Number(e.target.value))}
-            className={styles.snapInput}
-            title="Snap Value"
-          />
+            <button 
+              className={`${styles.toolbarBtn} ${snapEnabled ? styles.active : ''}`}
+              onClick={() => setSnapEnabled(!snapEnabled)}
+            >
+              <FiGrid />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Snap Value</div>
+                <div className="tooltipDescription">Set the grid spacing for snapping. Objects will snap to multiples of this value.</div>
+              </div>
+            }
+            position="bottom"
+          >
+            <input 
+              type="number" 
+              value={snapValue} 
+              onChange={(e) => setSnapValue(Number(e.target.value))}
+              className={styles.snapInput}
+            />
+          </Tooltip>
         </div>
 
         <div className={styles.toolbarSection}>
-          <button 
-            className={`${styles.toolbarBtn} ${viewMode === 'wireframe' ? styles.active : ''}`}
-            onClick={() => setViewMode('wireframe')}
-            title="Wireframe"
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Wireframe View</div>
+                <div className="tooltipDescription">Display objects as wireframe outlines. Useful for seeing object structure and topology.</div>
+                <div className="tooltipShortcut">Z → 1</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiZap />
-          </button>
-          <button 
-            className={`${styles.toolbarBtn} ${viewMode === 'solid' ? styles.active : ''}`}
-            onClick={() => setViewMode('solid')}
-            title="Solid"
+            <button 
+              className={`${styles.toolbarBtn} ${viewMode === 'wireframe' ? styles.active : ''}`}
+              onClick={() => setViewMode('wireframe')}
+            >
+              <FiZap />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Solid View</div>
+                <div className="tooltipDescription">Display objects as solid shapes with basic shading. Good for general modeling work.</div>
+                <div className="tooltipShortcut">Z → 2</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiBox />
-          </button>
-          <button 
-            className={`${styles.toolbarBtn} ${viewMode === 'material' ? styles.active : ''}`}
-            onClick={() => setViewMode('material')}
-            title="Material Preview"
+            <button 
+              className={`${styles.toolbarBtn} ${viewMode === 'solid' ? styles.active : ''}`}
+              onClick={() => setViewMode('solid')}
+            >
+              <FiBox />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Material Preview</div>
+                <div className="tooltipDescription">Display objects with material preview. Shows basic materials and textures.</div>
+                <div className="tooltipShortcut">Z → 3</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiTool />
-          </button>
-          <button 
-            className={`${styles.toolbarBtn} ${viewMode === 'rendered' ? styles.active : ''}`}
-            onClick={() => setViewMode('rendered')}
-            title="Rendered"
+            <button 
+              className={`${styles.toolbarBtn} ${viewMode === 'material' ? styles.active : ''}`}
+              onClick={() => setViewMode('material')}
+            >
+              <FiTool />
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Rendered View</div>
+                <div className="tooltipDescription">Display objects with full rendering including lighting, shadows, and materials.</div>
+                <div className="tooltipShortcut">Z → 4</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiSun />
-          </button>
+            <button 
+              className={`${styles.toolbarBtn} ${viewMode === 'rendered' ? styles.active : ''}`}
+              onClick={() => setViewMode('rendered')}
+            >
+              <FiSun />
+            </button>
+          </Tooltip>
         </div>
 
         <div className={styles.toolbarSpacer} />
 
         <div className={styles.toolbarSection}>
-          <button 
-            className={styles.actionBtn}
-            onClick={showSaveConfirmation}
-            title={currentScene ? 'Save (updates current scene)' : 'Save (will create a new scene)'}
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Save Scene</div>
+                <div className="tooltipDescription">{currentScene ? 'Update the current scene with all changes' : 'Create a new scene with current objects'}</div>
+                <div className="tooltipShortcut">Ctrl+S</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiSave />
-            <span>Save</span>
-          </button>
-          <button 
-            className={`${styles.actionBtn} ${styles.secondary}`}
-            onClick={saveAsNewScene}
-            title="Save As (creates a new scene)"
+            <button 
+              className={styles.actionBtn}
+              onClick={showSaveConfirmation}
+            >
+              <FiSave />
+              <span>Save</span>
+            </button>
+          </Tooltip>
+          <Tooltip 
+            content={
+              <div>
+                <div className="tooltipTitle">Save As New Scene</div>
+                <div className="tooltipDescription">Create a new scene with the current objects, keeping the original scene unchanged.</div>
+                <div className="tooltipShortcut">Ctrl+Shift+S</div>
+              </div>
+            }
+            position="bottom"
           >
-            <FiDownload />
-            <span>Save As</span>
-          </button>
+            <button 
+              className={`${styles.actionBtn} ${styles.secondary}`}
+              onClick={saveAsNewScene}
+            >
+              <FiDownload />
+              <span>Save As</span>
+            </button>
+          </Tooltip>
         </div>
 
         <div className={styles.toolbarSection}>
@@ -1562,41 +1901,86 @@ export default function EditorPage() {
                 >
                   <FiChevronRight />
                 </button>
-                <button 
-                  className={`${styles.iconButton} ${expandedSections.assetLibrary ? styles.active : ''}`}
-                  onClick={() => toggleSection('assetLibrary')}
-                  title="Asset Library"
+                <Tooltip 
+                  content={
+                    <div>
+                      <div className="tooltipTitle">Asset Library</div>
+                      <div className="tooltipDescription">Browse and add 3D assets, models, and primitives to your scene. Includes furniture, vehicles, characters, and more.</div>
+                    </div>
+                  }
+                  position="right"
                 >
-                  <FiPackage />
-                </button>
-                <button 
-                  className={`${styles.iconButton} ${expandedSections.fileStructure ? styles.active : ''}`}
-                  onClick={() => toggleSection('fileStructure')}
-                  title="File Structure"
+                  <button 
+                    className={`${styles.iconButton} ${expandedSections.assetLibrary ? styles.active : ''}`}
+                    onClick={() => toggleSection('assetLibrary')}
+                  >
+                    <FiPackage />
+                  </button>
+                </Tooltip>
+                <Tooltip 
+                  content={
+                    <div>
+                      <div className="tooltipTitle">File Structure</div>
+                      <div className="tooltipDescription">View and manage project files, assets, and resources. Organize your project hierarchy.</div>
+                    </div>
+                  }
+                  position="right"
                 >
-                  <FiFolder />
-                </button>
-                <button 
-                  className={`${styles.iconButton} ${expandedSections.projectFlow ? styles.active : ''}`}
-                  onClick={() => toggleSection('projectFlow')}
-                  title="Project Flow"
+                  <button 
+                    className={`${styles.iconButton} ${expandedSections.fileStructure ? styles.active : ''}`}
+                    onClick={() => toggleSection('fileStructure')}
+                  >
+                    <FiFolder />
+                  </button>
+                </Tooltip>
+                <Tooltip 
+                  content={
+                    <div>
+                      <div className="tooltipTitle">Project Flow</div>
+                      <div className="tooltipDescription">Visualize and manage your project workflow, dependencies, and development pipeline.</div>
+                    </div>
+                  }
+                  position="right"
                 >
-                  <FiLayers />
-                </button>
-                <button 
-                  className={`${styles.iconButton} ${expandedSections.timeline ? styles.active : ''}`}
-                  onClick={() => toggleSection('timeline')}
-                  title="Timeline"
+                  <button 
+                    className={`${styles.iconButton} ${expandedSections.projectFlow ? styles.active : ''}`}
+                    onClick={() => toggleSection('projectFlow')}
+                  >
+                    <FiLayers />
+                  </button>
+                </Tooltip>
+                <Tooltip 
+                  content={
+                    <div>
+                      <div className="tooltipTitle">Timeline</div>
+                      <div className="tooltipDescription">Create and edit animations, keyframes, and timeline-based sequences for your scene.</div>
+                    </div>
+                  }
+                  position="right"
                 >
-                  <FiClock />
-                </button>
-                <button 
-                  className={`${styles.iconButton} ${expandedSections.scenes ? styles.active : ''}`}
-                  onClick={() => toggleSection('scenes')}
-                  title="Scenes"
+                  <button 
+                    className={`${styles.iconButton} ${expandedSections.timeline ? styles.active : ''}`}
+                    onClick={() => toggleSection('timeline')}
+                  >
+                    <FiClock />
+                  </button>
+                </Tooltip>
+                <Tooltip 
+                  content={
+                    <div>
+                      <div className="tooltipTitle">Scenes</div>
+                      <div className="tooltipDescription">Manage multiple scenes, switch between different views, and organize your project scenes.</div>
+                    </div>
+                  }
+                  position="right"
                 >
-                  <FiPlay />
-                </button>
+                  <button 
+                    className={`${styles.iconButton} ${expandedSections.scenes ? styles.active : ''}`}
+                    onClick={() => toggleSection('scenes')}
+                  >
+                    <FiPlay />
+                  </button>
+                </Tooltip>
               </div>
             )}
             
@@ -1618,32 +2002,78 @@ export default function EditorPage() {
                         className={styles.assetSearch}
                         placeholder="Search assets..."
                         value={assetQuery}
-                        onChange={(e) => setAssetQuery(e.target.value)}
+                        onChange={(e) => {
+                          setAssetQuery(e.target.value);
+                          handleAssetSearch(e.target.value);
+                        }}
                       />
                     </div>
+                    
+                    {/* Pack Selection */}
+                    {!assetQuery && (
+                      <div className={styles.packSelection}>
+                        <div className={styles.packGrid}>
+                          {assetPacks.map((pack) => (
+                            <button
+                              key={pack.id}
+                              className={`${styles.packButton} ${selectedPack?.id === pack.id ? styles.selected : ''}`}
+                              onClick={() => handlePackSelect(pack.id)}
+                              title={pack.description}
+                            >
+                              <div className={styles.packIcon} style={{ backgroundColor: pack.color }}>
+                                {pack.icon}
+                              </div>
+                              <div className={styles.packName}>{pack.name}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Assets Grid */}
                     <div className={styles.assetGrid}>
-                      {assets
-                        .filter(a => a.name.toLowerCase().includes((assetQuery||'').toLowerCase()))
-                        .map(a => (
-                          <button
-                            key={a.id}
-                            className={styles.assetCard}
-                            onClick={() => {
-                              if (a.type.startsWith('preset_')) {
-                                const { objects, groups } = simulateAI(a.id);
-                                updateScene(mergeObjects(sceneObjects, objects), mergeGroups(sceneGroups, groups));
-                              } else {
-                                addPrimitive(a.type);
-                              }
-                            }}
-                            title={`Add ${a.name}`}
+                      {loadingAssets ? (
+                        <div className={styles.loadingAssets}>Loading...</div>
+                      ) : (
+                        assets.map((asset) => (
+                          <Tooltip 
+                            key={asset.id}
+                            content={
+                              <div>
+                                <div className="tooltipTitle">{asset.name}</div>
+                                <div className="tooltipDescription">{asset.description}</div>
+                                <div className="tooltipShortcut">Click to add to scene</div>
+                                {asset.parts && asset.parts.length > 0 && (
+                                  <div className="tooltipShortcut">{asset.parts.length} parts</div>
+                                )}
+                              </div>
+                            }
+                            position="top"
+                            delay={300}
                           >
-                            <div className={styles.assetThumb}>
-                              {a.type === 'cube' ? <FiBox /> : a.type === 'sphere' ? <FiCircle /> : <FiSquare />}
-                            </div>
-                            <div className={styles.assetName}>{a.name}</div>
-                          </button>
-                      ))}
+                            <button
+                              className={styles.assetCard}
+                              onClick={() => {
+                                if (asset.type.startsWith('preset_')) {
+                                  const { objects, groups } = simulateAI(asset.id);
+                                  updateScene(mergeObjects(sceneObjects, objects), mergeGroups(sceneGroups, groups));
+                                } else if (asset.parts && asset.parts.length > 0) {
+                                  addMultiPartAsset(asset);
+                                } else {
+                                  addPrimitive(asset.type);
+                                }
+                              }}
+                            >
+                              <div className={styles.assetThumb}>
+                                <div className={styles.assetIcon} style={{ backgroundColor: asset.packColor }}>
+                                  {asset.packIcon}
+                                </div>
+                              </div>
+                              <div className={styles.assetName}>{asset.name}</div>
+                            </button>
+                          </Tooltip>
+                        ))
+                      )}
                     </div>
                   </div>
                 )}

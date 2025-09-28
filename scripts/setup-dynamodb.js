@@ -92,6 +92,32 @@ const TABLES = {
       ReadCapacityUnits: 5,
       WriteCapacityUnits: 5
     }
+  },
+  'ruchi-ai-assets': {
+    KeySchema: [
+      { AttributeName: 'assetId', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'assetId', AttributeType: 'S' },
+      { AttributeName: 'category', AttributeType: 'S' }
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'category-index',
+        KeySchema: [
+          { AttributeName: 'category', KeyType: 'HASH' }
+        ],
+        Projection: { ProjectionType: 'ALL' },
+        ProvisionedThroughput: {
+          ReadCapacityUnits: 5,
+          WriteCapacityUnits: 5
+        }
+      }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
   }
 };
 
