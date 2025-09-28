@@ -3,9 +3,11 @@
 import React, { useState } from "react";
 import DashboardSidebar from "../../components/DashboardSidebar";
 import DashboardTopbar from "../../components/DashboardTopbar";
+import { useAuth } from "../../contexts/AuthContext";
 import styles from "./tutorials.module.css";
 
 export default function TutorialsPage() {
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
@@ -18,7 +20,7 @@ export default function TutorialsPage() {
 
       <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
         <DashboardTopbar 
-          user={{ name: 'User' }}
+          user={user}
           onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
 

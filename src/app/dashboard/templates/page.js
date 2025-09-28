@@ -6,6 +6,7 @@ import DashboardSidebar from "../../components/DashboardSidebar";
 import DashboardTopbar from "../../components/DashboardTopbar";
 import TemplateGalleryHeader from "../../components/TemplateGalleryHeader";
 import TemplateGrid from "../../components/TemplateGrid";
+import { useAuth } from "../../contexts/AuthContext";
 import styles from "./templates.module.css";
 
 const templateTiers = [
@@ -206,11 +207,11 @@ const allTemplates = [
 ];
 
 export default function TemplatesPage() {
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTier, setSelectedTier] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [user, setUser] = useState({ name: 'User' }); // Mock user for testing
   const router = useRouter();
 
   const categories = ['all', '2D Platformer', 'RPG', 'Puzzle', 'Arcade', 'FPS', 'Strategy', 'Racing', 'Simulation', 'VR', 'Web3', 'AI', 'Metaverse'];

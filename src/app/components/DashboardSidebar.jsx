@@ -83,13 +83,45 @@ const sidebarItems = [
       </svg>
     ),
     href: '/dashboard/community'
+  },
+  {
+    id: 'chat',
+    label: 'Chat',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
+        <path d="M8 9h8M8 13h6" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+    href: '/dashboard/chat'
   }
 ];
 
 const bottomItems = [
   {
-    id: 'settings',
-    label: 'Settings',
+    id: 'profile',
+    label: 'Profile',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" strokeWidth="2"/>
+        <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+    href: '/dashboard/profile'
+  },
+  {
+    id: 'billing',
+    label: 'Billing',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+    href: '/dashboard/billing'
+  },
+  {
+    id: 'preferences',
+    label: 'Preferences',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
@@ -140,16 +172,33 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
             <span className={styles.logoText}>Ruchi AI</span>
           )}
         </Link>
-        <button 
-          className={styles.collapseButton}
-          onClick={onToggle}
-          aria-label="Toggle sidebar"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2"/>
-          </svg>
-        </button>
+        {!collapsed && (
+          <button 
+            className={styles.collapseButton}
+            onClick={onToggle}
+            aria-label="Toggle sidebar"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+          </button>
+        )}
       </div>
+
+      {/* Collapse Button for Collapsed State */}
+      {collapsed && (
+        <div className={styles.collapsedToggle}>
+          <button 
+            className={styles.collapseButtonCollapsed}
+            onClick={onToggle}
+            aria-label="Toggle sidebar"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Navigation Items */}
       <nav className={styles.nav}>

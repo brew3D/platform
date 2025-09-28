@@ -77,7 +77,7 @@ export async function PUT(request, { params }) {
 // GET /api/teams/[teamId]/status - Get online members
 export async function GET(request, { params }) {
   try {
-    const { teamId } = params;
+    const { teamId } = await params;
 
     const getParams = {
       TableName: TABLE_NAME,

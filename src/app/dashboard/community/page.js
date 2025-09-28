@@ -3,9 +3,11 @@
 import React, { useState } from "react";
 import DashboardSidebar from "../../components/DashboardSidebar";
 import DashboardTopbar from "../../components/DashboardTopbar";
+import { useAuth } from "../../contexts/AuthContext";
 import styles from "./community.module.css";
 
 export default function CommunityPage() {
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const tabs = ['Posts','Tutorials','Creator Videos'];
   const [activeTab, setActiveTab] = useState('Posts');
@@ -20,7 +22,7 @@ export default function CommunityPage() {
 
       <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
         <DashboardTopbar 
-          user={{ name: 'User' }}
+          user={user}
           onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
 

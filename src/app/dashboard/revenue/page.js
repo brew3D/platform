@@ -7,6 +7,7 @@ import CreatorSignupCards from "../../components/CreatorSignupCards";
 import RevenueDashboard from "../../components/RevenueDashboard";
 import FollowersSection from "../../components/FollowersSection";
 import PayoutSection from "../../components/PayoutSection";
+import { useAuth } from "../../contexts/AuthContext";
 import styles from "./revenue.module.css";
 
 const mockRevenueData = {
@@ -36,8 +37,8 @@ const mockFollowers = [
 ];
 
 export default function RevenuePage() {
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [user, setUser] = useState({ name: 'User' });
   const [creatorType, setCreatorType] = useState(null); // 'template', 'asset', 'game', null
   const [revenueData, setRevenueData] = useState(mockRevenueData);
   const [followers, setFollowers] = useState(mockFollowers);

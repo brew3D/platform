@@ -16,18 +16,39 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   // Version identifier to force cache refresh
-  const VERSION = 'v2.0-fixed-port-issue';
+  const VERSION = 'v2.1-persistent-auth';
 
   useEffect(() => {
     console.log('🚀 AuthContext loaded with version:', VERSION);
+    
     // Check for stored token on mount
     const storedToken = localStorage.getItem('auth_token');
-    if (storedToken) {
-      verifyToken(storedToken);
+    const storedUser = localStorage.getItem('auth_user');
+    
+    if (storedToken && storedUser) {
+      try {
+        // Restore user from localStorage immediately
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setToken(storedToken);
+        setIsInitialized(true);
+        setLoading(false);
+        
+        // Verify token in background
+        verifyToken(storedToken);
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        setLoading(false);
+        setIsInitialized(true);
+      }
     } else {
       setLoading(false);
+      setIsInitialized(true);
     }
   }, []);
 
@@ -46,6 +67,7 @@ export const AuthProvider = ({ children }) => {
         setUser(data.user);
         setToken(tokenToVerify);
         localStorage.setItem('auth_token', tokenToVerify);
+        localStorage.setItem('auth_user', JSON.stringify(data.user));
       } else {
         localStorage.removeItem('auth_token');
         setUser(null);
@@ -109,6 +131,7 @@ export const AuthProvider = ({ children }) => {
             setUser(devData.user);
             setToken(devData.token);
             localStorage.setItem('auth_token', devData.token);
+            localStorage.setItem('auth_user', JSON.stringify(devData.user));
             return { success: true, warning: devData.warning };
           } else {
             return { success: false, error: devData.message };
@@ -124,6 +147,7 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('auth_user', JSON.stringify(data.user));
       return { success: true, warning: data.warning };
       
     } catch (error) {
@@ -187,6 +211,7 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('auth_user', JSON.stringify(data.user));
       return { success: true, warning: data.warning };
       
     } catch (error) {
@@ -201,6 +226,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
     // Clear cached data for any previous user
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith('teams_')) {
@@ -244,8 +270,8 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     token,
-    loading,
-    isAuthenticated: Boolean(user || token),
+    loading: loading || !isInitialized,
+    isAuthenticated: Boolean(user && token),
     login,
     register,
     logout,
