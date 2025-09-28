@@ -1,177 +1,51 @@
 import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-import { getProjectById, updateProject, deleteProject } from '../../../lib/dynamodb-operations.js';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 
-// Middleware to verify JWT token
-function verifyToken(request) {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new Error('No token provided');
-  }
+const client = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
 
-  const token = authHeader.substring(7);
-  const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-  return decoded;
-}
+const docClient = DynamoDBDocumentClient.from(client);
+const TABLE_NAME = process.env.DDB_PROJECTS_TABLE || 'ruchi-ai-projects';
 
-// GET /api/projects/[id] - Get specific project
 export async function GET(request, { params }) {
   try {
-    const decoded = verifyToken(request);
-    const { id: projectId } = params;
-
-    const project = await getProjectById(projectId);
-    if (!project) {
-      return NextResponse.json(
-        { message: 'Project not found' },
-        { status: 404 }
-      );
+    const { id } = await params;
+    
+    if (!id) {
+      return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
 
-    // Check if user owns the project or is a team member
-    if (project.userId !== decoded.userId && !project.teamMembers.includes(decoded.userId)) {
-      return NextResponse.json(
-        { message: 'Access denied' },
-        { status: 403 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      project
+    const command = new GetCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        projectId: id
+      }
     });
 
-  } catch (error) {
-    if (error.message === 'No token provided') {
-      return NextResponse.json(
-        { message: 'Authorization token required' },
-        { status: 401 }
-      );
-    }
+    const result = await docClient.send(command);
     
-    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      );
+    if (!result.Item) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    console.error('Get project error:', error);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+    // Format the response with additional computed fields
+    const project = {
+      ...result.Item,
+      teamName: result.Item.teamName || 'Personal',
+      status: result.Item.status || 'Active',
+      createdAt: result.Item.createdAt || result.Item.created_at,
+      lastModified: result.Item.updatedAt || result.Item.updated_at || result.Item.createdAt || result.Item.created_at
+    };
 
-// PUT /api/projects/[id] - Update project
-export async function PUT(request, { params }) {
-  try {
-    const decoded = verifyToken(request);
-    const { id: projectId } = params;
-    const updateData = await request.json();
-
-    // Get project to check ownership
-    const project = await getProjectById(projectId);
-    if (!project) {
-      return NextResponse.json(
-        { message: 'Project not found' },
-        { status: 404 }
-      );
-    }
-
-    // Only project owner can update
-    if (project.userId !== decoded.userId) {
-      return NextResponse.json(
-        { message: 'Only project owner can update' },
-        { status: 403 }
-      );
-    }
-
-    // Remove fields that shouldn't be updated directly
-    delete updateData.projectId;
-    delete updateData.userId;
-    delete updateData.createdAt;
-
-    const { project: updatedProject } = await updateProject(projectId, updateData);
-
-    return NextResponse.json({
-      success: true,
-      project: updatedProject
-    });
-
+    return NextResponse.json(project);
   } catch (error) {
-    if (error.message === 'No token provided') {
-      return NextResponse.json(
-        { message: 'Authorization token required' },
-        { status: 401 }
-      );
-    }
-    
-    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      );
-    }
-
-    console.error('Update project error:', error);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE /api/projects/[id] - Delete project
-export async function DELETE(request, { params }) {
-  try {
-    const decoded = verifyToken(request);
-    const { id: projectId } = params;
-
-    // Get project to check ownership
-    const project = await getProjectById(projectId);
-    if (!project) {
-      return NextResponse.json(
-        { message: 'Project not found' },
-        { status: 404 }
-      );
-    }
-
-    // Only project owner can delete
-    if (project.userId !== decoded.userId) {
-      return NextResponse.json(
-        { message: 'Only project owner can delete' },
-        { status: 403 }
-      );
-    }
-
-    await deleteProject(projectId);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Project deleted successfully'
-    });
-
-  } catch (error) {
-    if (error.message === 'No token provided') {
-      return NextResponse.json(
-        { message: 'Authorization token required' },
-        { status: 401 }
-      );
-    }
-    
-    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-      return NextResponse.json(
-        { message: 'Invalid or expired token' },
-        { status: 401 }
-      );
-    }
-
-    console.error('Delete project error:', error);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Error fetching project:', error);
+    return NextResponse.json({ error: 'Failed to fetch project' }, { status: 500 });
   }
 }

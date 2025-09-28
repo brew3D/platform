@@ -21,6 +21,7 @@ import SceneManager from "../components/SceneManager";
 import UserStatus from "../components/UserStatus";
 import { useAuth } from "../contexts/AuthContext";
 import { useCollaboration } from "../contexts/CollaborationContext";
+import LogsPanel from "../components/LogsPanel";
 import Link from "next/link";
 
 // React Icons
@@ -78,10 +79,39 @@ function MeshFromObj({ o }) {
 
 export default function EditorPage() {
   const { user, loading: authLoading } = useAuth();
-  const { socket, updateObject, deleteObject, joinScene } = useCollaboration();
+  const { socket, updateObject, deleteObject, joinScene, activeUsers, connected, highlights, highlightObject, clearHighlight } = useCollaboration();
   const searchParams = useSearchParams();
   const templateName = searchParams.get('template');
-  const projectName = searchParams.get('project');
+  const projectId = searchParams.get('project');
+  const [projectName, setProjectName] = useState(null);
+  
+  // Fetch project name when projectId is available
+  useEffect(() => {
+    const fetchProjectName = async () => {
+      if (projectId) {
+        try {
+          const response = await fetch(`/api/projects/${projectId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setProjectName(data.name || 'Untitled Project');
+          }
+        } catch (error) {
+          console.error('Error fetching project name:', error);
+          setProjectName('Untitled Project');
+        }
+      }
+    };
+    
+    fetchProjectName();
+  }, [projectId]);
+
+  // Join project scene for collaboration when projectId is available
+  useEffect(() => {
+    if (projectId && joinScene) {
+      // Use projectId as sceneId for collaboration
+      joinScene(projectId);
+    }
+  }, [projectId, joinScene]);
   
   // Auth state
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -102,6 +132,16 @@ export default function EditorPage() {
   ]);
   const [sceneGroups, setSceneGroups] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  
+  // Handle object selection with highlighting
+  const handleObjectSelect = (objectId) => {
+    setSelectedId(objectId);
+    if (objectId) {
+      highlightObject(objectId);
+    } else {
+      clearHighlight();
+    }
+  };
   const [currentScene, setCurrentScene] = useState(null);
   
   // UI State
@@ -135,6 +175,7 @@ export default function EditorPage() {
   const [showTimeline, setShowTimeline] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
   const [showChat, setShowChat] = useState(true);
+  const [showLogs, setShowLogs] = useState(false);
   const [assetQuery, setAssetQuery] = useState("");
   const assets = useMemo(() => ([
     { id: 'cube', name: 'Cube', type: 'cube' },
@@ -387,6 +428,36 @@ export default function EditorPage() {
     });
     setSceneObjects(objs);
     
+    // Log the action (throttled to prevent spam)
+    if (typeof window !== 'undefined' && window.addCollaborationLog) {
+      const obj = sceneObjects.find(o => o.id === id);
+      let logMessage = `Updated ${obj?.object || 'object'} ${field}`;
+      let logDetails = `ID: ${id}`;
+      
+      // Add more specific details for position/rotation changes
+      if (field === 'position') {
+        const [x, y, z] = value.split(",").map(Number);
+        logDetails = `ID: ${id}, Position: (${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)})`;
+      } else if (field === 'rotation') {
+        const [x, y, z] = value.split(",").map(Number);
+        logDetails = `ID: ${id}, Rotation: (${x.toFixed(1)}°, ${y.toFixed(1)}°, ${z.toFixed(1)}°)`;
+      } else if (field === 'dimensions') {
+        const [x, y, z] = value.split(",").map(Number);
+        logDetails = `ID: ${id}, Size: (${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)})`;
+      } else {
+        logDetails = `ID: ${id}, Value: ${value}`;
+      }
+      
+      // Throttle logging to prevent spam (only log every 2 seconds for the same object+field)
+      const logKey = `${id}_${field}`;
+      const now = Date.now();
+      if (!window.lastLogTime || !window.lastLogTime[logKey] || now - window.lastLogTime[logKey] > 2000) {
+        if (!window.lastLogTime) window.lastLogTime = {};
+        window.lastLogTime[logKey] = now;
+        window.addCollaborationLog(logMessage, logDetails);
+      }
+    }
+    
     // Sync with server
     const updatedObject = objs.find(o => o.id === id);
     if (updatedObject && currentScene) {
@@ -422,6 +493,11 @@ export default function EditorPage() {
     };
     setSceneObjects([...sceneObjects, newObj]);
     
+    // Log the action
+    if (typeof window !== 'undefined' && window.addCollaborationLog) {
+      window.addCollaborationLog(`Added ${type} object`, `ID: ${newId}`);
+    }
+    
     // Sync with server
     if (currentScene) {
       updateObject(newObj);
@@ -429,7 +505,13 @@ export default function EditorPage() {
   };
 
   const removeObject = (id) => {
+    const obj = sceneObjects.find(o => o.id === id);
     setSceneObjects(sceneObjects.filter((o) => o.id !== id));
+    
+    // Log the action
+    if (typeof window !== 'undefined' && window.addCollaborationLog) {
+      window.addCollaborationLog(`Deleted ${obj?.object || 'object'}`, `ID: ${id}`);
+    }
     
     // Sync with server
     if (currentScene) {
@@ -446,6 +528,11 @@ export default function EditorPage() {
         position: [obj.position[0] + 1, obj.position[1], obj.position[2]]
       };
       setSceneObjects([...sceneObjects, newObj]);
+      
+      // Log the action
+      if (typeof window !== 'undefined' && window.addCollaborationLog) {
+        window.addCollaborationLog(`Duplicated ${obj.object} object`, `ID: ${newObj.id}`);
+      }
       
       // Sync with server
       if (currentScene) {
@@ -1261,7 +1348,7 @@ export default function EditorPage() {
 
   return (
     <div className={styles.editorContainer} ref={containerRef}>
-      <Topbar onExport={handleExport} templateName={projectName || templateName} />
+      <Topbar onExport={handleExport} templateName={projectName || templateName} isProject={!!projectId} />
       
       {/* Quick Save Buttons moved into toolbar */}
       
@@ -1901,11 +1988,12 @@ export default function EditorPage() {
                   onTransformStart={() => setIsTransforming(true)}
                   onTransformEnd={() => setIsTransforming(false)}
                   selectedId={selectedId}
-                  setSelectedId={setSelectedId}
+                  setSelectedId={handleObjectSelect}
                   transformMode={transformMode}
                   coordinateSystem={coordinateSystem}
                   snapEnabled={snapEnabled}
                   snapValue={snapValue}
+                  highlights={highlights}
                 />
               ))}
 
@@ -1979,6 +2067,13 @@ export default function EditorPage() {
           <div className={styles.rightPaneTop}>
             <div className={styles.panelHeader}>
               <h3>Objects</h3>
+              <button 
+                className={styles.logsButton}
+                onClick={() => setShowLogs(true)}
+                title="View Activity Logs"
+              >
+                📝 Logs
+              </button>
             </div>
             <div className={styles.outlinerContent}>
               <div className={styles.outlinerItem}>
@@ -1992,7 +2087,7 @@ export default function EditorPage() {
                     <div 
                       key={obj.id} 
                       className={`${styles.outlinerObject} ${selectedId === obj.id ? styles.selected : ''}`}
-                      onClick={() => setSelectedId(obj.id)}
+                      onClick={() => handleObjectSelect(obj.id)}
                     >
                       <span className={styles.objectIcon}>
                         {obj.object === 'cube' ? <FiBox /> : obj.object === 'sphere' ? <FiCircle /> : <FiSquare />}
@@ -2319,6 +2414,12 @@ export default function EditorPage() {
       {/* Prompt modal removed; use chat panel instead */}
 
       {/* Floating AI button removed */}
+
+      {/* Logs Panel */}
+      <LogsPanel 
+        isOpen={showLogs} 
+        onClose={() => setShowLogs(false)} 
+      />
     </div>
   );
 }

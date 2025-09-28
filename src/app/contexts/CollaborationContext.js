@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 
@@ -19,75 +19,177 @@ export const CollaborationProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
   const [activeUsers, setActiveUsers] = useState([]);
   const [currentSceneId, setCurrentSceneId] = useState(null);
-  const { token } = useAuth();
+  const [highlights, setHighlights] = useState([]);
+  const { token, user } = useAuth();
 
+  // Real-time collaboration using AWS API
   useEffect(() => {
-    // Always connect for demo - use demo token if no real token
-    const authToken = token || 'demo_token';
+    setConnected(true);
     
-    const newSocket = io('http://127.0.0.1:5000', {
-      transports: ['polling'] // dev: avoid WS retry spam under Werkzeug; enables stable long-polling
-    });
+    if (!currentSceneId || !user?.userId) return;
+    
+    // Poll for active users every 3 seconds
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/collaboration/poll?sceneId=${currentSceneId}`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('🔄 Polling active users from AWS:', data.activeUsers);
+          setActiveUsers(data.activeUsers || []);
+        } else {
+          console.error('❌ Failed to poll active users:', response.status);
+        }
+      } catch (error) {
+        console.error('❌ Error polling active users:', error);
+      }
+    }, 3000);
 
-    newSocket.on('connect', () => {
-      console.log('Connected to collaboration server');
-      setConnected(true);
-    });
-
-    newSocket.on('disconnect', () => {
-      console.log('Disconnected from collaboration server');
-      setConnected(false);
-    });
-
-    // Silence noisy generic errors; opt-in debug via localStorage.DEBUG_SOCKET = '1'
-    const shouldLog = () => {
-      try { return typeof window !== 'undefined' && window.localStorage?.getItem('DEBUG_SOCKET') === '1'; } catch { return false; }
-    };
-
-    newSocket.on('connect_error', (err) => {
-      if (shouldLog()) console.warn('Socket connect_error:', err?.message || err);
-    });
-    newSocket.io?.on?.('reconnect_error', (err) => {
-      if (shouldLog()) console.warn('Socket reconnect_error:', err?.message || err);
-    });
-    // Do not log the plain 'error' event by default to avoid empty-object spam
-
-    newSocket.on('user_joined', (data) => {
-      setActiveUsers(prev => [...prev, data]);
-    });
-
-    newSocket.on('user_left', (data) => {
-      setActiveUsers(prev => prev.filter(user => user.user_id !== data.user_id));
-    });
-
-    newSocket.on('active_users', (data) => {
-      setActiveUsers(data.users);
-    });
-
-    // Editor listens directly; these logs are noisy in prod
-
-    setSocket(newSocket);
+    // Poll for highlights every 2 seconds
+    const highlightInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/collaboration/highlight?sceneId=${currentSceneId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setHighlights(data.highlights || []);
+        }
+      } catch (error) {
+        console.error('❌ Error polling highlights:', error);
+      }
+    }, 2000);
+    
+    // Heartbeat to keep current user active
+    const heartbeatInterval = setInterval(async () => {
+      try {
+        const userInfo = {
+          username: user.name || user.username || 'Current User',
+          name: user.name || user.username || 'Current User',
+          online: true
+        };
+        
+        const response = await fetch('/api/collaboration/presence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.userId,
+            sceneId: currentSceneId,
+            userInfo,
+            action: 'heartbeat'
+          })
+        });
+        
+        if (response.ok) {
+          console.log('💓 Heartbeat sent for user:', user.userId);
+        } else {
+          console.error('❌ Failed to send heartbeat:', response.status);
+        }
+      } catch (error) {
+        console.error('❌ Error sending heartbeat:', error);
+      }
+    }, 5000);
 
     return () => {
-      newSocket.close();
+      clearInterval(pollInterval);
+      clearInterval(highlightInterval);
+      clearInterval(heartbeatInterval);
     };
-  }, [token]);
+  }, [currentSceneId, user?.userId, user?.name, user?.username]);
 
-  const joinScene = (sceneId) => {
-    if (socket) {
-      const authToken = token || 'demo_token';
-      socket.emit('join_scene', { token: authToken, scene_id: sceneId });
-      setCurrentSceneId(sceneId);
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (currentSceneId) {
+        leaveScene();
+      }
+    };
+  }, [currentSceneId]);
+
+  const joinScene = useCallback(async (sceneId) => {
+    if (!user?.userId) {
+      console.error('❌ No user ID available for joining scene');
+      return;
     }
-  };
 
-  const leaveScene = () => {
-    if (socket && currentSceneId) {
-      socket.emit('leave_scene', { scene_id: currentSceneId });
+    const userInfo = {
+      username: user.name || user.username || 'Current User',
+      name: user.name || user.username || 'Current User',
+      online: true
+    };
+    
+    console.log('🎬 Joining scene:', sceneId, 'with user:', userInfo);
+    setCurrentSceneId(sceneId);
+    
+    try {
+      // Join scene via API
+      const response = await fetch('/api/collaboration/presence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.userId,
+          sceneId,
+          userInfo,
+          action: 'join'
+        })
+      });
+      
+      if (response.ok) {
+        console.log('✅ Successfully joined scene via API');
+        
+        // Log the join action
+        if (typeof window !== 'undefined' && window.addCollaborationLog) {
+          window.addCollaborationLog('Joined the scene', `Scene: ${sceneId}`);
+        }
+        
+        // Immediately fetch active users
+        const pollResponse = await fetch(`/api/collaboration/poll?sceneId=${sceneId}`);
+        if (pollResponse.ok) {
+          const data = await pollResponse.json();
+          console.log('👥 Active users in scene:', data.activeUsers);
+          setActiveUsers(data.activeUsers || []);
+        }
+      } else {
+        console.error('❌ Failed to join scene:', response.status);
+        setActiveUsers([{ ...userInfo, userId: user.userId }]);
+      }
+    } catch (error) {
+      console.error('❌ Error joining scene:', error);
+      setActiveUsers([{ ...userInfo, userId: user.userId }]);
+    }
+  }, [user?.userId, user?.name, user?.username]);
+
+  const leaveScene = useCallback(async () => {
+    if (currentSceneId && user?.userId) {
+      console.log('👋 Leaving scene:', currentSceneId, 'user:', user.userId);
+      
+      try {
+        // Leave scene via API
+        const response = await fetch('/api/collaboration/presence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.userId,
+            sceneId: currentSceneId,
+            action: 'leave'
+          })
+        });
+        
+        if (response.ok) {
+          console.log('✅ Successfully left scene via API');
+          
+          // Log the leave action
+          if (typeof window !== 'undefined' && window.addCollaborationLog) {
+            window.addCollaborationLog('Left the scene', `Scene: ${currentSceneId}`);
+          }
+        } else {
+          console.error('❌ Failed to leave scene:', response.status);
+        }
+      } catch (error) {
+        console.error('❌ Error leaving scene:', error);
+      }
+      
       setCurrentSceneId(null);
       setActiveUsers([]);
     }
-  };
+  }, [currentSceneId, user?.userId]);
 
   const updateObject = (objectData) => {
     if (socket && currentSceneId) {
@@ -111,15 +213,96 @@ export const CollaborationProvider = ({ children }) => {
     }
   };
 
+  // Debug function to check localStorage
+  const debugLocalStorage = () => {
+    if (currentSceneId) {
+      const stored = localStorage.getItem(`active_users_${currentSceneId}`);
+      console.log('🔍 Debug localStorage for scene', currentSceneId, ':', stored);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          console.log('🔍 Parsed users:', parsed);
+        } catch (e) {
+          console.error('🔍 Error parsing stored users:', e);
+        }
+      }
+    }
+  };
+
+  // Highlight an object
+  const highlightObject = useCallback(async (objectId) => {
+    if (!currentSceneId || !user?.userId) return;
+
+    try {
+      const response = await fetch('/api/collaboration/highlight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sceneId: currentSceneId,
+          userId: user.userId,
+          userName: user.name || user.username || 'Unknown User',
+          objectId,
+          action: 'highlight'
+        })
+      });
+
+      if (response.ok) {
+        console.log(`🎯 Highlighted object ${objectId}`);
+        // Immediately fetch updated highlights
+        fetchHighlights();
+      }
+    } catch (error) {
+      console.error('Error highlighting object:', error);
+    }
+  }, [currentSceneId, user?.userId, user?.name, user?.username]);
+
+  // Clear highlight
+  const clearHighlight = useCallback(async () => {
+    if (!currentSceneId || !user?.userId) return;
+
+    try {
+      const response = await fetch(`/api/collaboration/highlight?sceneId=${currentSceneId}&userId=${user.userId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        console.log('🎯 Cleared highlight');
+        fetchHighlights();
+      }
+    } catch (error) {
+      console.error('Error clearing highlight:', error);
+    }
+  }, [currentSceneId, user?.userId]);
+
+  // Fetch current highlights
+  const fetchHighlights = useCallback(async () => {
+    if (!currentSceneId) return;
+
+    try {
+      const response = await fetch(`/api/collaboration/highlight?sceneId=${currentSceneId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setHighlights(data.highlights || []);
+      }
+    } catch (error) {
+      console.error('Error fetching highlights:', error);
+    }
+  }, [currentSceneId]);
+
   const value = {
     socket,
     connected,
     activeUsers,
     currentSceneId,
+    highlights,
     joinScene,
     leaveScene,
     updateObject,
     deleteObject,
+    highlightObject,
+    clearHighlight,
+    fetchHighlights,
+    debugLocalStorage,
   };
 
   return (

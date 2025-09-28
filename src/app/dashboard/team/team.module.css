@@ -233,6 +233,25 @@
   color: #ffffff;
 }
 
+.projectNameButton {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  text-align: left;
+  font-size: inherit;
+}
+
+.projectNameButton:hover {
+  background: rgba(138, 43, 226, 0.1);
+  color: #8a2be2;
+  transform: translateX(2px);
+}
+
 .projectDescription {
   color: #a0a0a0;
   font-size: 0.9rem;
@@ -292,6 +311,21 @@
 .actionButton:hover {
   background: rgba(138,43,226,.1);
   color: #8a2be2;
+}
+
+.collabButton {
+  background: linear-gradient(135deg, #8a2be2, #667eea) !important;
+  color: white !important;
+  font-size: 1.1rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(138, 43, 226, 0.3);
+}
+
+.collabButton:hover {
+  background: linear-gradient(135deg, #7a1be2, #5a6eea) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.4);
 }
 
 /* Loading */

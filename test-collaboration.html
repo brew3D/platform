@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaboration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .user { padding: 10px; margin: 5px; border: 1px solid #ccc; border-radius: 5px; }
+        .online { background-color: #e8f5e8; }
+        .offline { background-color: #f5e8e8; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        #log { background: #f0f0f0; padding: 10px; margin: 10px 0; height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>Collaboration Test</h1>
+    
+    <div>
+        <button onclick="joinAsUser1()">Join as User 1 (Rhythm)</button>
+        <button onclick="joinAsUser2()">Join as User 2 (Mahek)</button>
+        <button onclick="leaveScene()">Leave Scene</button>
+        <button onclick="checkLocalStorage()">Check localStorage</button>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+    
+    <div id="users"></div>
+    <div id="log"></div>
+
+    <script>
+        const sceneId = 'project-1758846580969-8ty8p0uld';
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function joinAsUser1() {
+            const userInfo = {
+                user_id: 'user-1758846565534-xm2tm6zlj',
+                username: 'Rhythm Chawla',
+                name: 'Rhythm Chawla',
+                online: true,
+                joinedAt: new Date().toISOString(),
+                lastSeen: new Date().toISOString()
+            };
+            joinScene(userInfo);
+        }
+        
+        function joinAsUser2() {
+            const userInfo = {
+                user_id: 'user-1759000730026-ha9ue4qxn',
+                username: 'Mahek',
+                name: 'Mahek',
+                online: true,
+                joinedAt: new Date().toISOString(),
+                lastSeen: new Date().toISOString()
+            };
+            joinScene(userInfo);
+        }
+        
+        function joinScene(userInfo) {
+            log('🎬 Joining scene: ' + sceneId + ' with user: ' + JSON.stringify(userInfo));
+            
+            try {
+                const existingUsers = JSON.parse(localStorage.getItem(`active_users_${sceneId}`) || '[]');
+                log('📋 Existing users: ' + JSON.stringify(existingUsers));
+                
+                const userExists = existingUsers.some(u => u.user_id === userInfo.user_id);
+                if (!userExists) {
+                    const updatedUsers = [...existingUsers, userInfo];
+                    localStorage.setItem(`active_users_${sceneId}`, JSON.stringify(updatedUsers));
+                    log('✅ Added user: ' + JSON.stringify(updatedUsers));
+                } else {
+                    const updatedUsers = existingUsers.map(u => 
+                        u.user_id === userInfo.user_id 
+                            ? { ...u, online: true, joinedAt: userInfo.joinedAt, lastSeen: userInfo.lastSeen }
+                            : u
+                    );
+                    localStorage.setItem(`active_users_${sceneId}`, JSON.stringify(updatedUsers));
+                    log('🔄 Updated user: ' + JSON.stringify(updatedUsers));
+                }
+                
+                updateUsersDisplay();
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+            }
+        }
+        
+        function leaveScene() {
+            log('👋 Leaving scene');
+            localStorage.removeItem(`active_users_${sceneId}`);
+            updateUsersDisplay();
+        }
+        
+        function checkLocalStorage() {
+            const stored = localStorage.getItem(`active_users_${sceneId}`);
+            log('🔍 localStorage content: ' + stored);
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    log('🔍 Parsed users: ' + JSON.stringify(parsed, null, 2));
+                } catch (e) {
+                    log('🔍 Error parsing: ' + e.message);
+                }
+            }
+        }
+        
+        function updateUsersDisplay() {
+            const usersDiv = document.getElementById('users');
+            const stored = localStorage.getItem(`active_users_${sceneId}`);
+            
+            if (stored) {
+                try {
+                    const users = JSON.parse(stored);
+                    usersDiv.innerHTML = '<h3>Active Users (' + users.length + '):</h3>';
+                    users.forEach(user => {
+                        const userDiv = document.createElement('div');
+                        userDiv.className = 'user ' + (user.online ? 'online' : 'offline');
+                        userDiv.innerHTML = `
+                            <strong>${user.name}</strong> (${user.username})<br>
+                            ID: ${user.user_id}<br>
+                            Online: ${user.online}<br>
+                            Joined: ${new Date(user.joinedAt).toLocaleTimeString()}<br>
+                            Last Seen: ${new Date(user.lastSeen).toLocaleTimeString()}
+                        `;
+                        usersDiv.appendChild(userDiv);
+                    });
+                } catch (e) {
+                    usersDiv.innerHTML = '<p>Error parsing users: ' + e.message + '</p>';
+                }
+            } else {
+                usersDiv.innerHTML = '<p>No users in scene</p>';
+            }
+        }
+        
+        // Poll for updates every 2 seconds
+        setInterval(() => {
+            updateUsersDisplay();
+        }, 2000);
+        
+        // Initial display
+        updateUsersDisplay();
+    </script>
+</body>
+</html>

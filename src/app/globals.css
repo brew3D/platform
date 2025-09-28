@@ -14,6 +14,13 @@
   /* Editor theme tokens (default dark) */
   --editor-bg: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
   --editor-text: #ffffff;
+  --editor-text-primary: #ffffff;
+  --editor-text-secondary: rgba(255, 255, 255, 0.7);
+  --editor-text-muted: rgba(255, 255, 255, 0.5);
+  --editor-bg-primary: rgba(20,20,32,0.6);
+  --editor-bg-secondary: rgba(255,255,255,0.08);
+  --editor-border-primary: rgba(102,126,234,0.25);
+  --editor-border-secondary: rgba(102,126,234,0.35);
   --toolbar-bg: rgba(26, 26, 46, 0.8);
   --panel-bg: rgba(26, 26, 46, 0.8);
   --panel-border: rgba(102, 126, 234, 0.2);
@@ -36,6 +43,13 @@ body[data-theme="light"] {
 
   --editor-bg: #ffffff;
   --editor-text: #0b0b0b;
+  --editor-text-primary: #1a1a1a;
+  --editor-text-secondary: rgba(26, 26, 26, 0.7);
+  --editor-text-muted: rgba(26, 26, 26, 0.5);
+  --editor-bg-primary: rgba(240,240,240,0.8);
+  --editor-bg-secondary: rgba(0,0,0,0.05);
+  --editor-border-primary: rgba(102,126,234,0.3);
+  --editor-border-secondary: rgba(102,126,234,0.4);
   --toolbar-bg: rgba(255, 255, 255, 0.85);
   --panel-bg: rgba(255, 255, 255, 0.85);
   --panel-border: rgba(0, 0, 0, 0.08);

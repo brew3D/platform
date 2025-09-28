@@ -1,0 +1,141 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.panel {
+  background: var(--editor-bg, #1a1a2e);
+  border: 1px solid var(--editor-border-primary, rgba(102, 126, 234, 0.3));
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--editor-border-primary, rgba(102, 126, 234, 0.2));
+}
+
+.header h3 {
+  margin: 0;
+  color: var(--editor-text-primary, #ffffff);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--editor-text-secondary, rgba(255, 255, 255, 0.7));
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: var(--editor-bg-secondary, rgba(255, 255, 255, 0.1));
+  color: var(--editor-text-primary, #ffffff);
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.loading, .empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--editor-text-secondary, rgba(255, 255, 255, 0.7));
+  font-style: italic;
+}
+
+.logsList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.logItem {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--editor-border-primary, rgba(102, 126, 234, 0.1));
+  transition: background-color 0.2s ease;
+}
+
+.logItem:hover {
+  background: var(--editor-bg-secondary, rgba(255, 255, 255, 0.05));
+}
+
+.logItem:last-child {
+  border-bottom: none;
+}
+
+.logHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.userName {
+  color: var(--editor-text-primary, #ffffff);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.timestamp {
+  color: var(--editor-text-muted, rgba(255, 255, 255, 0.5));
+  font-size: 12px;
+}
+
+.logAction {
+  color: var(--editor-text-secondary, rgba(255, 255, 255, 0.8));
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.details {
+  color: var(--editor-text-muted, rgba(255, 255, 255, 0.6));
+  font-style: italic;
+}
+
+/* Scrollbar styling */
+.logsList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.logsList::-webkit-scrollbar-track {
+  background: var(--editor-bg-secondary, rgba(255, 255, 255, 0.05));
+}
+
+.logsList::-webkit-scrollbar-thumb {
+  background: var(--editor-border-secondary, rgba(102, 126, 234, 0.3));
+  border-radius: 3px;
+}
+
+.logsList::-webkit-scrollbar-thumb:hover {
+  background: var(--editor-border-primary, rgba(102, 126, 234, 0.5));
+}

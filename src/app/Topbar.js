@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import styles from "./Topbar.module.css"; // ✅ CSS module import
 
 
-function Topbar({ onExport, templateName }) {
+function Topbar({ onExport, templateName, isProject = false }) {
     const [exportFormat, setExportFormat] = useState("json");
     const [theme, setTheme] = useState("dark");
     const router = useRouter();
@@ -41,7 +41,7 @@ function Topbar({ onExport, templateName }) {
             <div className={styles.templateInfo}>
               <div className={styles.templateDivider}></div>
               <div className={styles.templateName}>
-                <span className={styles.templateLabel}>Previewing:</span>
+                <span className={styles.templateLabel}>{isProject ? 'Project:' : 'Previewing:'}</span>
                 <span className={styles.templateTitle}>{decodeURIComponent(templateName)}</span>
               </div>
               <button 

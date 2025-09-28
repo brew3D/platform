@@ -89,11 +89,16 @@ export default function SelectableMesh({
   coordinateSystem = 'global',
   snapEnabled = false,
   snapValue = 0.1,
-  isInGroup = false
+  isInGroup = false,
+  highlights = []
 }) {
   const ref = useRef();
   const isSelected = selectedId === o.id;
   const [isResizing, setIsResizing] = useState(false);
+  
+  // Check if this object is highlighted by any user
+  const isHighlighted = highlights.some(h => h.objectId === o.id);
+  const highlightUser = highlights.find(h => h.objectId === o.id)?.userName;
 
   useEffect(() => {
     if (ref.current && isSelected) {
@@ -294,11 +299,20 @@ export default function SelectableMesh({
       >
         {geom}
         <meshStandardMaterial
-          color={isSelected ? "#a855f7" : o.material || "#888888"}
-          emissive={isSelected ? "#a855f7" : "black"}
-          emissiveIntensity={isSelected ? 0.4 : 0}
+          color={isSelected ? "#a855f7" : isHighlighted ? "#ff6b6b" : o.material || "#888888"}
+          emissive={isSelected ? "#a855f7" : isHighlighted ? "#ff6b6b" : "black"}
+          emissiveIntensity={isSelected ? 0.4 : isHighlighted ? 0.3 : 0}
         />
       </mesh>
+      
+      {/* Highlight indicator */}
+      {isHighlighted && (
+        <mesh position={[0, o.dimensions[1] / 2 + 0.5, 0]}>
+          <planeGeometry args={[2, 0.3]} />
+          <meshBasicMaterial color="#ff6b6b" transparent opacity={0.8} />
+        </mesh>
+      )}
+      
       {/* Resize handles disabled per request */}
     </group>
   );

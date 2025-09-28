@@ -11,6 +11,55 @@
   z-index: 1;
 }
 
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.projectInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--card-background);
+  border: 1px solid var(--card-border);
+  padding: 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  min-width: 300px;
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.infoItem:last-child {
+  border-bottom: none;
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.infoValue {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.statusActive {
+  color: #10b981;
+  font-weight: 600;
+}
+
 .backButton {
   display: flex;
   align-items: center;
@@ -155,6 +204,57 @@
 
 .card:hover .cardAction svg {
   transform: translateX(4px);
+}
+
+/* Special Collab Room Card */
+.specialCard {
+  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%) !important;
+  color: white !important;
+  border: 2px solid #8a2be2 !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.specialCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.specialCard:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(138, 43, 226, 0.4);
+}
+
+.specialBadge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
 }
 
 /* Analytics section */

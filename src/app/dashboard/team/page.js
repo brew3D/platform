@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import DashboardSidebar from "../../components/DashboardSidebar";
 import DashboardTopbar from "../../components/DashboardTopbar";
 import { useAuth } from "../../contexts/AuthContext";
@@ -12,6 +13,7 @@ const roleOptions = ['owner', 'admin', 'editor', 'viewer'];
 
 export default function TeamPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Debug user state
@@ -167,28 +169,17 @@ export default function TeamPage() {
 
   const loadTeamProjects = async (teamId) => {
     try {
-      // For now, we'll use mock data. In the future, this would fetch from a projects API
-      const mockProjects = [
-        {
-          id: 'proj_1',
-          name: 'Main Project',
-          description: 'Primary team project',
-          status: 'active',
-          lastModified: '2025-09-27T19:30:00.000Z',
-          owner: 'Rhythm Chawla'
-        },
-        {
-          id: 'proj_2', 
-          name: 'Side Project',
-          description: 'Secondary team project',
-          status: 'planning',
-          lastModified: '2025-09-27T18:45:00.000Z',
-          owner: 'mahekd.2105'
-        }
-      ];
-      setTeamProjects(mockProjects);
+      const response = await fetch(`/api/teams/${teamId}/projects`);
+      if (response.ok) {
+        const data = await response.json();
+        setTeamProjects(data.projects || []);
+      } else {
+        console.error('Failed to load team projects:', response.status);
+        setTeamProjects([]);
+      }
     } catch (error) {
       console.error('Error loading team projects:', error);
+      setTeamProjects([]);
     }
   };
 
@@ -641,7 +632,13 @@ export default function TeamPage() {
                     <tr key={project.id} className={styles.projectRow}>
                       <td>
                         <div className={styles.projectCell}>
-                          <span className={styles.projectName}>{project.name}</span>
+                          <button 
+                            className={styles.projectNameButton}
+                            onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                            title="Open Project Dashboard"
+                          >
+                            {project.name}
+                          </button>
                         </div>
                       </td>
                       <td>
@@ -662,11 +659,19 @@ export default function TeamPage() {
                       </td>
                       <td>
                         <div className={styles.projectActions}>
-                          <button className={styles.actionButton} title="Open Project">
+                          <button 
+                            className={styles.actionButton} 
+                            title="Open Project Dashboard"
+                            onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                          >
                             📂
                           </button>
-                          <button className={styles.actionButton} title="Edit Project">
-                            ✏️
+                          <button 
+                            className={`${styles.actionButton} ${styles.collabButton}`} 
+                            title="Enter Collab Room"
+                            onClick={() => router.push(`/editor?project=${project.id}`)}
+                          >
+                            🚀
                           </button>
                         </div>
                       </td>
