@@ -8,6 +8,7 @@ import styles from "./project.module.css";
 
 const cards = [
   { id: 'flow', label: 'Flow ( Script )' },
+  { id: 'script', label: 'Script' },
   { id: 'scenes', label: 'Animated Scenes' },
   { id: 'maps', label: 'Maps' },
   { id: 'assets', label: 'Asset Library' },
