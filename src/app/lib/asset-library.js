@@ -1269,6 +1269,19 @@ export const ASSET_PACKS = {
         ]
       },
       { 
+        id: 'mario-character', 
+        name: 'Mario Character', 
+        type: '3d-model', 
+        description: 'Classic Mario character model in GLB format',
+        assetType: '3d-model',
+        fileUrl: '/mario.glb',
+        thumbnail: '/mario-preview.jpg',
+        tags: ['mario', 'character', 'nintendo', 'classic', '3d-model'],
+        scale: [1, 1, 1],
+        position: [0, 0, 0],
+        rotation: [0, 0, 0]
+      },
+      { 
         id: 'enemy-blob', 
         name: 'Enemy Blob', 
         type: 'enemy-blob', 

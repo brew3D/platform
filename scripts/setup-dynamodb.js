@@ -118,6 +118,32 @@ const TABLES = {
       ReadCapacityUnits: 5,
       WriteCapacityUnits: 5
     }
+  },
+  'ruchi-ai-characters': {
+    KeySchema: [
+      { AttributeName: 'characterId', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'characterId', AttributeType: 'S' },
+      { AttributeName: 'projectId', AttributeType: 'S' }
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'project-id-index',
+        KeySchema: [
+          { AttributeName: 'projectId', KeyType: 'HASH' }
+        ],
+        Projection: { ProjectionType: 'ALL' },
+        ProvisionedThroughput: {
+          ReadCapacityUnits: 5,
+          WriteCapacityUnits: 5
+        }
+      }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
   }
 };
 

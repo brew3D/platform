@@ -4,7 +4,24 @@ import { getUserById } from '../../../lib/dynamodb-operations.js';
 
 export async function POST(request) {
   try {
-    const { token } = await request.json();
+    // Check if request has body
+    const contentType = request.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return NextResponse.json(
+        { message: 'Content-Type must be application/json' },
+        { status: 400 }
+      );
+    }
+
+    const body = await request.text();
+    if (!body || body.trim() === '') {
+      return NextResponse.json(
+        { message: 'Request body is empty' },
+        { status: 400 }
+      );
+    }
+
+    const { token } = JSON.parse(body);
 
     if (!token) {
       return NextResponse.json(

@@ -28,10 +28,17 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('auth_token');
     const storedUser = localStorage.getItem('auth_user');
     
+    console.log('🔍 Stored auth data:', { 
+      hasToken: !!storedToken, 
+      hasUser: !!storedUser,
+      tokenLength: storedToken?.length || 0
+    });
+    
     if (storedToken && storedUser) {
       try {
         // Restore user from localStorage immediately
         const parsedUser = JSON.parse(storedUser);
+        console.log('👤 Restoring user from localStorage:', parsedUser.email);
         setUser(parsedUser);
         setToken(storedToken);
         setIsInitialized(true);
@@ -43,12 +50,17 @@ export const AuthProvider = ({ children }) => {
         console.error('Error parsing stored user:', error);
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
-        setLoading(false);
+        setUser(null);
+        setToken(null);
         setIsInitialized(true);
+        setLoading(false);
       }
     } else {
-      setLoading(false);
+      console.log('❌ No stored auth data found');
+      setUser(null);
+      setToken(null);
       setIsInitialized(true);
+      setLoading(false);
     }
   }, []);
 
@@ -271,7 +283,7 @@ export const AuthProvider = ({ children }) => {
     user,
     token,
     loading: loading || !isInitialized,
-    isAuthenticated: Boolean(user && token),
+    isAuthenticated: Boolean(user && token && isInitialized),
     login,
     register,
     logout,

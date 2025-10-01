@@ -23,6 +23,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useCollaboration } from "../contexts/CollaborationContext";
 import LogsPanel from "../components/LogsPanel";
 import Tooltip from "../components/Tooltip";
+import GLBModel from "../components/GLBModel";
 import Link from "next/link";
 
 // React Icons
@@ -85,6 +86,38 @@ export default function EditorPage() {
   const templateName = searchParams.get('template');
   const projectId = searchParams.get('project');
   const [projectName, setProjectName] = useState(null);
+  const [selectedCharacter, setSelectedCharacter] = useState(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  
+  // Load character from localStorage when component mounts
+  useEffect(() => {
+    const characterData = localStorage.getItem('selectedCharacter');
+    const previewData = localStorage.getItem('previewCharacter');
+    
+    if (characterData) {
+      try {
+        const character = JSON.parse(characterData);
+        setSelectedCharacter(character);
+        setIsPreviewMode(false);
+        console.log('Loaded character for editing:', character.name);
+        // Clear the localStorage after loading
+        localStorage.removeItem('selectedCharacter');
+      } catch (error) {
+        console.error('Error parsing character data:', error);
+      }
+    } else if (previewData) {
+      try {
+        const character = JSON.parse(previewData);
+        setSelectedCharacter(character);
+        setIsPreviewMode(true);
+        console.log('Loaded character for preview:', character.name);
+        // Clear the localStorage after loading
+        localStorage.removeItem('previewCharacter');
+      } catch (error) {
+        console.error('Error parsing preview character data:', error);
+      }
+    }
+  }, []);
   
   // Fetch project name when projectId is available
   useEffect(() => {
@@ -1493,7 +1526,8 @@ export default function EditorPage() {
 
   return (
     <div className={styles.editorContainer} ref={containerRef}>
-      <Topbar onExport={handleExport} templateName={projectName || templateName} isProject={!!projectId} />
+      <Topbar onExport={handleExport} templateName={projectName || templateName} isProject={!!projectId} character={selectedCharacter} isPreviewMode={isPreviewMode} />
+      
       
       {/* Quick Save Buttons moved into toolbar */}
       
@@ -2429,6 +2463,16 @@ export default function EditorPage() {
                   highlights={highlights}
                 />
               ))}
+              
+              {/* Render GLB model if character has one */}
+              {selectedCharacter && selectedCharacter.characterData?.model && (
+                <GLBModel
+                  key={`character-${selectedCharacter.characterId || selectedCharacter.id}`}
+                  url={selectedCharacter.characterData.model}
+                  position={[0, 0, 0]}
+                  scale={[1, 1, 1]}
+                />
+              )}
 
               {sceneGroups.map((g) => (
                 <GroupMesh

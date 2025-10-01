@@ -560,10 +560,20 @@ export default function LandingPage() {
           </div>
           
           <div className={`${styles.navLinks} ${isMenuOpen ? styles.navLinksOpen : ''}`}>
+            {user && (
+              <Link 
+                href="/dashboard" 
+                className={styles.navLink}
+                ref={el => navLinksRef.current[0] = el}
+              >
+                <span className={styles.navText}>Dashboard</span>
+                <div className={styles.navUnderline}></div>
+              </Link>
+            )}
             <Link 
               href="#features" 
               className={styles.navLink}
-              ref={el => navLinksRef.current[0] = el}
+              ref={el => navLinksRef.current[user ? 1 : 0] = el}
             >
               <span className={styles.navText}>Features</span>
               <div className={styles.navUnderline}></div>
@@ -571,7 +581,7 @@ export default function LandingPage() {
             <Link 
               href="/pricing" 
               className={styles.navLink}
-              ref={el => navLinksRef.current[1] = el}
+              ref={el => navLinksRef.current[user ? 2 : 1] = el}
             >
               <span className={styles.navText}>Pricing</span>
               <div className={styles.navUnderline}></div>
@@ -579,7 +589,7 @@ export default function LandingPage() {
             <Link 
               href="/community" 
               className={styles.navLink}
-              ref={el => navLinksRef.current[2] = el}
+              ref={el => navLinksRef.current[user ? 3 : 2] = el}
             >
               <span className={styles.navText}>Community</span>
               <div className={styles.navUnderline}></div>

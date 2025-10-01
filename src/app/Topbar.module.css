@@ -78,6 +78,60 @@
   text-overflow: ellipsis;
 }
 
+/* Character Info Styles */
+.characterInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  backdrop-filter: blur(10px);
+}
+
+.characterDivider {
+  width: 1px;
+  height: 20px;
+  background: rgba(139, 92, 246, 0.3);
+}
+
+.characterName {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.characterLabel {
+  font-size: 0.75rem;
+  color: rgba(139, 92, 246, 0.7);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.characterTitle {
+  font-size: 0.9rem;
+  color: #8b5cf6;
+  font-weight: 700;
+  font-family: var(--font-space-grotesk);
+  white-space: nowrap;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.characterType {
+  font-size: 0.7rem;
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.15);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
 .backButton {
   display: flex;
   align-items: center;

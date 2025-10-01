@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import styles from "./Topbar.module.css"; // ✅ CSS module import
 
 
-function Topbar({ onExport, templateName, isProject = false }) {
+function Topbar({ onExport, templateName, isProject = false, character = null, isPreviewMode = false }) {
     const [exportFormat, setExportFormat] = useState("json");
     const [theme, setTheme] = useState("dark");
     const router = useRouter();
@@ -37,7 +37,19 @@ function Topbar({ onExport, templateName, isProject = false }) {
           <Link href="/landing" className={styles.brandLink}>
             Ruchi AI
           </Link>
-          {templateName && (
+      {character && (
+        <div className={styles.characterInfo}>
+          <div className={styles.characterDivider}></div>
+          <div className={styles.characterName}>
+            <span className={styles.characterLabel}>
+              {isPreviewMode ? 'Previewing:' : 'Editing:'}
+            </span>
+            <span className={styles.characterTitle}>{character.name}</span>
+            <span className={styles.characterType}>{character.type}</span>
+          </div>
+        </div>
+      )}
+          {templateName && !character && (
             <div className={styles.templateInfo}>
               <div className={styles.templateDivider}></div>
               <div className={styles.templateName}>
