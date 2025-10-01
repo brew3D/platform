@@ -105,7 +105,10 @@ export const CollaborationProvider = ({ children }) => {
 
   const joinScene = useCallback(async (sceneId) => {
     if (!user?.userId) {
-      console.error('❌ No user ID available for joining scene');
+      // Only log error if we're actually trying to join a scene (not just initializing)
+      if (sceneId) {
+        console.warn('⚠️ No user ID available for joining scene, skipping...');
+      }
       return;
     }
 

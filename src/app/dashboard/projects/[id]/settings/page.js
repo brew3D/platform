@@ -1,178 +1,1014 @@
 "use client";
 
-import React from "react";
-import { useParams, useRouter } from "next/navigation";
-import styles from "./settings.module.css";
+import React, { useState, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  FaUpload, 
+  FaLink, 
+  FaImage, 
+  FaGamepad, 
+  FaDollarSign,
+  FaEye,
+  FaComments,
+  FaStore,
+  FaTag,
+  FaInfoCircle,
+  FaTimes,
+  FaArrowLeft
+} from 'react-icons/fa';
+// Removed DashboardSidebar and DashboardTopbar for cleaner design
+import styles from './project-settings.module.css';
 
 export default function ProjectSettingsPage() {
-  const { id } = useParams();
-  const router = useRouter();
+  // Removed sidebar state as we're not using DashboardSidebar anymore
+  const [activeSection, setActiveSection] = useState('basics');
+  const [formData, setFormData] = useState({
+    // Project Basics
+    title: '',
+    url: '',
+    description: '',
+    
+    // Classification
+    projectType: 'games',
+    kindOfProject: 'downloadable',
+    releaseStatus: 'released',
+    
+    // Pricing
+    pricingType: 'free',
+    suggestedDonation: 2.00,
+    
+    // Details
+    fullDescription: '',
+    genre: '',
+    tags: [],
+    aiDisclosure: 'no',
+    
+    // App Store Links
+    steamLink: '',
+    appleStoreLink: '',
+    googlePlayLink: '',
+    amazonLink: '',
+    windowsStoreLink: '',
+    
+    // Custom Noun
+    customNoun: '',
+    
+    // Community
+    communityEnabled: false,
+    communityType: 'comments',
+    
+    // Visibility
+    visibility: 'draft',
+    
+    // Media
+    coverImage: null,
+    trailerLink: '',
+    screenshots: []
+  });
+
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef(null);
+  const coverImageRef = useRef(null);
+  const screenshotsRef = useRef(null);
+
+  const sections = [
+    { id: 'basics', title: 'Project Basics', icon: FaInfoCircle },
+    { id: 'classification', title: 'Classification', icon: FaGamepad },
+    { id: 'pricing', title: 'Pricing', icon: FaDollarSign },
+    { id: 'uploads', title: 'Uploads', icon: FaUpload },
+    { id: 'details', title: 'Details', icon: FaTag },
+    { id: 'appstores', title: 'App Store Links', icon: FaStore },
+    { id: 'community', title: 'Community', icon: FaComments },
+    { id: 'visibility', title: 'Visibility & Access', icon: FaEye },
+    { id: 'media', title: 'Media', icon: FaImage }
+  ];
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
+  };
+
+  const handleTagAdd = (tag) => {
+    if (formData.tags.length < 10 && !formData.tags.includes(tag)) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tag]
+      }));
+    }
+  };
+
+  const handleTagRemove = (tagToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
+
+  const handleFileUpload = (file, type) => {
+    if (type === 'cover') {
+      setFormData(prev => ({ ...prev, coverImage: file }));
+    } else if (type === 'screenshots') {
+      setFormData(prev => ({ 
+        ...prev, 
+        screenshots: [...prev.screenshots, file] 
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.title.trim()) {
+      newErrors.title = 'Project title is required';
+    }
+    
+    if (!formData.url.trim()) {
+      newErrors.url = 'Project URL is required';
+    } else if (!/^[a-z0-9-]+$/.test(formData.url)) {
+      newErrors.url = 'URL can only contain lowercase letters, numbers, and hyphens';
+    }
+    
+    if (formData.pricingType === 'donation' && formData.suggestedDonation <= 0) {
+      newErrors.suggestedDonation = 'Suggested donation must be greater than 0';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (isDraft = false) => {
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Here you would typically send the data to your API
+      console.log('Submitting project:', { ...formData, isDraft });
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Redirect to project page or dashboard
+      // router.push('/dashboard');
+    } catch (error) {
+      console.error('Error submitting project:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const scrollToSection = (sectionId) => {
+    setActiveSection(sectionId);
+    // No need to scroll since we're only showing one section at a time
+  };
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <button className={styles.back} onClick={() => router.push(`/dashboard/projects/${id}`)}>
-          ← Back
-        </button>
-        <div className={styles.headerContent}>
-          <h1 className={styles.title}>Project Settings</h1>
-          <p className={styles.subtitle}>Configure identity, builds, performance, and collaboration. Everything you need for a ship‑ready game.</p>
-        </div>
-        <div className={styles.headerActions}>
-          <button className={styles.primary}>Save Changes</button>
-          <button className={styles.secondary}>Export Config</button>
-        </div>
-      </header>
-      <section className={styles.body}>
-        <div className={`${styles.card} ${styles.emphasis}`}>
-          <div className={styles.cardHeader}>
-            <div className={styles.iconWrap} aria-hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.761 0 5-2.239 5-5S14.761 2 12 2 7 4.239 7 7s2.239 5 5 5Zm0 2c-4.418 0-8 2.239-8 5v2h16v-2c0-2.761-3.582-5-8-5Z" fill="currentColor"/></svg>
+      <div className={styles.content}>
+        {/* Header */}
+        <motion.div 
+          className={styles.header}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className={styles.headerLeft}>
+            <button className={styles.backButton}>
+              <FaArrowLeft />
+              Back to Projects
+            </button>
+            <div className={styles.headerContent}>
+              <h1 className={styles.title}>Create a new project</h1>
+              <p className={styles.subtitle}>
+                You don't have payment configured. If you set a minimum price above 0, 
+                no one will be able to download your project. <a href="#" className={styles.editLink}>Edit account</a>
+              </p>
             </div>
-            <h2>Identity</h2>
-            <span className={styles.badge}>Brand</span>
           </div>
-          <ul className={styles.list}>
-            <li className={styles.listItem}><strong>Project Name</strong> — The display name shown across the app.</li>
-            <li className={styles.listItem}><strong>Slug</strong> — URL-safe identifier for routes and builds.</li>
-            <li className={styles.listItem}><strong>Description</strong> — Short summary for dashboards and builds.</li>
-            <li className={styles.listItem}><strong>Cover Image</strong> — Large banner used on listings and share cards.</li>
-            <li className={styles.listItem}><strong>Game Icon</strong> — Square icon (512×512) used in launchers and exports.</li>
-            <li className={styles.listItem}><strong>Version</strong> — Semantic version (e.g., 1.0.0).</li>
-          </ul>
-          <div className={styles.templateRow}>
-            <button className={styles.template}>Upload Cover</button>
-            <button className={styles.template}>Upload Icon</button>
-          </div>
-        </div>
+        </motion.div>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.iconWrap} aria-hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3h12a1 1 0 011 1v4H5V4a1 1 0 011-1Zm-1 8h14v9a1 1 0 01-1 1H6a1 1 0 01-1-1v-9Zm3 2v5h2v-5H8Zm6 0v5h2v-5h-2Z" fill="currentColor"/></svg>
+        <div className={styles.body}>
+          {/* Sticky Sidebar Navigation */}
+          <div className={styles.sidebar}>
+            <div className={styles.sidebarContent}>
+              <h3 className={styles.sidebarTitle}>Sections</h3>
+              <nav className={styles.sidebarNav}>
+                {sections.map((section) => (
+                  <button
+                    key={section.id}
+                    className={`${styles.sidebarItem} ${activeSection === section.id ? styles.active : ''}`}
+                    onClick={() => scrollToSection(section.id)}
+                  >
+                    <section.icon className={styles.sidebarIcon} />
+                    <span>{section.title}</span>
+                  </button>
+                ))}
+              </nav>
             </div>
-            <h2>Gameplay & Design</h2>
-            <span className={styles.badge}>Core</span>
           </div>
-          <ul className={styles.list}>
-            <li className={styles.listItem}><strong>Genre</strong> — Platformer, RPG, Shooter, Puzzle, etc.</li>
-            <li className={styles.listItem}><strong>Perspective</strong> — 2D, 2.5D, 3D; camera: first/third/isometric.</li>
-            <li className={styles.listItem}><strong>Difficulty</strong> — Easy, Normal, Hard; tuning presets.</li>
-            <li className={styles.listItem}><strong>Target Platforms</strong> — Web, Mobile, Desktop.</li>
-            <li className={styles.listItem}><strong>Localization</strong> — Default language, supported locales.</li>
-            <li className={styles.listItem}><strong>Accessibility</strong> — High-contrast, subtitles, colorblind filters.</li>
-          </ul>
-        </div>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.iconWrap} aria-hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 4h18v4H3V4Zm0 6h18v10H3V10Zm4 2v6h10v-6H7Z" fill="currentColor"/></svg>
-            </div>
-            <h2>Build & Deployment</h2>
-            <span className={styles.badge}>CI/CD</span>
+          {/* Main Form Content */}
+          <div className={styles.formContent}>
+            {/* Render only the active section */}
+            {activeSection === 'basics' && (
+              <motion.section 
+                id="basics"
+                className={styles.section}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Project Basics</h2>
+                <p className={styles.sectionDescription}>
+                  Basic information about your project
+                </p>
+              </div>
+
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    className={`${styles.input} ${errors.title ? styles.error : ''}`}
+                    placeholder="Enter your project title"
+                  />
+                  {errors.title && <span className={styles.errorText}>{errors.title}</span>}
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>
+                    Project URL *
+                  </label>
+                  <div className={styles.urlInput}>
+                    <span className={styles.urlPrefix}>ruchi.ai/projects/</span>
+                    <input
+                      type="text"
+                      value={formData.url}
+                      onChange={(e) => handleInputChange('url', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      className={`${styles.input} ${errors.url ? styles.error : ''}`}
+                      placeholder="my-awesome-project"
+                    />
+                  </div>
+                  {errors.url && <span className={styles.errorText}>{errors.url}</span>}
+                  <p className={styles.helperText}>
+                    Only lowercase letters, numbers, and hyphens allowed
+                  </p>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>
+                    Short description / tagline
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    className={styles.input}
+                    placeholder="A brief description of your project"
+                  />
+                </div>
+              </div>
+              </motion.section>
+            )}
+
+            {/* Classification Section */}
+            {activeSection === 'classification' && (
+              <motion.section 
+                id="classification"
+                className={styles.section}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Classification</h2>
+                <p className={styles.sectionDescription}>
+                  Categorize your project
+                </p>
+              </div>
+
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>What are you uploading?</label>
+                  <div className={styles.radioGroup}>
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="projectType"
+                        value="games"
+                        checked={formData.projectType === 'games'}
+                        onChange={(e) => handleInputChange('projectType', e.target.value)}
+                      />
+                      <span className={styles.radioLabel}>
+                        <strong>Games</strong>
+                        <span className={styles.radioDescription}>A piece of software you can play</span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Kind of project</label>
+                  <select
+                    value={formData.kindOfProject}
+                    onChange={(e) => handleInputChange('kindOfProject', e.target.value)}
+                    className={styles.select}
+                  >
+                    <option value="downloadable">Downloadable</option>
+                    <option value="html5">HTML5/Web playable</option>
+                    <option value="hybrid">Hybrid</option>
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Release status</label>
+                  <select
+                    value={formData.releaseStatus}
+                    onChange={(e) => handleInputChange('releaseStatus', e.target.value)}
+                    className={styles.select}
+                  >
+                    <option value="released">Released</option>
+                    <option value="in-development">In Development</option>
+                    <option value="prototype">Prototype</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+              </motion.section>
+            )}
+
+            {/* Pricing Section */}
+            {activeSection === 'pricing' && (
+              <motion.section 
+                id="pricing"
+                className={styles.section}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Pricing</h2>
+                <p className={styles.sectionDescription}>
+                  Set your project's pricing model
+                </p>
+              </div>
+
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Pricing Type</label>
+                  <div className={styles.radioGroup}>
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="pricingType"
+                        value="free"
+                        checked={formData.pricingType === 'free'}
+                        onChange={(e) => handleInputChange('pricingType', e.target.value)}
+                      />
+                      <span className={styles.radioLabel}>
+                        <strong>Free</strong>
+                        <span className={styles.radioDescription}>No payment required</span>
+                      </span>
+                    </label>
+                    
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="pricingType"
+                        value="donation"
+                        checked={formData.pricingType === 'donation'}
+                        onChange={(e) => handleInputChange('pricingType', e.target.value)}
+                      />
+                      <span className={styles.radioLabel}>
+                        <strong>Donation</strong>
+                        <span className={styles.radioDescription}>Suggested donation amount</span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {formData.pricingType === 'donation' && (
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>Suggested donation</label>
+                    <div className={styles.currencyInput}>
+                      <span className={styles.currencySymbol}>$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.suggestedDonation}
+                        onChange={(e) => handleInputChange('suggestedDonation', parseFloat(e.target.value) || 0)}
+                        className={`${styles.input} ${errors.suggestedDonation ? styles.error : ''}`}
+                        placeholder="2.00"
+                      />
+                    </div>
+                    {errors.suggestedDonation && <span className={styles.errorText}>{errors.suggestedDonation}</span>}
+                    <p className={styles.helperText}>
+                      Note: No payments — Someone downloading your project will be asked for a donation before getting access. They can skip to download for free.
+                    </p>
+                  </div>
+                )}
+              </div>
+              </motion.section>
+            )}
+
+            {/* Uploads Section */}
+            {activeSection === 'uploads' && (
+              <motion.section 
+                id="uploads"
+                className={styles.section}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Uploads</h2>
+                <p className={styles.sectionDescription}>
+                  Upload your project files
+                </p>
+              </div>
+
+              <div className={styles.uploadArea}>
+                <div 
+                  className={styles.uploadZone}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <FaUpload className={styles.uploadIcon} />
+                  <h3 className={styles.uploadTitle}>Choose from computer</h3>
+                  <p className={styles.uploadDescription}>
+                    Drag and drop your files here, or click to browse
+                  </p>
+                  <div className={styles.uploadOptions}>
+                    <button 
+                      type="button"
+                      className={styles.uploadButton}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                    >
+                      Choose from computer
+                    </button>
+                    <button 
+                      type="button"
+                      className={styles.uploadButton}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle Dropbox integration
+                      }}
+                    >
+                      <FaLink /> Dropbox
+                    </button>
+                    <button 
+                      type="button"
+                      className={styles.uploadButton}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle external file link
+                      }}
+                    >
+                      <FaLink /> External file link
+                    </button>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    className={styles.hiddenInput}
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files);
+                      files.forEach(file => handleFileUpload(file, 'project'));
+                    }}
+                  />
+                </div>
+                <p className={styles.fileLimit}>
+                  File size limit: 1GB
+                </p>
+                <p className={styles.helperText}>
+                  Use Butler to upload files: it only uploads what's changed, generates patches for the RuchiAI App, and you can automate it.
+                </p>
+              </div>
+              </motion.section>
+            )}
+
+            {/* Details Section */}
+            {activeSection === 'details' && (
+              <motion.section 
+                id="details"
+                className={styles.section}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Details</h2>
+                <p className={styles.sectionDescription}>
+                  Provide detailed information about your project
+                </p>
+              </div>
+
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Description</label>
+                  <textarea
+                    value={formData.fullDescription}
+                    onChange={(e) => handleInputChange('fullDescription', e.target.value)}
+                    className={styles.textarea}
+                    placeholder="Describe your project in detail..."
+                    rows={6}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Genre</label>
+                  <select
+                    value={formData.genre}
+                    onChange={(e) => handleInputChange('genre', e.target.value)}
+                    className={styles.select}
+                  >
+                    <option value="">Select a genre</option>
+                    <option value="action">Action</option>
+                    <option value="adventure">Adventure</option>
+                    <option value="puzzle">Puzzle</option>
+                    <option value="strategy">Strategy</option>
+                    <option value="simulation">Simulation</option>
+                    <option value="rpg">RPG</option>
+                    <option value="sports">Sports</option>
+                    <option value="racing">Racing</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Tags (up to 10)</label>
+                  <div className={styles.tagsInput}>
+                    <div className={styles.tagsList}>
+                      {formData.tags.map((tag, index) => (
+                        <span key={index} className={styles.tag}>
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => handleTagRemove(tag)}
+                            className={styles.tagRemove}
+                          >
+                            <FaTimes />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Add a tag..."
+                      className={styles.tagInput}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const tag = e.target.value.trim();
+                          if (tag) {
+                            handleTagAdd(tag);
+                            e.target.value = '';
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                  <p className={styles.helperText}>
+                    Press Enter to add tags. {formData.tags.length}/10 used.
+                  </p>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>AI Disclosure</label>
+                  <div className={styles.radioGroup}>
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="aiDisclosure"
+                        value="no"
+                        checked={formData.aiDisclosure === 'no'}
+                        onChange={(e) => handleInputChange('aiDisclosure', e.target.value)}
+                      />
+                      <span className={styles.radioLabel}>
+                        <strong>No</strong>
+                        <span className={styles.radioDescription}>This project was not created using AI</span>
+                      </span>
+                    </label>
+                    
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="aiDisclosure"
+                        value="yes"
+                        checked={formData.aiDisclosure === 'yes'}
+                        onChange={(e) => handleInputChange('aiDisclosure', e.target.value)}
+                      />
+                      <span className={styles.radioLabel}>
+                        <strong>Yes</strong>
+                        <span className={styles.radioDescription}>This project was created using AI tools</span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              </motion.section>
+            )}
+
+            {/* App Store Links Section */}
+            {activeSection === 'appstores' && (
+              <motion.section 
+                id="appstores"
+                className={styles.section}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>App Store Links</h2>
+                <p className={styles.sectionDescription}>
+                  Link to your project on various platforms
+                </p>
+              </div>
+
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Steam</label>
+                  <input
+                    type="url"
+                    value={formData.steamLink}
+                    onChange={(e) => handleInputChange('steamLink', e.target.value)}
+                    className={styles.input}
+                    placeholder="https://store.steampowered.com/app/..."
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Apple App Store</label>
+                  <input
+                    type="url"
+                    value={formData.appleStoreLink}
+                    onChange={(e) => handleInputChange('appleStoreLink', e.target.value)}
+                    className={styles.input}
+                    placeholder="https://apps.apple.com/app/..."
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Google Play Store</label>
+                  <input
+                    type="url"
+                    value={formData.googlePlayLink}
+                    onChange={(e) => handleInputChange('googlePlayLink', e.target.value)}
+                    className={styles.input}
+                    placeholder="https://play.google.com/store/apps/details?id=..."
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Amazon Appstore</label>
+                  <input
+                    type="url"
+                    value={formData.amazonLink}
+                    onChange={(e) => handleInputChange('amazonLink', e.target.value)}
+                    className={styles.input}
+                    placeholder="https://www.amazon.com/dp/..."
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Windows Store</label>
+                  <input
+                    type="url"
+                    value={formData.windowsStoreLink}
+                    onChange={(e) => handleInputChange('windowsStoreLink', e.target.value)}
+                    className={styles.input}
+                    placeholder="https://www.microsoft.com/store/productId/..."
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Custom Noun</label>
+                  <input
+                    type="text"
+                    value={formData.customNoun}
+                    onChange={(e) => handleInputChange('customNoun', e.target.value)}
+                    className={styles.input}
+                    placeholder="Override 'game' with another word (e.g., 'experience')"
+                  />
+                </div>
+              </div>
+              </motion.section>
+            )}
+
+            {/* Community Section */}
+            {activeSection === 'community' && (
+              <motion.section 
+                id="community"
+                className={styles.section}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Community</h2>
+                <p className={styles.sectionDescription}>
+                  Enable community features for your project
+                </p>
+              </div>
+
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Community Features</label>
+                  <div className={styles.toggleGroup}>
+                    <label className={styles.toggleOption}>
+                      <input
+                        type="radio"
+                        name="communityEnabled"
+                        value="disabled"
+                        checked={!formData.communityEnabled}
+                        onChange={() => handleInputChange('communityEnabled', false)}
+                      />
+                      <span className={styles.toggleLabel}>
+                        <strong>Disabled</strong>
+                        <span className={styles.toggleDescription}>No community features</span>
+                      </span>
+                    </label>
+                    
+                    <label className={styles.toggleOption}>
+                      <input
+                        type="radio"
+                        name="communityEnabled"
+                        value="comments"
+                        checked={formData.communityEnabled && formData.communityType === 'comments'}
+                        onChange={() => {
+                          handleInputChange('communityEnabled', true);
+                          handleInputChange('communityType', 'comments');
+                        }}
+                      />
+                      <span className={styles.toggleLabel}>
+                        <strong>Comments</strong>
+                        <span className={styles.toggleDescription}>Allow users to comment on your project</span>
+                      </span>
+                    </label>
+                    
+                    <label className={styles.toggleOption}>
+                      <input
+                        type="radio"
+                        name="communityEnabled"
+                        value="discussion"
+                        checked={formData.communityEnabled && formData.communityType === 'discussion'}
+                        onChange={() => {
+                          handleInputChange('communityEnabled', true);
+                          handleInputChange('communityType', 'discussion');
+                        }}
+                      />
+                      <span className={styles.toggleLabel}>
+                        <strong>Discussion Board</strong>
+                        <span className={styles.toggleDescription}>Full discussion board for your project</span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              </motion.section>
+            )}
+
+            {/* Visibility & Access Section */}
+            {activeSection === 'visibility' && (
+              <motion.section 
+                id="visibility"
+                className={styles.section}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Visibility & Access</h2>
+                <p className={styles.sectionDescription}>
+                  Control who can see and access your project
+                </p>
+              </div>
+
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Project Visibility</label>
+                  <div className={styles.radioGroup}>
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="visibility"
+                        value="draft"
+                        checked={formData.visibility === 'draft'}
+                        onChange={(e) => handleInputChange('visibility', e.target.value)}
+                      />
+                      <span className={styles.radioLabel}>
+                        <strong>Draft</strong>
+                        <span className={styles.radioDescription}>Only you can see this project</span>
+                      </span>
+                    </label>
+                    
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="visibility"
+                        value="restricted"
+                        checked={formData.visibility === 'restricted'}
+                        onChange={(e) => handleInputChange('visibility', e.target.value)}
+                      />
+                      <span className={styles.radioLabel}>
+                        <strong>Restricted</strong>
+                        <span className={styles.radioDescription}>Only people with the link can see this project</span>
+                      </span>
+                    </label>
+                    
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="visibility"
+                        value="public"
+                        checked={formData.visibility === 'public'}
+                        onChange={(e) => handleInputChange('visibility', e.target.value)}
+                      />
+                      <span className={styles.radioLabel}>
+                        <strong>Public</strong>
+                        <span className={styles.radioDescription}>Anyone can find and see this project</span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              </motion.section>
+            )}
+
+            {/* Media Section */}
+            {activeSection === 'media' && (
+              <motion.section 
+                id="media"
+                className={styles.section}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Media</h2>
+                <p className={styles.sectionDescription}>
+                  Upload images and videos to showcase your project
+                </p>
+              </div>
+
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Cover Image *</label>
+                  <div className={styles.imageUpload}>
+                    <div className={styles.imageUploadArea}>
+                      {formData.coverImage ? (
+                        <div className={styles.imagePreview}>
+                          <img 
+                            src={URL.createObjectURL(formData.coverImage)} 
+                            alt="Cover preview" 
+                            className={styles.previewImage}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleInputChange('coverImage', null)}
+                            className={styles.removeImage}
+                          >
+                            <FaTimes />
+                          </button>
+                        </div>
+                      ) : (
+                        <div 
+                          className={styles.imagePlaceholder}
+                          onClick={() => coverImageRef.current?.click()}
+                        >
+                          <FaImage className={styles.uploadIcon} />
+                          <p>Click to upload cover image</p>
+                          <p className={styles.imageRequirements}>Min 315x250, recommended 630x500</p>
+                        </div>
+                      )}
+                      <input
+                        ref={coverImageRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e.target.files[0], 'cover')}
+                        className={styles.hiddenInput}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Gameplay Trailer</label>
+                  <input
+                    type="url"
+                    value={formData.trailerLink}
+                    onChange={(e) => handleInputChange('trailerLink', e.target.value)}
+                    className={styles.input}
+                    placeholder="YouTube or Vimeo link"
+                  />
+                  <p className={styles.helperText}>
+                    Paste a YouTube or Vimeo URL to embed a trailer
+                  </p>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Screenshots</label>
+                  <div className={styles.screenshotsUpload}>
+                    <div className={styles.screenshotsList}>
+                      {formData.screenshots.map((screenshot, index) => (
+                        <div key={index} className={styles.screenshotItem}>
+                          <img 
+                            src={URL.createObjectURL(screenshot)} 
+                            alt={`Screenshot ${index + 1}`} 
+                            className={styles.screenshotImage}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newScreenshots = formData.screenshots.filter((_, i) => i !== index);
+                              handleInputChange('screenshots', newScreenshots);
+                            }}
+                            className={styles.removeScreenshot}
+                          >
+                            <FaTimes />
+                          </button>
+                        </div>
+                      ))}
+                      {formData.screenshots.length < 5 && (
+                        <div 
+                          className={styles.addScreenshot}
+                          onClick={() => screenshotsRef.current?.click()}
+                        >
+                          <FaImage className={styles.uploadIcon} />
+                          <p>Add screenshot</p>
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      ref={screenshotsRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files);
+                        files.forEach(file => handleFileUpload(file, 'screenshots'));
+                      }}
+                      className={styles.hiddenInput}
+                    />
+                    <p className={styles.helperText}>
+                      3-5 screenshots recommended
+                    </p>
+                  </div>
+                </div>
+              </div>
+              </motion.section>
+            )}
+
+            {/* Action Buttons */}
+            <motion.div 
+              className={styles.actionButtons}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1.0 }}
+            >
+              <button
+                type="button"
+                onClick={() => handleSubmit(true)}
+                disabled={isSubmitting}
+                className={styles.draftButton}
+              >
+                {isSubmitting ? 'Saving...' : 'Save as Draft'}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => handleSubmit(false)}
+                disabled={isSubmitting}
+                className={styles.publishButton}
+              >
+                {isSubmitting ? 'Publishing...' : 'Publish Project'}
+              </button>
+            </motion.div>
           </div>
-          <ul className={styles.list}>
-            <li className={styles.listItem}><strong>Build Targets</strong> — Vercel/Netlify/GitHub Pages/static bundle.</li>
-            <li className={styles.listItem}><strong>CDN Caching</strong> — Cache-control headers for assets.</li>
-            <li className={styles.listItem}><strong>Preview URLs</strong> — Automatic preview deployment toggles.</li>
-            <li className={styles.listItem}><strong>Environment</strong> — Dev/Staging/Prod config selection.</li>
-            <li className={styles.listItem}><strong>Artifact Retention</strong> — Keep last N builds and assets.</li>
-          </ul>
-          <div className={styles.templateRow}>
-            <button className={styles.template}>Configure Build Targets</button>
-            <button className={styles.template}>Manage Environments</button>
-          </div>
         </div>
-
-        <div className={styles.card}>
-          <h2>Assets & Content</h2>
-          <ul className={styles.list}>
-            <li className={styles.listItem}><strong>Asset Library</strong> — Default folders for models, textures, audio.</li>
-            <li className={styles.listItem}><strong>Compression</strong> — Texture/audio compression profiles.</li>
-            <li className={styles.listItem}><strong>LOD Policy</strong> — Automatic LOD generation and thresholds.</li>
-            <li className={styles.listItem}><strong>Licensing</strong> — Attribution requirements and usage notes.</li>
-          </ul>
-        </div>
-
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.iconWrap} aria-hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3a9 9 0 100 18 9 9 0 000-18Zm1 4h-2v6h5v-2h-3V7Z" fill="currentColor"/></svg>
-            </div>
-            <h2>Performance</h2>
-            <span className={styles.badge}>FPS</span>
-          </div>
-          <ul className={styles.list}>
-            <li className={styles.listItem}><strong>Frame Budget</strong> — Target FPS and quality presets.</li>
-            <li className={styles.listItem}><strong>Culling</strong> — Frustum/occlusion/cell visibility toggles.</li>
-            <li className={styles.listItem}><strong>Physics</strong> — Fixed timestep, iterations, collision layers.</li>
-            <li className={styles.listItem}><strong>Streaming</strong> — Asset prefetching and lazy loading.</li>
-          </ul>
-        </div>
-
-        <div className={styles.card}>
-          <h2>Networking</h2>
-          <ul className={styles.list}>
-            <li className={styles.listItem}><strong>Matchmaking</strong> — Mode (peer-to-peer/server), regions.</li>
-            <li className={styles.listItem}><strong>Realtime</strong> — WebSocket endpoints, presence, rate limits.</li>
-            <li className={styles.listItem}><strong>Saves/Cloud</strong> — Save slots, cloud sync, backup policy.</li>
-          </ul>
-        </div>
-
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.iconWrap} aria-hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9Zm1 5h-2v2H9v2h2v2h2v-2h2v-2h-2V8Z" fill="currentColor"/></svg>
-            </div>
-            <h2>Monetization</h2>
-            <span className={styles.badge}>Revenue</span>
-          </div>
-          <ul className={styles.list}>
-            <li className={styles.listItem}><strong>Purchases</strong> — IAP/Sku list, receipts, sandbox keys.</li>
-            <li className={styles.listItem}><strong>Ads</strong> — Provider keys, frequency caps, placement IDs.</li>
-            <li className={styles.listItem}><strong>Trials/Demos</strong> — Time limits, content gates.</li>
-          </ul>
-        </div>
-
-        <div className={styles.card}>
-          <h2>Analytics & Logging</h2>
-          <ul className={styles.list}>
-            <li className={styles.listItem}><strong>Analytics</strong> — Provider keys (GA4/Segment/etc.).</li>
-            <li className={styles.listItem}><strong>Events</strong> — Custom event schema and sampling rate.</li>
-            <li className={styles.listItem}><strong>Crash Reports</strong> — Sentry/rollbar DSNs and PII policy.</li>
-          </ul>
-        </div>
-
-        <div className={styles.card}>
-          <h2>Security & Compliance</h2>
-          <ul className={styles.list}>
-            <li className={styles.listItem}><strong>Auth</strong> — JWT settings, token lifetimes, 2FA toggles.</li>
-            <li className={styles.listItem}><strong>Data</strong> — GDPR/CCPA toggles, data export/delete.</li>
-            <li className={styles.listItem}><strong>Content Safety</strong> — Profanity filters, report/ban flow.</li>
-          </ul>
-        </div>
-
-        <div className={styles.card}>
-          <h2>Collaboration</h2>
-          <ul className={styles.list}>
-            <li className={styles.listItem}><strong>Team</strong> — Roles (Owner/Admin/Editor/Viewer).</li>
-            <li className={styles.listItem}><strong>Approvals</strong> — PR-style reviews for content changes.</li>
-            <li className={styles.listItem}><strong>Notifications</strong> — Email/Slack notifications.</li>
-          </ul>
-        </div>
-
-        <div className={styles.card}>
-          <h2>Advanced</h2>
-          <ul className={styles.list}>
-            <li className={styles.listItem}><strong>Feature Flags</strong> — Toggle experimental features.</li>
-            <li className={styles.listItem}><strong>Custom Scripts</strong> — Pre/post build hooks.</li>
-            <li className={styles.listItem}><strong>Environment Vars</strong> — Project-level overrides.</li>
-          </ul>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }
-
-

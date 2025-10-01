@@ -482,7 +482,10 @@ export default function EditorPage() {
         setCurrentScene(scene);
         setSceneObjects(scene.objects || []);
         setSceneGroups(scene.groups || []);
-        joinScene?.(scene.id);
+        // Only join scene if user is available
+        if (user?.userId) {
+          joinScene?.(scene.id);
+        }
       } catch {}
     })();
     return () => { didCancel = true; };

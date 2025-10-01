@@ -20,6 +20,7 @@
     "@react-three/fiber": "^9.3.0",
     "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.2",
+    "framer-motion": "^12.23.22",
     "gsap": "^3.13.0",
     "jsonwebtoken": "^9.0.2",
     "next": "15.5.2",
