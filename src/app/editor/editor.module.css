@@ -2100,6 +2100,1067 @@ textarea:focus {
   to { opacity: 1; }
 }
 
+/* ===== MODULAR EDITOR STYLES ===== */
+
+/* Toolbox Styles */
+.toolboxContent {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.toolboxSection {
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 1rem;
+}
+
+.toolboxSection:last-child {
+  border-bottom: none;
+}
+
+.toolboxSectionHeader {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--editor-text-primary);
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.toolboxSectionHeader:hover {
+  color: #667eea;
+}
+
+.toolboxItems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.toolboxItem {
+  background: var(--item-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--editor-text-primary);
+  padding: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.toolboxItem:hover {
+  background: var(--item-bg-hover);
+  border-color: #667eea;
+  transform: translateX(4px);
+}
+
+.uploadArea {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 2px dashed var(--panel-border);
+  border-radius: 8px;
+  text-align: center;
+  background: var(--subtle-panel);
+}
+
+.uploadButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.uploadButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Inspector Styles */
+.inspectorContent {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.inspectorSection {
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 1rem;
+}
+
+.inspectorSection:last-child {
+  border-bottom: none;
+}
+
+.inspectorSection h4 {
+  margin: 0 0 1rem 0;
+  color: var(--editor-text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.propertyGroup {
+  margin-bottom: 1rem;
+}
+
+.propertyGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--editor-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.propertyInput {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--input-text);
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.propertyInput:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.propertySelect {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--input-text);
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.propertySlider {
+  width: 100%;
+  height: 4px;
+  background: var(--panel-border);
+  border-radius: 2px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.propertySlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #667eea;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.propertySlider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #667eea;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.propertyValue {
+  color: var(--editor-text-secondary);
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+.propertyUnit {
+  color: var(--editor-text-muted);
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+.vectorInput {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.vectorInput input {
+  flex: 1;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #667eea;
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.constraintGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.colorInput {
+  width: 40px;
+  height: 32px;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.helpText {
+  color: var(--editor-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Physics Editor Styles */
+.physicsObject {
+  position: relative;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--item-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+}
+
+.physicsObject.selected {
+  border-color: #667eea;
+  background: var(--item-bg-hover);
+}
+
+/* Lighting Editor Styles */
+.lightObject {
+  position: relative;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--item-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+}
+
+.lightObject.selected {
+  border-color: #667eea;
+  background: var(--item-bg-hover);
+}
+
+/* Audio Editor Styles */
+.audioTrack {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--item-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.audioTrack.selected {
+  border-color: #667eea;
+  background: var(--item-bg-hover);
+}
+
+.audioTrack.inactive {
+  opacity: 0.5;
+}
+
+.trackHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.trackInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.trackIcon {
+  width: 32px;
+  height: 32px;
+  background: var(--subtle-panel);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trackDetails h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--editor-text-primary);
+}
+
+.trackType {
+  font-size: 0.75rem;
+  color: var(--editor-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.trackControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trackBtn {
+  background: var(--subtle-panel);
+  border: 1px solid var(--panel-border);
+  color: var(--editor-text-primary);
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trackBtn:hover {
+  background: var(--item-bg-hover);
+  border-color: #667eea;
+}
+
+.volumeDisplay {
+  font-size: 0.8rem;
+  color: var(--editor-text-secondary);
+  min-width: 30px;
+  text-align: center;
+}
+
+.trackTimeline {
+  position: relative;
+  height: 40px;
+  background: var(--editor-bg-primary);
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.trackProgress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transition: width 0.1s ease;
+}
+
+.trackWaveform {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.waveformPlaceholder {
+  color: var(--editor-text-muted);
+}
+
+.trackProperties {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.propertyRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mixerPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mixerChannel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mixerChannel label {
+  min-width: 60px;
+  font-size: 0.8rem;
+  color: var(--editor-text-secondary);
+}
+
+.mixerSlider {
+  flex: 1;
+}
+
+.mixerValue {
+  min-width: 40px;
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--editor-text-secondary);
+}
+
+.effectItem {
+  background: var(--item-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.effectHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.effectRemove {
+  background: none;
+  border: none;
+  color: var(--editor-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.effectRemove:hover {
+  background: var(--item-bg-hover);
+  color: #ff4444;
+}
+
+.addEffectBtn {
+  background: var(--subtle-panel);
+  border: 1px dashed var(--panel-border);
+  color: var(--editor-text-secondary);
+  padding: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.addEffectBtn:hover {
+  background: var(--item-bg-hover);
+  border-color: #667eea;
+  color: var(--editor-text-primary);
+}
+
+/* Input Editor Styles */
+.inputMapping {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--item-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.inputMapping.selected {
+  border-color: #667eea;
+  background: var(--item-bg-hover);
+}
+
+.inputMapping.inactive {
+  opacity: 0.5;
+}
+
+.mappingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.mappingInfo h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--editor-text-primary);
+}
+
+.mappingDevice {
+  font-size: 0.75rem;
+  color: var(--editor-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mappingControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mappingBtn {
+  background: var(--subtle-panel);
+  border: 1px solid var(--panel-border);
+  color: var(--editor-text-primary);
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mappingBtn:hover {
+  background: var(--item-bg-hover);
+  border-color: #667eea;
+}
+
+.mappingBindings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bindingGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bindingGroup label {
+  font-size: 0.8rem;
+  color: var(--editor-text-secondary);
+}
+
+.captureBtn {
+  background: var(--subtle-panel);
+  border: 1px solid var(--panel-border);
+  color: var(--editor-text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.captureBtn:hover {
+  background: var(--item-bg-hover);
+  border-color: #667eea;
+}
+
+.touchControlType {
+  background: var(--subtle-panel);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--editor-text-secondary);
+}
+
+.deviceSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.deviceSelect {
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--input-text);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.keymapContainer, .timelineContainer, .lobbyContainer, .nodeGraphContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--editor-bg-primary);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.keymapHeader, .timelineHeader, .lobbyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--toolbar-bg);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.keymapHeader h3, .timelineHeader h3, .lobbyHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--editor-text-primary);
+}
+
+.keymapControls, .timelineControls, .lobbyControls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.keymapBtn, .timelineBtn, .lobbyBtn {
+  background: var(--subtle-panel);
+  border: 1px solid var(--panel-border);
+  color: var(--editor-text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.keymapBtn:hover, .timelineBtn:hover, .lobbyBtn:hover {
+  background: var(--item-bg-hover);
+  border-color: #667eea;
+}
+
+.keymapContent, .timelineContent, .lobbyContent {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.emptyKeymap, .emptyTimeline, .emptyLobby, .emptyNodeGraph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--editor-text-muted);
+  text-align: center;
+}
+
+.emptyKeymap h3, .emptyTimeline h3, .emptyLobby h3, .emptyNodeGraph h3 {
+  margin: 1rem 0 0.5rem 0;
+  color: var(--editor-text-secondary);
+}
+
+.keymapTable {
+  width: 100%;
+}
+
+.keymapTableHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: var(--subtle-panel);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--editor-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.keymapTableBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.keymapColumn {
+  display: flex;
+  align-items: center;
+}
+
+.timeDisplay {
+  font-family: 'Courier New', monospace;
+  font-size: 1.2rem;
+  color: var(--editor-text-primary);
+  background: var(--subtle-panel);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--panel-border);
+}
+
+/* UI Editor Styles */
+.uiCanvas {
+  position: relative;
+  background: var(--editor-bg-secondary);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.canvasViewport {
+  position: relative;
+  background: var(--editor-bg-primary);
+  border: 2px solid var(--editor-border-primary);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.canvasSizeSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.alignmentButtons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.alignmentBtn {
+  background: var(--subtle-panel);
+  border: 1px solid var(--panel-border);
+  color: var(--editor-text-primary);
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.alignmentBtn:hover {
+  background: var(--item-bg-hover);
+  border-color: #667eea;
+}
+
+.alignmentBtn.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+/* Networking Editor Styles */
+.lobbyRoom {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--item-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.lobbyRoom.selected {
+  border-color: #667eea;
+  background: var(--item-bg-hover);
+}
+
+.lobbyRoom.connected {
+  border-color: #22c55e;
+}
+
+.roomHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.roomInfo h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--editor-text-primary);
+}
+
+.roomStatus {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.playerCount {
+  font-size: 0.8rem;
+  color: var(--editor-text-secondary);
+}
+
+.roomType {
+  font-size: 0.75rem;
+  color: var(--editor-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.roomControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.roomBtn {
+  background: var(--subtle-panel);
+  border: 1px solid var(--panel-border);
+  color: var(--editor-text-primary);
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.roomBtn:hover {
+  background: var(--item-bg-hover);
+  border-color: #667eea;
+}
+
+.roomPlayers {
+  margin-bottom: 0.75rem;
+}
+
+.playerSlots {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.playerSlot {
+  width: 24px;
+  height: 24px;
+  background: var(--editor-bg-primary);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.playerSlot.occupied {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: white;
+}
+
+.roomFeatures {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.featureList {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.featureTag {
+  background: var(--subtle-panel);
+  color: var(--editor-text-secondary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.roomFlags {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.flag {
+  font-size: 0.8rem;
+}
+
+.connectionStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+.statusIndicator.connected .statusDot {
+  background: #22c55e;
+}
+
+.connectionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.connectionInfo p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--editor-text-secondary);
+}
+
+.connectionControls {
+  margin-top: 1rem;
+}
+
+.pingDisplay {
+  font-size: 0.8rem;
+  color: var(--editor-text-secondary);
+  background: var(--subtle-panel);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* AI Editor Styles */
+.nodeGraph {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.emptyNodeGraph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--editor-text-muted);
+  text-align: center;
+}
+
+.aiStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--editor-text-primary);
+}
+
+.patrolPoints {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.patrolPoint {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.patrolPoint input {
+  flex: 1;
+}
+
+.removeBtn, .addBtn {
+  background: var(--subtle-panel);
+  border: 1px solid var(--panel-border);
+  color: var(--editor-text-primary);
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeBtn:hover {
+  background: #ff4444;
+  border-color: #ff4444;
+  color: white;
+}
+
+.addBtn:hover {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: white;
+}
+
+.conditionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conditionItem {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.conditionItem select {
+  flex: 1;
+}
+
+.conditionItem input {
+  flex: 1;
+}
+
+/* Common Empty States */
+.emptyTimeline, .emptyKeymap, .emptyLobby, .emptyNodeGraph {
+  padding: 2rem;
+}
+
+.emptyTimeline h3, .emptyKeymap h3, .emptyLobby h3, .emptyNodeGraph h3 {
+  margin: 1rem 0 0.5rem 0;
+  color: var(--editor-text-secondary);
+  font-size: 1.2rem;
+}
+
+.emptyTimeline p, .emptyKeymap p, .emptyLobby p, .emptyNodeGraph p {
+  margin: 0;
+  color: var(--editor-text-muted);
+  font-size: 0.9rem;
+}
+
 .deleteToastContent {
   background: rgba(26, 26, 46, 0.95);
   backdrop-filter: blur(20px);

@@ -13,6 +13,7 @@ import {
 } from "@react-three/drei";
 import styles from "./editor.module.css";
 import Topbar from "../Topbar";
+import EditorTabs from "../components/EditorTabs";
 import SelectableMesh from "../components/selectableMesh";
 import GroupMesh from "../components/GroupMesh";
 import VoxelInstanced from "../components/VoxelInstanced";
@@ -25,6 +26,7 @@ import LogsPanel from "../components/LogsPanel";
 import Tooltip from "../components/Tooltip";
 import GLBModel from "../components/GLBModel";
 import Link from "next/link";
+ 
 
 // React Icons
 import { 
@@ -199,10 +201,7 @@ export default function EditorPage() {
   const [environmentPreset, setEnvironmentPreset] = useState('sunset');
   
   // Animation
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentFrame, setCurrentFrame] = useState(1);
-  const [totalFrames, setTotalFrames] = useState(250);
-  const [fps, setFps] = useState(24);
+  
   
   // Panels visibility
   const [showProperties, setShowProperties] = useState(true);
@@ -1527,8 +1526,8 @@ export default function EditorPage() {
   return (
     <div className={styles.editorContainer} ref={containerRef}>
       <Topbar onExport={handleExport} templateName={projectName || templateName} isProject={!!projectId} character={selectedCharacter} isPreviewMode={isPreviewMode} />
-      
-      
+      <EditorTabs />
+
       {/* Quick Save Buttons moved into toolbar */}
       
       {/* Profile Icon (kept minimal) */}
@@ -1908,6 +1907,8 @@ export default function EditorPage() {
           <UserStatus compact />
         </div>
       </div>
+
+      
 
       {/* Main Layout */}
       <div className={styles.mainLayout}>
@@ -2539,11 +2540,11 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* Right Column - Objects above Chatbot at 50/50 split */}
+        {/* Right Column - Objects above Inspector at 50/50 split */}
         <div className={styles.rightColumn}>
           <div className={styles.rightPaneTop}>
             <div className={styles.panelHeader}>
-              <h3>Objects</h3>
+              <h3>Inspector</h3>
               <button 
                 className={styles.logsButton}
                 onClick={() => setShowLogs(true)}
@@ -2552,29 +2553,7 @@ export default function EditorPage() {
                 📝 Logs
               </button>
             </div>
-            <div className={styles.outlinerContent}>
-              <div className={styles.outlinerItem}>
-                <span className={styles.outlinerFolder}>
-                  <FiChevronDown />
-                  <FiLayers />
-                  Scene
-                </span>
-                <div className={styles.outlinerChildren}>
-                  {sceneObjects.map((obj) => (
-                    <div 
-                      key={obj.id} 
-                      className={`${styles.outlinerObject} ${selectedId === obj.id ? styles.selected : ''}`}
-                      onClick={() => handleObjectSelect(obj.id)}
-                    >
-                      <span className={styles.objectIcon}>
-                        {obj.object === 'cube' ? <FiBox /> : obj.object === 'sphere' ? <FiCircle /> : <FiSquare />}
-                      </span>
-                      <span className={styles.objectName}>{obj.id} · pos({obj.position?.map(n=>Number(n).toFixed(2)).join(', ')})</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            
           </div>
           {showChat && (
             <div className={styles.rightPaneBottom}>
