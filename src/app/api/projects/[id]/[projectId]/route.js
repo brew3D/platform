@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getProjectById } from '../../../lib/dynamodb-operations';
+import { getProjectById } from '../../lib/dynamodb-operations';
 
 export async function GET(request, { params }) {
   try {

@@ -1,5 +1,5 @@
-import { userStorage } from '../../../lib/userStorage';
-import { sendPasswordResetEmail } from '../../../lib/email';
+import { userStorage } from '../../lib/userStorage';
+import { sendPasswordResetEmail } from '../../lib/email';
 
 export async function POST(request) {
   try {
