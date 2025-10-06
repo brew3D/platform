@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { getUserById } from '../../lib/dynamodb-operations.js';
+import { getUserById } from '../../lib/dynamodb-operations';
 
 export async function POST(request) {
   try {

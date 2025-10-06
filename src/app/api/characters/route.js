@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { 
   createCharacter, 
   getProjectCharacters 
-} from '../../lib/dynamodb-operations.js';
+} from '../../lib/dynamodb-operations';
 
 // GET /api/characters?projectId=xxx
 export async function GET(request) {
