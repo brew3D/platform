@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { getUserByEmail, updateUser } from '../../lib/dynamodb-operations';
+import { getUserByEmail, updateUser } from '@/app/lib/dynamodb-operations';
 
 export async function POST(request) {
   try {
