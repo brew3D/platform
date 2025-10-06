@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import { createUser, getUserByEmail } from '../../../lib/dynamodb-operations';
+import { createUser, getUserByEmail } from '../../lib/dynamodb-operations';
 
 const handler = NextAuth({
   providers: [

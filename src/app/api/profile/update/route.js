@@ -1,4 +1,4 @@
-import { userStorage } from '../../../lib/userStorage';
+import { userStorage } from '../../lib/userStorage';
 import jwt from 'jsonwebtoken';
 
 export async function PUT(request) {

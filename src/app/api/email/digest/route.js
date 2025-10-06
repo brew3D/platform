@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES } from '../../../lib/dynamodb-schema';
+import { TABLE_NAMES } from '../../lib/dynamodb-schema';
 import nodemailer from 'nodemailer';
 
 const client = new DynamoDBClient({

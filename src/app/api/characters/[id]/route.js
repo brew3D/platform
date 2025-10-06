@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { 
   getDynamoDocClient 
-} from '../../../lib/dynamodb.js';
+} from '../../lib/dynamodb.js';
 import { 
   GetCommand, 
   UpdateCommand, 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '../../../lib/auth';
-import { updateUser, getUserById } from '../../../lib/dynamodb-operations';
+import { requireAuth } from '../../lib/auth';
+import { updateUser, getUserById } from '../../lib/dynamodb-operations';
 
 export async function POST(request) {
   try {

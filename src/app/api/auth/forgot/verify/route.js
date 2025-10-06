@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { userStorage } from '../../../../lib/userStorage';
+import { userStorage } from '../../../lib/userStorage';
 
 export async function POST(request) {
   try {

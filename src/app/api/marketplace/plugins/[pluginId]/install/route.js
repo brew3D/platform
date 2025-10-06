@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { TABLE_NAMES, getCurrentTimestamp } from '../../../../../lib/dynamodb-schema';
-import { requireAuth } from '../../../lib/auth';
+import { requireAuth } from '../../lib/auth';
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || 'us-east-1',

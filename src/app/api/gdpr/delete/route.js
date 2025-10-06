@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '../../../lib/auth';
-import { deleteUserAndData } from '../../../lib/gdpr';
+import { requireAuth } from '../../lib/auth';
+import { deleteUserAndData } from '../../lib/gdpr';
 
 export async function POST(request) {
   try {

@@ -1,4 +1,4 @@
-import { userStorage } from '../../../lib/userStorage';
+import { userStorage } from '../../lib/userStorage';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
