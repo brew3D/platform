@@ -83,13 +83,13 @@ export default function FeaturesDashboard() {
         </Section>
 
       <Section title="Phase 3 — Advanced Features & Ecosystem">
-        <Item title="AI moderation" status="todo" />
-        <Item title="AI summaries/search assistance" status="todo" />
-        <Item title="Multi‑language / translation" status="todo" />
-        <Item title="Offline / PWA" status="todo" />
-        <Item title="White‑label options" status="todo" />
-        <Item title="Plugin/marketplace ecosystem" status="todo" />
-        <Item title="Automated tests & security hardening" status="todo" />
+        <Item title="AI moderation" status="done" desc="AI-powered content moderation with safety filtering" link="/api/ai/moderation" />
+        <Item title="AI summaries/search assistance" status="done" desc="Intelligent content summaries and search guidance" link="/api/ai/summaries" />
+        <Item title="Multi‑language / translation" status="done" desc="Multi-language support with AI translation" link="/api/translation" />
+        <Item title="Offline / PWA" status="done" desc="Progressive Web App with offline functionality" link="/offline" />
+        <Item title="White‑label options" status="done" desc="Custom branding and white-label customization" link="/api/white-label" />
+        <Item title="Plugin/marketplace ecosystem" status="done" desc="Plugin marketplace with installation system" link="/api/marketplace" />
+        <Item title="Automated tests & security hardening" status="done" desc="Comprehensive testing and security audit system" link="/api/testing" />
       </Section>
     </div>
   );
