@@ -1,237 +1,236 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import DashboardSidebar from "../../components/DashboardSidebar";
-import DashboardTopbar from "../../components/DashboardTopbar";
-import { useAuth } from "../../contexts/AuthContext";
-import styles from "./billing.module.css";
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import styles from './billing.module.css';
 
 export default function BillingPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState('pro');
+  const [subscription, setSubscription] = useState(null);
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const plans = [
-    {
-      id: 'free',
-      name: 'Free',
-      price: 0,
-      period: 'forever',
-      description: 'Perfect for getting started',
-      features: [
-        'Up to 3 projects',
-        'Basic templates',
-        'Community support',
-        '1GB storage'
-      ],
-      popular: false
-    },
-    {
-      id: 'pro',
-      name: 'Pro',
-      price: 29,
-      period: 'month',
-      description: 'For serious creators',
-      features: [
-        'Unlimited projects',
-        'All templates & assets',
-        'Priority support',
-        '100GB storage',
-        'Advanced collaboration',
-        'Custom branding'
-      ],
-      popular: true
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: 99,
-      period: 'month',
-      description: 'For teams and studios',
-      features: [
-        'Everything in Pro',
-        'Unlimited storage',
-        'Dedicated support',
-        'Custom integrations',
-        'Team management',
-        'Advanced analytics',
-        'SLA guarantee'
-      ],
-      popular: false
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadBillingData();
     }
-  ];
+  }, [isAuthenticated]);
 
-  const billingHistory = [
-    {
-      id: 1,
-      date: '2024-01-15',
-      description: 'Pro Plan - Monthly',
-      amount: 29.00,
-      status: 'paid'
-    },
-    {
-      id: 2,
-      date: '2023-12-15',
-      description: 'Pro Plan - Monthly',
-      amount: 29.00,
-      status: 'paid'
-    },
-    {
-      id: 3,
-      date: '2023-11-15',
-      description: 'Pro Plan - Monthly',
-      amount: 29.00,
-      status: 'paid'
+  const loadBillingData = async () => {
+    try {
+      const [subscriptionRes, plansRes] = await Promise.all([
+        fetch('/api/billing/subscriptions'),
+        fetch('/api/billing/plans')
+      ]);
+
+      const subscriptionData = await subscriptionRes.json();
+      const plansData = await plansRes.json();
+
+      if (subscriptionData.success) {
+        setSubscription(subscriptionData.subscription);
+      }
+
+      if (plansData.success) {
+        setPlans(plansData.plans);
+      }
+    } catch (error) {
+      console.error('Error loading billing data:', error);
+      setError('Failed to load billing information');
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const handlePlanSelect = (planId) => {
-    setSelectedPlan(planId);
   };
 
-  const handleUpgrade = () => {
-    // TODO: Implement plan upgrade logic
-    console.log('Upgrading to plan:', selectedPlan);
+  const handlePlanChange = async (planId) => {
+    try {
+      const response = await fetch('/api/billing/subscriptions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'change_plan', planId })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setSubscription(result.subscription);
+      } else {
+        setError(result.error || 'Failed to change plan');
+      }
+    } catch (error) {
+      console.error('Error changing plan:', error);
+      setError('Failed to change plan');
+    }
   };
 
-  if (authLoading) {
-    return <div className={styles.loading}>Loading...</div>;
+  const handleCancelSubscription = async () => {
+    if (!confirm('Are you sure you want to cancel your subscription?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/billing/subscriptions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cancel', cancelAtPeriodEnd: true })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setSubscription(result.subscription);
+      } else {
+        setError(result.error || 'Failed to cancel subscription');
+      }
+    } catch (error) {
+      console.error('Error canceling subscription:', error);
+      setError('Failed to cancel subscription');
+    }
+  };
+
+  const handleReactivateSubscription = async () => {
+    try {
+      const response = await fetch('/api/billing/subscriptions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reactivate' })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setSubscription(result.subscription);
+      } else {
+        setError(result.error || 'Failed to reactivate subscription');
+      }
+    } catch (error) {
+      console.error('Error reactivating subscription:', error);
+      setError('Failed to reactivate subscription');
+    }
+  };
+
+  if (authLoading || loading) {
+    return <div className={styles.loading}>Loading billing information...</div>;
   }
 
   if (!isAuthenticated) {
-    return <div className={styles.error}>Please log in to view billing information.</div>;
+    return <div className={styles.error}>Please sign in to access billing</div>;
   }
 
   return (
     <div className={styles.billingPage}>
-      <DashboardSidebar 
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        activeItem="billing"
-      />
+      <div className={styles.header}>
+        <h1>Billing & Subscription</h1>
+        <p>Manage your subscription and billing information</p>
+      </div>
 
-      <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-        <DashboardTopbar 
-          user={user}
-          onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
+      {error && (
+        <div className={styles.errorMessage}>
+          {error}
+          <button onClick={() => setError(null)}>×</button>
+        </div>
+      )}
 
-        <div className={styles.content}>
-          <header className={styles.header}>
-            <h1 className={styles.title}>Billing & Plans</h1>
-            <p className={styles.subtitle}>Manage your subscription and billing information</p>
-          </header>
-
-          <div className={styles.billingContainer}>
-            {/* Current Plan */}
-            <div className={styles.currentPlan}>
-              <h2>Current Plan</h2>
-              <div className={styles.planCard}>
-                <div className={styles.planInfo}>
-                  <h3>Pro Plan</h3>
-                  <p className={styles.planPrice}>$29/month</p>
-                  <p className={styles.planDescription}>For serious creators</p>
-                </div>
-                <div className={styles.planStatus}>
-                  <span className={styles.statusBadge}>Active</span>
-                  <p className={styles.nextBilling}>Next billing: February 15, 2024</p>
-                </div>
+      <div className={styles.content}>
+        {/* Current Subscription */}
+        <div className={styles.section}>
+          <h2>Current Subscription</h2>
+          {subscription ? (
+            <div className={styles.subscriptionCard}>
+              <div className={styles.subscriptionInfo}>
+                <h3>{subscription.planId === 'free' ? 'Free Plan' : subscription.planId === 'pro' ? 'Pro Plan' : 'Enterprise Plan'}</h3>
+                <p className={styles.subscriptionStatus}>
+                  Status: <span className={`${styles.status} ${styles[subscription.status]}`}>
+                    {subscription.status}
+                  </span>
+                </p>
+                {subscription.currentPeriodEnd && (
+                  <p className={styles.periodEnd}>
+                    {subscription.cancelAtPeriodEnd ? 'Cancels on' : 'Renews on'}: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                  </p>
+                )}
               </div>
-            </div>
-
-            {/* Plan Selection */}
-            <div className={styles.planSelection}>
-              <h2>Choose Your Plan</h2>
-              <div className={styles.plansGrid}>
-                {plans.map((plan) => (
-                  <div 
-                    key={plan.id}
-                    className={`${styles.planCard} ${plan.popular ? styles.popular : ''} ${selectedPlan === plan.id ? styles.selected : ''}`}
-                    onClick={() => handlePlanSelect(plan.id)}
+              <div className={styles.subscriptionActions}>
+                {subscription.cancelAtPeriodEnd ? (
+                  <button 
+                    className={styles.reactivateButton}
+                    onClick={handleReactivateSubscription}
                   >
-                    {plan.popular && <div className={styles.popularBadge}>Most Popular</div>}
-                    <div className={styles.planHeader}>
-                      <h3>{plan.name}</h3>
-                      <div className={styles.planPricing}>
-                        <span className={styles.price}>${plan.price}</span>
-                        <span className={styles.period}>/{plan.period}</span>
-                      </div>
-                    </div>
-                    <p className={styles.planDescription}>{plan.description}</p>
-                    <ul className={styles.featuresList}>
-                      {plan.features.map((feature, index) => (
-                        <li key={index} className={styles.feature}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                            <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                    <button 
-                      className={`${styles.selectBtn} ${selectedPlan === plan.id ? styles.selectedBtn : ''}`}
-                      onClick={() => handlePlanSelect(plan.id)}
-                    >
-                      {selectedPlan === plan.id ? 'Selected' : 'Select Plan'}
+                    Reactivate
+                  </button>
+                ) : (
+                  <button 
+                    className={styles.cancelButton}
+                    onClick={handleCancelSubscription}
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.noSubscription}>
+              <p>No active subscription found</p>
+            </div>
+          )}
+        </div>
+
+        {/* Available Plans */}
+        <div className={styles.section}>
+          <h2>Available Plans</h2>
+          <div className={styles.plansGrid}>
+            {plans.map(plan => (
+              <div key={plan.id} className={`${styles.planCard} ${subscription?.planId === plan.id ? styles.currentPlan : ''}`}>
+                <div className={styles.planHeader}>
+                  <h3>{plan.name}</h3>
+                  <div className={styles.planPrice}>
+                    {plan.price === 0 ? 'Free' : `$${plan.price}/${plan.interval}`}
+                  </div>
+                </div>
+                <div className={styles.planFeatures}>
+                  <ul>
+                    {plan.features.map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className={styles.planLimits}>
+                  <h4>Limits</h4>
+                  <ul>
+                    <li>Posts per month: {plan.limits.postsPerMonth === -1 ? 'Unlimited' : plan.limits.postsPerMonth}</li>
+                    <li>Storage: {plan.limits.storageGB}GB</li>
+                    <li>Team members: {plan.limits.maxTeamMembers === -1 ? 'Unlimited' : plan.limits.maxTeamMembers}</li>
+                  </ul>
+                </div>
+                <div className={styles.planActions}>
+                  {subscription?.planId === plan.id ? (
+                    <button className={styles.currentPlanButton} disabled>
+                      Current Plan
                     </button>
-                  </div>
-                ))}
-              </div>
-              <div className={styles.upgradeActions}>
-                <button className={styles.upgradeBtn} onClick={handleUpgrade}>
-                  {selectedPlan === 'free' ? 'Upgrade Now' : 'Change Plan'}
-                </button>
-              </div>
-            </div>
-
-            {/* Billing History */}
-            <div className={styles.billingHistory}>
-              <h2>Billing History</h2>
-              <div className={styles.historyTable}>
-                <div className={styles.tableHeader}>
-                  <div className={styles.tableCell}>Date</div>
-                  <div className={styles.tableCell}>Description</div>
-                  <div className={styles.tableCell}>Amount</div>
-                  <div className={styles.tableCell}>Status</div>
-                  <div className={styles.tableCell}>Action</div>
+                  ) : (
+                    <button 
+                      className={styles.selectPlanButton}
+                      onClick={() => handlePlanChange(plan.id)}
+                    >
+                      {subscription ? 'Change Plan' : 'Select Plan'}
+                    </button>
+                  )}
                 </div>
-                {billingHistory.map((item) => (
-                  <div key={item.id} className={styles.tableRow}>
-                    <div className={styles.tableCell}>{item.date}</div>
-                    <div className={styles.tableCell}>{item.description}</div>
-                    <div className={styles.tableCell}>${item.amount.toFixed(2)}</div>
-                    <div className={styles.tableCell}>
-                      <span className={`${styles.statusBadge} ${styles[item.status]}`}>
-                        {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-                      </span>
-                    </div>
-                    <div className={styles.tableCell}>
-                      <button className={styles.downloadBtn}>Download</button>
-                    </div>
-                  </div>
-                ))}
               </div>
-            </div>
+            ))}
+          </div>
+        </div>
 
-            {/* Payment Method */}
-            <div className={styles.paymentMethod}>
-              <h2>Payment Method</h2>
-              <div className={styles.paymentCard}>
-                <div className={styles.paymentInfo}>
-                  <div className={styles.cardIcon}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
-                      <line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" strokeWidth="2"/>
-                    </svg>
-                  </div>
-                  <div className={styles.cardDetails}>
-                    <p className={styles.cardType}>Visa ending in 4242</p>
-                    <p className={styles.cardExpiry}>Expires 12/25</p>
-                  </div>
-                </div>
-                <button className={styles.updateCardBtn}>Update Card</button>
-              </div>
-            </div>
+        {/* Billing History */}
+        <div className={styles.section}>
+          <h2>Billing History</h2>
+          <div className={styles.billingHistory}>
+            <p>Billing history will be displayed here once you have an active subscription.</p>
+          </div>
+        </div>
+
+        {/* Payment Methods */}
+        <div className={styles.section}>
+          <h2>Payment Methods</h2>
+          <div className={styles.paymentMethods}>
+            <p>Payment methods will be displayed here once you have an active subscription.</p>
           </div>
         </div>
       </div>

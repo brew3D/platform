@@ -9,7 +9,13 @@ export const TABLE_NAMES = {
   CHARACTERS: 'ruchi-ai-characters',
   ASSETS: 'ruchi-ai-assets',
   TUTORIALS: 'ruchi-ai-tutorials',
-  COMMUNITY_POSTS: 'ruchi-ai-community-posts'
+  COMMUNITY_POSTS: 'ruchi-ai-community-posts',
+  EVENTS: 'ruchi-ai-events',
+  EVENT_RSVPS: 'ruchi-ai-event-rsvps',
+  BADGES: 'ruchi-ai-badges',
+  USER_BADGES: 'ruchi-ai-user-badges',
+  USER_POINTS: 'ruchi-ai-user-points',
+  LEADERBOARDS: 'ruchi-ai-leaderboards'
 };
 
 export const GSI_NAMES = {
@@ -20,7 +26,16 @@ export const GSI_NAMES = {
   CHARACTER_PROJECT: 'project-id-index',
   ASSET_CATEGORY: 'category-index',
   TUTORIAL_CATEGORY: 'category-index',
-  POST_USER: 'user-id-index'
+  POST_USER: 'user-id-index',
+  EVENT_DATE: 'event-date-index',
+  EVENT_ORGANIZER: 'organizer-id-index',
+  RSVP_EVENT: 'event-id-index',
+  RSVP_USER: 'user-id-index',
+  BADGE_CATEGORY: 'category-index',
+  USER_BADGE_USER: 'user-id-index',
+  USER_BADGE_BADGE: 'badge-id-index',
+  USER_POINTS_USER: 'user-id-index',
+  LEADERBOARD_TYPE: 'type-index'
 };
 
 // User Schema
@@ -232,6 +247,188 @@ export const COMMUNITY_POST_SCHEMA = {
   isPinned: 'BOOL',
   createdAt: 'S', // ISO timestamp
   updatedAt: 'S' // ISO timestamp
+};
+
+// Event Schema
+export const EVENT_SCHEMA = {
+  // Primary Key
+  eventId: 'S', // PK: event-{uuid}
+  
+  // Attributes
+  title: 'S',
+  description: 'S',
+  organizerId: 'S', // GSI: organizer-id-index
+  eventDate: 'S', // GSI: event-date-index (ISO timestamp)
+  startTime: 'S', // ISO timestamp
+  endTime: 'S', // ISO timestamp
+  location: 'M', // Location object
+  category: 'S', // 'workshop' | 'meetup' | 'conference' | 'social' | 'other'
+  type: 'S', // 'online' | 'in-person' | 'hybrid'
+  maxAttendees: 'N', // Maximum number of attendees
+  currentAttendees: 'N', // Current number of RSVPs
+  price: 'N', // Price in cents (0 for free)
+  currency: 'S', // 'USD' | 'EUR' | etc.
+  tags: 'L', // List of tags
+  requirements: 'L', // List of requirements
+  resources: 'L', // List of resource URLs
+  status: 'S', // 'draft' | 'published' | 'cancelled' | 'completed'
+  isPublic: 'BOOL', // Whether event is visible to all users
+  allowWaitlist: 'BOOL', // Whether to allow waitlist when full
+  registrationDeadline: 'S', // ISO timestamp
+  reminderSettings: 'M', // Reminder notification settings
+  createdAt: 'S', // ISO timestamp
+  updatedAt: 'S', // ISO timestamp
+  
+  // Location Structure
+  location: {
+    name: 'S', // Venue name
+    address: 'S', // Full address
+    city: 'S',
+    state: 'S',
+    country: 'S',
+    postalCode: 'S',
+    coordinates: 'M', // { lat: number, lng: number }
+    onlineLink: 'S', // For online events
+    meetingId: 'S', // For video conferencing
+    meetingPassword: 'S'
+  },
+  
+  // Reminder Settings Structure
+  reminderSettings: {
+    emailReminders: 'BOOL',
+    pushNotifications: 'BOOL',
+    reminderTimes: 'L', // [24, 2, 1] hours before event
+    customMessage: 'S'
+  }
+};
+
+// Event RSVP Schema
+export const EVENT_RSVP_SCHEMA = {
+  // Primary Key (Composite)
+  eventId: 'S', // PK: event-{uuid}
+  userId: 'S', // SK: user-{uuid}
+  
+  // Attributes
+  status: 'S', // 'attending' | 'not-attending' | 'maybe' | 'waitlist'
+  rsvpDate: 'S', // ISO timestamp
+  plusOnes: 'N', // Number of additional guests
+  dietaryRestrictions: 'S', // Dietary restrictions or special needs
+  notes: 'S', // Additional notes for organizer
+  checkInTime: 'S', // ISO timestamp (when they actually attended)
+  feedback: 'M', // Post-event feedback
+  createdAt: 'S', // ISO timestamp
+  updatedAt: 'S' // ISO timestamp
+};
+
+// Badge Schema
+export const BADGE_SCHEMA = {
+  // Primary Key
+  badgeId: 'S', // PK: badge-{uuid}
+  
+  // Attributes
+  name: 'S',
+  description: 'S',
+  category: 'S', // GSI: category-index ('community', 'content', 'achievement', 'special')
+  icon: 'S', // Icon URL or emoji
+  color: 'S', // Badge color hex code
+  rarity: 'S', // 'common', 'uncommon', 'rare', 'epic', 'legendary'
+  points: 'N', // Points awarded for earning this badge
+  requirements: 'M', // Requirements to earn this badge
+  isActive: 'BOOL', // Whether badge can be earned
+  isSecret: 'BOOL', // Whether badge is hidden until earned
+  maxEarners: 'N', // Maximum number of users who can earn this badge (null = unlimited)
+  currentEarners: 'N', // Current number of users who have earned this badge
+  createdAt: 'S', // ISO timestamp
+  updatedAt: 'S', // ISO timestamp
+  
+  // Requirements Structure
+  requirements: {
+    type: 'S', // 'points', 'actions', 'milestone', 'custom'
+    criteria: 'M', // Specific criteria based on type
+    conditions: 'L' // List of conditions that must be met
+  }
+};
+
+// User Badge Schema (Junction Table)
+export const USER_BADGE_SCHEMA = {
+  // Primary Key (Composite)
+  userId: 'S', // PK: user-{uuid}
+  badgeId: 'S', // SK: badge-{uuid}
+  
+  // Attributes
+  earnedAt: 'S', // ISO timestamp when badge was earned
+  progress: 'N', // Progress towards badge (0-100)
+  metadata: 'M', // Additional metadata about how badge was earned
+  isDisplayed: 'BOOL', // Whether user wants to display this badge
+  createdAt: 'S', // ISO timestamp
+  updatedAt: 'S' // ISO timestamp
+};
+
+// User Points Schema
+export const USER_POINTS_SCHEMA = {
+  // Primary Key
+  userId: 'S', // PK: user-{uuid}
+  
+  // Attributes
+  totalPoints: 'N', // Total points earned
+  level: 'N', // Current user level
+  experience: 'N', // Current experience points
+  experienceToNext: 'N', // Experience needed for next level
+  pointsByCategory: 'M', // Points broken down by category
+  lastEarnedAt: 'S', // ISO timestamp of last points earned
+  streak: 'N', // Current streak count
+  longestStreak: 'N', // Longest streak achieved
+  achievements: 'L', // List of achievement IDs
+  createdAt: 'S', // ISO timestamp
+  updatedAt: 'S', // ISO timestamp
+  
+  // Points by Category Structure
+  pointsByCategory: {
+    community: 'N', // Points from community activities
+    content: 'N', // Points from content creation
+    events: 'N', // Points from event participation
+    social: 'N', // Points from social interactions
+    special: 'N' // Points from special achievements
+  }
+};
+
+// Leaderboard Schema
+export const LEADERBOARD_SCHEMA = {
+  // Primary Key
+  leaderboardId: 'S', // PK: leaderboard-{uuid}
+  
+  // Attributes
+  name: 'S',
+  description: 'S',
+  type: 'S', // GSI: type-index ('points', 'badges', 'posts', 'events', 'custom')
+  category: 'S', // Category for filtering
+  timeRange: 'S', // 'all-time', 'monthly', 'weekly', 'daily'
+  criteria: 'M', // Criteria for ranking
+  isActive: 'BOOL', // Whether leaderboard is active
+  isPublic: 'BOOL', // Whether leaderboard is visible to all users
+  maxEntries: 'N', // Maximum number of entries to show
+  refreshInterval: 'N', // How often to refresh (in minutes)
+  lastUpdated: 'S', // ISO timestamp of last update
+  entries: 'L', // List of leaderboard entries
+  createdAt: 'S', // ISO timestamp
+  updatedAt: 'S', // ISO timestamp
+  
+  // Criteria Structure
+  criteria: {
+    metric: 'S', // What to measure ('points', 'badges', 'posts', etc.)
+    aggregation: 'S', // How to aggregate ('sum', 'count', 'max', 'avg')
+    filters: 'M', // Additional filters to apply
+    weight: 'N' // Weight for this criteria in multi-criteria leaderboards
+  },
+  
+  // Leaderboard Entry Structure
+  entries: [{
+    rank: 'N', // Position in leaderboard
+    userId: 'S', // User ID
+    score: 'N', // Calculated score
+    metadata: 'M', // Additional data for this entry
+    lastUpdated: 'S' // When this entry was last updated
+  }]
 };
 
 // Helper function to generate IDs

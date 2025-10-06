@@ -68,19 +68,19 @@ export default function FeaturesDashboard() {
         <Item title="CI workflow & staging docs" status="done" />
       </Section>
 
-      <Section title="Phase 2 — Engagement, Extensibility, Monetization">
-        <Item title="Full‑text search (posts/users/tags)" status="todo" />
-        <Item title="Filters & trending" status="todo" />
-        <Item title="Events calendar + RSVPs" status="todo" />
-        <Item title="Leaderboards & badges" status="todo" />
-        <Item title="Weekly digest emails" status="todo" />
-        <Item title="Public REST API + Webhooks" status="todo" />
-        <Item title="Slack/Discord bridges" status="todo" />
-        <Item title="Zapier / n8n support" status="todo" />
-        <Item title="Branding settings & onboarding flows" status="todo" />
-        <Item title="Accessibility improvements" status="todo" />
-        <Item title="Monetization (Stripe/Paddle, tiers, billing)" status="todo" />
-      </Section>
+        <Section title="Phase 2 — Engagement, Extensibility, Monetization">
+          <Item title="Full‑text search (posts/users/tags)" status="done" desc="Unified search API with relevance scoring and filters" link="/dashboard/search" />
+          <Item title="Filters & trending" status="done" desc="Advanced filtering and trending algorithms implemented" link="/dashboard/search" />
+          <Item title="Events calendar + RSVPs" status="done" desc="Complete event management with RSVP system" link="/dashboard/events" />
+          <Item title="Leaderboards & badges" status="done" desc="Gamification system with points, levels, and achievements" link="/dashboard/gamification" />
+          <Item title="Weekly digest emails" status="done" desc="Personalized weekly digest with trending content and user activity" link="/api/email/digest" />
+          <Item title="Public REST API + Webhooks" status="done" desc="Complete REST API with authentication and webhook system" link="/api/v1" />
+          <Item title="Slack/Discord bridges" status="done" desc="Integration bridges for real-time notifications and commands" link="/api/integrations" />
+          <Item title="Zapier / n8n support" status="done" desc="Automation platform integrations with triggers and actions" link="/api/integrations" />
+          <Item title="Branding settings & onboarding flows" status="done" desc="Custom branding and guided user onboarding experience" link="/dashboard/onboarding" />
+          <Item title="Accessibility improvements" status="done" desc="ARIA labels, keyboard navigation, and screen reader support" link="/lib/accessibility" />
+          <Item title="Monetization (Stripe/Paddle, tiers, billing)" status="done" desc="Subscription tiers and billing management with Stripe integration" link="/dashboard/billing" />
+        </Section>
 
       <Section title="Phase 3 — Advanced Features & Ecosystem">
         <Item title="AI moderation" status="todo" />

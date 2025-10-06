@@ -1,0 +1,748 @@
+.onboardingPage {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffffff, #f8f9ff);
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #8a2be2, #667eea);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 1rem 0;
+}
+
+.header p {
+  font-size: 1.2rem;
+  color: #666;
+  margin: 0;
+}
+
+.progressContainer {
+  margin-bottom: 3rem;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: #e1e5e9;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(135deg, #8a2be2, #667eea);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.stepContainer {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.stepHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.stepHeader h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.stepHeader p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.stepContent {
+  margin-bottom: 2rem;
+}
+
+.stepNavigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 2rem;
+  border-top: 1px solid #e1e5e9;
+}
+
+.prevButton,
+.skipButton {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e1e5e9;
+  background: white;
+  color: #666;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.prevButton:hover,
+.skipButton:hover {
+  background: #f8f9fa;
+  border-color: #8a2be2;
+  color: #333;
+}
+
+.primaryButton {
+  background: linear-gradient(135deg, #8a2be2, #667eea);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.primaryButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background: white;
+  color: #8a2be2;
+  border: 2px solid #8a2be2;
+  border-radius: 8px;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.secondaryButton:hover {
+  background: #8a2be2;
+  color: white;
+}
+
+/* Welcome Step */
+.welcomeContent {
+  text-align: center;
+}
+
+.welcomeIcon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.welcomeContent h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 1rem 0;
+}
+
+.welcomeContent p {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.inputGroup {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.inputGroup label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #8a2be2;
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+}
+
+.featuresPreview {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  text-align: left;
+}
+
+.featuresPreview h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 1rem 0;
+}
+
+.featuresPreview ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.featuresPreview li {
+  padding: 0.5rem 0;
+  color: #666;
+}
+
+/* Profile Step */
+.profileContent {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #8a2be2;
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+}
+
+.interestsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.interestTag {
+  padding: 0.5rem 1rem;
+  border: 2px solid #e1e5e9;
+  background: white;
+  color: #666;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.interestTag:hover {
+  border-color: #8a2be2;
+  color: #8a2be2;
+}
+
+.interestTag.selected {
+  background: #8a2be2;
+  color: white;
+  border-color: #8a2be2;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Preferences Step */
+.preferencesContent {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.preferenceSection {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.preferenceSection h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 1rem 0;
+}
+
+.themeOptions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.themeOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid #e1e5e9;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+}
+
+.themeOption:hover {
+  border-color: #8a2be2;
+}
+
+.themeOption.selected {
+  border-color: #8a2be2;
+  background: #f8f9ff;
+}
+
+.themeIcon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  margin-right: 0.75rem;
+}
+
+.checkboxText {
+  font-weight: 500;
+  color: #333;
+}
+
+.privacyOptions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.privacyOption {
+  display: flex;
+  flex-direction: column;
+}
+
+.privacyOption label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.select {
+  padding: 0.75rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #8a2be2;
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+}
+
+/* First Post Step */
+.postContent {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.tagsInput {
+  margin-top: 0.5rem;
+}
+
+.suggestedTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.tagButton {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid #e1e5e9;
+  background: white;
+  color: #666;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tagButton:hover {
+  border-color: #8a2be2;
+  color: #8a2be2;
+}
+
+.tagButton.selected {
+  background: #8a2be2;
+  color: white;
+  border-color: #8a2be2;
+}
+
+.selectedTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.selectedTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background: #8a2be2;
+  color: white;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  gap: 0.5rem;
+}
+
+.selectedTag button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  margin-left: 0.25rem;
+}
+
+/* Explore Features Step */
+.featuresContent {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.featureCard {
+  padding: 1.5rem;
+  border: 2px solid #e1e5e9;
+  background: white;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  position: relative;
+}
+
+.featureCard:hover {
+  border-color: #8a2be2;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.featureCard.explored {
+  border-color: #28a745;
+  background: #f8fff9;
+}
+
+.featureIcon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.featureCard h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.featureCard p {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.exploredBadge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: #28a745;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* Join Community Step */
+.communityContent {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.channelsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.channelCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border: 2px solid #e1e5e9;
+  background: white;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.channelCard:hover {
+  border-color: #8a2be2;
+}
+
+.channelCard.joined {
+  border-color: #28a745;
+  background: #f8fff9;
+}
+
+.channelInfo h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.channelInfo p {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.memberCount {
+  font-size: 0.8rem;
+  color: #999;
+  font-weight: 600;
+}
+
+.joinButton {
+  padding: 0.5rem 1.5rem;
+  border: 2px solid #e1e5e9;
+  background: white;
+  color: #666;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.joinButton:hover {
+  border-color: #8a2be2;
+  color: #8a2be2;
+}
+
+.joinButton.joined {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+/* Onboarding Complete */
+.completePage {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffffff, #f8f9ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.completeContent {
+  text-align: center;
+  max-width: 600px;
+  background: white;
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.completeIcon {
+  font-size: 4rem;
+  margin-bottom: 2rem;
+}
+
+.completeContent h1 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #8a2be2, #667eea);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 1rem 0;
+}
+
+.completeContent p {
+  font-size: 1.2rem;
+  color: #666;
+  margin: 0 0 2rem 0;
+}
+
+.nextSteps {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  text-align: left;
+}
+
+.nextSteps h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.nextSteps ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nextSteps li {
+  padding: 0.5rem 0;
+  color: #666;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+/* Loading and Error States */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  font-size: 1.2rem;
+  color: #dc3545;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .onboardingPage {
+    padding: 1rem;
+  }
+  
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .stepContainer {
+    padding: 1.5rem;
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+  
+  .themeOptions {
+    flex-direction: column;
+  }
+  
+  .privacyOptions {
+    grid-template-columns: 1fr;
+  }
+  
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+  }
+  
+  .completeContent {
+    padding: 2rem;
+  }
+  
+  .completeContent h1 {
+    font-size: 2rem;
+  }
+}
