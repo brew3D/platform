@@ -306,6 +306,19 @@ export default function EditorPage() {
   const [chatLog, setChatLog] = useState([]); // {id, role, text} and {type: event}
   const chatBodyRef = useRef(null);
   const [statusMsg, setStatusMsg] = useState("");
+  // Load initial chat from builder (if any)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('editorInitialChat');
+      if (raw) {
+        const items = JSON.parse(raw);
+        if (Array.isArray(items) && items.length) {
+          setChatLog(items.map((m) => ({ id: `${Date.now()}_${Math.random().toString(36).slice(2)}`, role: m.role === 'user' ? 'user' : 'agent', text: String(m.text || '') })));
+        }
+        localStorage.removeItem('editorInitialChat');
+      }
+    } catch {}
+  }, []);
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [uploading, setUploading] = useState(false);

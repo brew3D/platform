@@ -15,6 +15,7 @@ const cards = [
   { id: 'characters', label: 'Characters' },
   { id: 'settings', label: 'Project Settings' },
   { id: 'collab', label: 'Collab Room', isSpecial: true },
+  { id: 'carve', label: 'Carve' },
 ];
 
 export default function ProjectDetailPage() {
@@ -47,8 +48,8 @@ export default function ProjectDetailPage() {
   }, [projectId]);
 
   const handleCardClick = (card) => {
-    if (card.id === 'collab') {
-      // Navigate directly to editor for collab room
+    if (card.id === 'collab' || card.id === 'carve') {
+      // Navigate directly to editor for collab room and carve
       router.push(`/editor?project=${projectId}`);
     } else {
       router.push(`/dashboard/projects/${projectId}/${card.id}`);

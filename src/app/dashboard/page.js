@@ -57,7 +57,15 @@ export default function DashboardPage() {
               projects={projects}
               loading={projectsLoading}
               activeProject={activeProject}
-              onProjectSelect={(projectId) => router.push(`/dashboard/projects/${projectId}`)}
+              onProjectSelect={(projectId) => {
+                const project = projects.find(p => p.projectId === projectId);
+                const mode = project?.gameMode || project?.settings?.gameType;
+                if ((mode || '').toUpperCase() === '2D') {
+                  router.push(`/dashboard/projects2d/${projectId}`);
+                } else {
+                  router.push(`/dashboard/projects/${projectId}`);
+                }
+              }}
               onCreateNew={() => setShowNewProject(true)}
             />
           </div>
@@ -79,15 +87,20 @@ export default function DashboardPage() {
             return [];
           }
         }}
-        onCreate={async ({ name, description, teamMembers }) => {
+        onCreate={async ({ name, description, teamMembers, gameMode }) => {
           try {
             const res = await authenticatedFetch('/api/projects', {
               method: 'POST',
-              body: JSON.stringify({ name, description, teamMembers })
+              body: JSON.stringify({ name, description, teamMembers, gameMode })
             });
             if (res.ok) {
               const data = await res.json();
-              window.location.href = `/dashboard/projects/${data.project.projectId}`;
+              const id = data.project.projectId;
+              if ((gameMode || data.project.gameMode) === '2D') {
+                window.location.href = `/dashboard/projects2d/${id}`;
+              } else {
+                window.location.href = `/dashboard/projects/${id}`;
+              }
             } else {
               const err = await res.json().catch(() => ({}));
               alert(err.message || 'Failed to create project. Please try again.');

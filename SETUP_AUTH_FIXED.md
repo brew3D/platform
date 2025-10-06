@@ -94,3 +94,16 @@ npm run dev
 ## 🎉 You're All Set!
 
 The authentication system now works in both development and production modes. You can start building and testing immediately without any AWS setup required!
+
+## ✅ Google OAuth (Optional)
+
+Add the following to `.env.local`:
+
+```
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret
+```
+
+Then visit `/api/auth/signin` for Google login.

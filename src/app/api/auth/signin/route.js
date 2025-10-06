@@ -5,7 +5,7 @@ import { getUserByEmail, updateUser } from '../../../lib/dynamodb-operations.js'
 
 export async function POST(request) {
   try {
-    const { email, password } = await request.json();
+    const { email, password, otp, recoveryCode } = await request.json();
 
     // Validate required fields
     if (!email || !password) {
@@ -58,17 +58,42 @@ export async function POST(request) {
       );
     }
 
+    // If 2FA is enabled, require OTP or valid recovery code
+    if (user.security && user.security.twoFactorEnabled) {
+      const { authenticator } = await import('otplib');
+      let twoFaOk = false;
+      if (otp && user.security.totpSecret) {
+        twoFaOk = authenticator.check(otp, user.security.totpSecret);
+      } else if (recoveryCode && Array.isArray(user.security.recoveryCodes)) {
+        const idx = user.security.recoveryCodes.indexOf(recoveryCode);
+        if (idx !== -1) {
+          // consume recovery code
+          const newCodes = user.security.recoveryCodes.slice();
+          newCodes.splice(idx, 1);
+          await updateUser(user.userId, { security: { ...user.security, recoveryCodes: newCodes } });
+          twoFaOk = true;
+        }
+      }
+      if (!twoFaOk) {
+        return NextResponse.json(
+          { message: otp || recoveryCode ? 'Invalid 2FA code' : '2FA code required' },
+          { status: 401 }
+        );
+      }
+    }
+
     // Update last login time
     await updateUser(user.userId, {
       lastLoginAt: new Date().toISOString()
     });
 
-    // Generate JWT token
+    // Generate JWT token (include role)
     const token = jwt.sign(
       { 
         userId: user.userId, 
         email: user.email,
-        name: user.name
+        name: user.name,
+        role: user.role || 'member'
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }

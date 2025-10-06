@@ -31,7 +31,13 @@ export const createUser = async (userData) => {
     email: userData.email,
     name: userData.name,
     passwordHash: userData.passwordHash,
+    role: userData.role || 'member',
     profilePicture: userData.profilePicture || '',
+    security: {
+      twoFactorEnabled: false,
+      totpSecret: null,
+      recoveryCodes: []
+    },
     preferences: {
       theme: 'light',
       editorSettings: {},

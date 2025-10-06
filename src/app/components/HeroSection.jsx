@@ -71,7 +71,14 @@ export default function HeroSection({ activeProject, onCreateProject, onScrollTo
                 
                 <button 
                   className={styles.continueButton}
-                  onClick={() => router.push(`/dashboard/projects/${recentProject.projectId}`)}
+                  onClick={() => {
+                    const mode = recentProject?.gameMode || recentProject?.settings?.gameType;
+                    if ((mode || '').toUpperCase() === '2D') {
+                      router.push(`/dashboard/projects2d/${recentProject.projectId}`);
+                    } else {
+                      router.push(`/dashboard/projects/${recentProject.projectId}`);
+                    }
+                  }}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2"/>

@@ -6,6 +6,7 @@ import styles from "./NewProjectModal.module.css";
 export default function NewProjectModal({ open, onClose, onCreate, searchUsers }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [gameMode, setGameMode] = useState("3D");
   const [teamQuery, setTeamQuery] = useState("");
   const [teamResults, setTeamResults] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
@@ -16,6 +17,7 @@ export default function NewProjectModal({ open, onClose, onCreate, searchUsers }
     if (!open) return;
     setName("");
     setDescription("");
+    setGameMode("3D");
     setTeamQuery("");
     setTeamResults([]);
     setSelectedMembers([]);
@@ -58,6 +60,7 @@ export default function NewProjectModal({ open, onClose, onCreate, searchUsers }
       await onCreate({
         name: name.trim(),
         description: description.trim(),
+        gameMode,
         teamMembers: selectedMembers.map(u => u.userId)
       });
       onClose?.();
@@ -76,6 +79,13 @@ export default function NewProjectModal({ open, onClose, onCreate, searchUsers }
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close">×</button>
         </div>
         <div className={styles.body}>
+          <label className={styles.field}>
+            <span>Game type</span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" onClick={() => setGameMode('2D')} className={gameMode === '2D' ? styles.createBtn : styles.cancelBtn}>2D</button>
+              <button type="button" onClick={() => setGameMode('3D')} className={gameMode === '3D' ? styles.createBtn : styles.cancelBtn}>3D</button>
+            </div>
+          </label>
           <label className={styles.field}>
             <span>Project name</span>
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Space Adventure" />

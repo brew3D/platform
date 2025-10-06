@@ -6,6 +6,8 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 import { AuthProvider } from '../contexts/AuthContext';
 import { ProjectsProvider } from '../contexts/ProjectsContext';
 import { CollaborationProvider } from '../contexts/CollaborationContext';
+import { BuilderProvider } from '../contexts/BuilderContext';
+import AIChatOrb from './AIChatOrb';
 
 export default function AppWrapper({ children }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -24,8 +26,15 @@ export default function AppWrapper({ children }) {
       <AuthProvider>
         <ProjectsProvider>
           <CollaborationProvider>
-            <SimpleLoader isLoading={isLoading} />
-            {!isLoading && children}
+            <BuilderProvider>
+              <SimpleLoader isLoading={isLoading} />
+              {!isLoading && (
+                <>
+                  {children}
+                  <AIChatOrb />
+                </>
+              )}
+            </BuilderProvider>
           </CollaborationProvider>
         </ProjectsProvider>
       </AuthProvider>

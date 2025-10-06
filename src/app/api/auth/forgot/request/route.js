@@ -1,4 +1,5 @@
 import { userStorage } from '../../../../lib/userStorage';
+import { sendPasswordResetEmail } from '../../../../lib/email';
 
 export async function POST(request) {
   try {
@@ -25,8 +26,13 @@ export async function POST(request) {
       updatedAt: new Date().toISOString()
     });
 
-    // For demo: log OTP to server console. Replace with real email service.
-    console.log(`[DEMO] Password reset OTP for ${email}: ${otp}`);
+    // Send email with OTP
+    try {
+      await sendPasswordResetEmail({ to: email, otp, expiresMinutes: 10 });
+    } catch (err) {
+      console.error('Failed to send reset email:', err);
+      // Still return generic response to avoid enumeration and not leak email failures
+    }
 
     return Response.json({ message: 'If the email exists, an OTP has been sent.' });
   } catch (e) {

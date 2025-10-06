@@ -1,0 +1,21 @@
+.root { display: flex; flex-direction: column; height: 100%; }
+.toolbar { padding: 8px; gap: 8px; display: flex; border-bottom: 1px solid #333; }
+.main { flex: 1; display: grid; grid-template-columns: 260px 1fr 300px; min-height: 0; }
+.sidebar { border-right: 1px solid #333; display: flex; flex-direction: column; }
+.search { margin: 8px; padding: 6px; }
+.list { overflow: auto; flex: 1; }
+.item { padding: 8px; border-bottom: 1px solid #262626; cursor: pointer; }
+.itemSel { padding: 8px; border-bottom: 1px solid #262626; cursor: pointer; background: #1f2937; }
+.viewport { position: relative; display: flex; align-items: center; justify-content: center; background: #0b1020; }
+.canvas { outline: none; border: 1px solid #333; background: #0b1020; }
+.inspector { border-left: 1px solid #333; display: flex; }
+.inspectorInner { padding: 12px; width: 100%; }
+.row { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+.num { width: 100px; }
+.timeline { height: 120px; border-top: 1px solid #333; display: flex; align-items: center; padding: 8px; }
+.chk { margin-left: 8px; display: inline-flex; align-items: center; gap: 4px; }
+.dt { width: 80px; margin-left: 4px; }
+.importLabel { position: relative; overflow: hidden; border: 1px solid #444; padding: 4px 8px; cursor: pointer; }
+.importInput { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+

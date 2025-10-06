@@ -662,7 +662,14 @@ export default function TeamPage() {
                           <button 
                             className={styles.actionButton} 
                             title="Open Project Dashboard"
-                            onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                            onClick={() => {
+                              const mode = project?.gameMode || project?.settings?.gameType;
+                              if ((mode || '').toUpperCase() === '2D') {
+                                router.push(`/dashboard/projects2d/${project.id}`);
+                              } else {
+                                router.push(`/dashboard/projects/${project.id}`);
+                              }
+                            }}
                           >
                             📂
                           </button>

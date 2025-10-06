@@ -32,7 +32,9 @@ export const USER_SCHEMA = {
   email: 'S', // GSI: email-index
   name: 'S',
   passwordHash: 'S',
+  role: 'S', // 'admin' | 'moderator' | 'member' | 'guest'
   profilePicture: 'S', // URL
+  security: 'M', // 2FA and related settings
   preferences: 'M', // Nested object for user preferences
   subscription: 'M', // Subscription details
   createdAt: 'S', // ISO timestamp

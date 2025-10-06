@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<div align="center">
+  <h1>Simo Platform</h1>
+  <p>Community platform with authentication, roles, posts, chat, docs, and admin tools.</p>
+</div>
 
-## Getting Started
+## Contents
 
-First, run the development server:
+- Quickstart
+- Environment & Config
+- Features
+- Architecture
+- Development & Scripts
+- Ops: CI/CD, Staging, Monitoring
+- Security & Compliance
+
+## Quickstart
+
+1) Install
+
+```bash
+npm ci
+```
+
+2) Configure environment
+
+Copy `env.example.complete` to `.env.local` and fill required values:
+
+```
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+DYNAMODB_TABLE_NAME=ruchi-ai-users
+JWT_SECRET=... # openssl rand -base64 32
+
+# SMTP for password reset emails
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+SMTP_FROM=noreply@example.com
+
+# Optional: Google OAuth
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=...
+```
+
+3) Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Authentication
+  - Email/password with bcrypt + JWT
+  - Password reset via SMTP + OTP expiry
+  - 2FA (TOTP) setup/verify/disable; enforced at signin
+  - Google OAuth via NextAuth with account linking
+- Roles & Permissions
+  - `admin`, `moderator`, `member`, `guest`
+  - Role included in JWT, helpers for route protection
+- Community & Content
+  - Posts CRUD with comments, pin (mod/admin), report
+  - Tags/categories view, pinned posts view
+  - Pagination for posts list
+- Knowledge Base
+  - Docs/Tutorials CRUD API
+- Notifications
+  - In-app notifications storage (MVP)
+- Admin
+  - Admin dashboard with basic stats
+- Developer & Ops
+  - CI workflow (lint + build)
+  - Staging env guidance
 
-## Learn More
+See progress dashboard at `/platform/features`.
 
-To learn more about Next.js, take a look at the following resources:
+## Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Next.js App Router
+- APIs under `src/app/api/...`
+- DynamoDB via AWS SDK v3 (DocClient)
+- AuthContext on the client to manage tokens
+- JWT for API auth; NextAuth for Google SSO
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Tables (examples):
+- `ruchi-ai-users` (users, roles, security)
+- `ruchi-ai-community-posts` (posts, comments, tags, pin)
+- `ruchi-ai-chats`, `ruchi-ai-messages` (chat)
+- `ruchi-ai-tutorials` (docs)
 
-## Deploy on Vercel
+## Development
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Useful scripts:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev       # start next dev
+npm run build     # build app
+npm run start     # run production build
+npm run lint      # run eslint
+```
+
+Related setup docs:
+- `SETUP_AWS_ONLY.md` – DynamoDB auth setup
+- `SETUP_AUTH_FIXED.md` – Dev mode and Google OAuth notes
+- `DYNAMODB_SETUP.md` – schemas and permissions
+- `CHAT_SYSTEM.md` – chat tables and endpoints
+
+## Ops
+
+### CI/CD
+- GitHub Actions workflow: `.github/workflows/ci.yml`
+- Runs on PRs and pushes to `main`: install, lint, build
+
+### Staging
+- Create `.env.staging` mirroring `.env.local`
+- Configure staging deployment on your platform of choice
+
+### Monitoring (optional)
+- Sentry DSN env available in `env.example.complete`
+- Enable and initialize client/server as needed
+
+## Security & Compliance
+
+- JWT signed with `JWT_SECRET`
+- Role-based access in API routes
+- 2FA (TOTP) support
+- GDPR
+  - Export: `GET /api/gdpr/export`
+  - Delete: `POST /api/gdpr/delete`
+
+## Roadmap
+
+- Phase 2: search, events, gamification, webhooks, integrations
+- Phase 3: AI moderation/summaries, multi-language, PWA, white-label, marketplace

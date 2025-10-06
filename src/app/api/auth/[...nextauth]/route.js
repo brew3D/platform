@@ -1,5 +1,55 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import { createUser, getUserByEmail } from '../../../lib/dynamodb-operations';
+
+const handler = NextAuth({
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
+    })
+  ],
+  callbacks: {
+    async signIn({ user, account, profile, email, credentials }) {
+      if (!user?.email) return false;
+      // Link to existing account by email or create if missing
+      let existing = await getUserByEmail(user.email);
+      if (!existing) {
+        await createUser({
+          email: user.email,
+          name: user.name || user.email,
+          passwordHash: '',
+          role: 'member',
+          profilePicture: user.image || ''
+        });
+      }
+      return true;
+    },
+    async jwt({ token }) {
+      // attach role and userId for convenience
+      if (token?.email) {
+        const u = await getUserByEmail(token.email);
+        if (u) {
+          token.userId = u.userId;
+          token.role = u.role || 'member';
+        }
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token?.userId) {
+        session.user.userId = token.userId;
+        session.user.role = token.role || 'member';
+      }
+      return session;
+    }
+  },
+});
+
+export { handler as GET, handler as POST };
+
+import NextAuth from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
