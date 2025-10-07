@@ -95,7 +95,11 @@ echo "================================================"
 # Function to cleanup background processes
 cleanup() {
     print_status "Shutting down servers..."
-    kill $FRONTEND_PID $BACKEND_PID $AGENTS_BACKEND_PID 2>/dev/null
+    kill $FRONTEND_PID 2>/dev/null
+    if [ "$BACKEND_PID" -ne 0 ]; then
+        kill $BACKEND_PID 2>/dev/null
+    fi
+    kill $AGENTS_BACKEND_PID 2>/dev/null
     exit 0
 }
 
@@ -159,5 +163,9 @@ print_status "Starting Next.js frontend server..."
 yarn dev &
 FRONTEND_PID=$!
 
-# Wait for both processes
-wait $FRONTEND_PID $BACKEND_PID
+# Wait for both processes (only wait for valid PIDs)
+if [ "$BACKEND_PID" -ne 0 ]; then
+    wait $FRONTEND_PID $BACKEND_PID $AGENTS_BACKEND_PID
+else
+    wait $FRONTEND_PID $AGENTS_BACKEND_PID
+fi
