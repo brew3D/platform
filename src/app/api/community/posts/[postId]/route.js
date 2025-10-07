@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { GetCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
-import { getDynamoDocClient } from '../../lib/dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp } from '../../lib/dynamodb-schema';
-import { requireAuth } from '../../lib/auth';
-import { getUserById } from '../../lib/dynamodb-operations';
+import { getDynamoDocClient } from '@/app/lib/dynamodb';
+import { TABLE_NAMES, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
+import { requireAuth } from '@/app/lib/auth';
+import { getUserById } from '@/app/lib/dynamodb-operations';
 
 const docClient = getDynamoDocClient();
 

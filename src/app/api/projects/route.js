@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { createProject, getUserProjects } from '../../lib/dynamodb-operations';
+import { createProject, getUserProjects } from '@/app/lib/dynamodb-operations';
 
 // Middleware to verify JWT token
 function verifyToken(request) {

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '../../lib/auth';
-import { scanTable } from '../../lib/dynamodb-operations';
-import { TABLE_NAMES } from '../../lib/dynamodb-schema';
+import { requireAuth } from '@/app/lib/auth';
+import { scanTable } from '@/app/lib/dynamodb-operations';
+import { TABLE_NAMES } from '@/app/lib/dynamodb-schema';
 
 export async function GET(request) {
   try {

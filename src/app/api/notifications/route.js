@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { PutCommand, QueryCommand, UpdateCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
-import { getDynamoDocClient } from '../../lib/dynamodb';
-import { TABLE_NAMES, generateId, getCurrentTimestamp } from '../../lib/dynamodb-schema';
-import { requireAuth } from '../../lib/auth';
+import { getDynamoDocClient } from '@/app/lib/dynamodb';
+import { TABLE_NAMES, generateId, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
+import { requireAuth } from '@/app/lib/auth';
 
 const docClient = getDynamoDocClient();
 const TABLE = process.env.DDB_NOTIFICATIONS_TABLE || 'ruchi-ai-notifications';

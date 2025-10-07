@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createProject, createScene, createCharacter, createMap, batchGetItems } from '../../lib/dynamodb-operations';
-import { coerceGameSchema, validateGameSchema } from '../../lib/game-schema';
+import { createProject, createScene, createCharacter, createMap, batchGetItems } from '@/app/lib/dynamodb-operations';
+import { coerceGameSchema, validateGameSchema } from '@/app/lib/game-schema';
 
 // Streaming builder: accepts { prompt, settings?, provider? }
 export async function POST(request) {

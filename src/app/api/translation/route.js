@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp } from '../../lib/dynamodb-schema';
-import { requireAuth } from '../../lib/auth';
+import { TABLE_NAMES, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
+import { requireAuth } from '@/app/lib/auth';
 import OpenAI from 'openai';
 
 const client = new DynamoDBClient({

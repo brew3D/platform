@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getProjectCharacters } from '../../lib/dynamodb-operations';
+import { getProjectCharacters } from '@/app/lib/dynamodb-operations';
 
 // GET /api/projects/[id]/assets - Get all assets for a project
 export async function GET(request, { params }) {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllAssets, getAllPacks, searchAssets, getAssetsByPack, getPackInfo } from '../../lib/asset-library';
+import { getAllAssets, getAllPacks, searchAssets, getAssetsByPack, getPackInfo } from '@/app/lib/asset-library';
 
 // GET /api/assets - Get all assets or search
 export async function GET(request) {

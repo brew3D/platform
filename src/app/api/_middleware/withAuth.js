@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireAuth, requireRole } from '../../lib/auth';
+import { requireAuth, requireRole } from '@/app/lib/auth';
 
 export function withAuth(handler, { roles = [] } = {}) {
   return async function wrapped(request, ...args) {

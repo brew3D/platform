@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp } from '../../lib/dynamodb-schema';
-import { requireAuth } from '../../lib/auth';
+import { TABLE_NAMES, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
+import { requireAuth } from '@/app/lib/auth';
 import Stripe from 'stripe';
 
 const client = new DynamoDBClient({
@@ -16,9 +16,9 @@ const client = new DynamoDBClient({
 const docClient = DynamoDBDocumentClient.from(client);
 
 // Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
-});
+}) : null;
 
 // GET /api/billing/subscriptions - Get user's subscriptions
 export async function GET(request) {
@@ -44,7 +44,7 @@ export async function GET(request) {
 
     // Get subscription details from Stripe
     let stripeSubscription = null;
-    if (subscription.stripeSubscriptionId) {
+    if (subscription.stripeSubscriptionId && stripe) {
       try {
         stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
       } catch (error) {
@@ -110,6 +110,13 @@ export async function POST(request) {
 
     if (couponCode) {
       subscriptionData.coupon = couponCode;
+    }
+
+    if (!stripe) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Stripe not configured. Please set STRIPE_SECRET_KEY environment variable.' 
+      }, { status: 500 });
     }
 
     const stripeSubscription = await stripe.subscriptions.create(subscriptionData);
@@ -288,6 +295,10 @@ async function getStripeCustomerId(userId) {
 
 // Create Stripe customer
 async function createStripeCustomer(userId, email) {
+  if (!stripe) {
+    throw new Error('Stripe not configured');
+  }
+  
   try {
     const customer = await stripe.customers.create({
       email,
@@ -309,6 +320,10 @@ async function changeSubscriptionPlan(subscription, newPlanId) {
       throw new Error('Invalid plan ID');
     }
 
+    if (!stripe) {
+      throw new Error('Stripe not configured');
+    }
+
     const stripeSubscription = await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
       items: [{ id: subscription.stripeSubscriptionId, price: newPlan.stripePriceId }],
       proration_behavior: 'create_prorations'
@@ -328,6 +343,10 @@ async function changeSubscriptionPlan(subscription, newPlanId) {
 
 // Cancel subscription
 async function cancelSubscription(subscription, cancelAtPeriodEnd = true) {
+  if (!stripe) {
+    throw new Error('Stripe not configured');
+  }
+  
   try {
     const stripeSubscription = await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
       cancel_at_period_end: cancelAtPeriodEnd
@@ -345,6 +364,10 @@ async function cancelSubscription(subscription, cancelAtPeriodEnd = true) {
 
 // Reactivate subscription
 async function reactivateSubscription(subscription) {
+  if (!stripe) {
+    throw new Error('Stripe not configured');
+  }
+  
   try {
     const stripeSubscription = await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
       cancel_at_period_end: false
@@ -362,6 +385,10 @@ async function reactivateSubscription(subscription) {
 
 // Update payment method
 async function updatePaymentMethod(subscription) {
+  if (!stripe) {
+    throw new Error('Stripe not configured');
+  }
+  
   try {
     // Create setup intent for payment method update
     const setupIntent = await stripe.setupIntents.create({
