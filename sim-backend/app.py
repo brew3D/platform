@@ -1,6 +1,7 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from socketio import ASGIApp
 import openai
 import os
 import bcrypt
@@ -13,26 +14,87 @@ import threading
 from typing import Dict, Any, List
 import time
 
+# Import AI Agent system
+try:
+    from agents_integration import (
+        initialize_agents,
+        register_agent_routes,
+        shutdown_agents,
+        get_agent_status
+    )
+    AGENT_SYSTEM_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: AI Agent system not available: {e}")
+    AGENT_SYSTEM_AVAILABLE = False
+
 # -----------------------------
 # Configuration
 # -----------------------------
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this')
-# CORS for dev: allow frontend at :3000 and credentials
-origins = "*"
+# CORS for dev: explicitly allow frontend at :5050 (Next dev)
+frontend_origins = [
+    "http://localhost:5050",
+    "http://127.0.0.1:5050",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
 CORS(
     app,
-    resources={r"/*": {"origins": origins, "allow_headers": ["Content-Type", "Authorization"],}},
-    supports_credentials=True,
+    resources={
+        r"/api/*": {
+            "origins": frontend_origins,
+            "allow_headers": ["*"],
+            "methods": ["GET", "POST", "OPTIONS"],
+            "supports_credentials": False,
+        }
+    },
 )
+# Initialize Socket.IO in a compatible mode so the server starts
 socketio = SocketIO(
     app,
-    cors_allowed_origins="*",
+    cors_allowed_origins=frontend_origins,
+    async_mode='threading',
+    logger=False,
+    engineio_logger=False
 )
 
 # Set your OpenAI API key here or in environment variables
 # export OPENAI_API_KEY="your_key"
 openai.api_key = os.getenv("OPENAI_API_KEY") or "YOUR_OPENAI_API_KEY"
+
+# Ensure CORS headers are present on all /api/* responses and OPTIONS preflight
+@app.after_request
+def add_cors_headers(response):
+    try:
+        origin = request.headers.get('Origin', '')
+        if request.path.startswith('/api/') and origin:
+            if any(origin.startswith(o) for o in frontend_origins):
+                response.headers['Access-Control-Allow-Origin'] = origin
+                response.headers['Vary'] = 'Origin'
+                response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+                response.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers', 'Content-Type, Authorization')
+    finally:
+        return response
+
+@app.route('/api/<path:subpath>', methods=['OPTIONS'])
+def handle_api_options(subpath):
+    resp = make_response('', 204)
+    origin = request.headers.get('Origin', '')
+    if any(origin.startswith(o) for o in frontend_origins):
+        resp.headers['Access-Control-Allow-Origin'] = origin
+    resp.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+    resp.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers', 'Content-Type, Authorization')
+    resp.headers['Vary'] = 'Origin'
+    return resp
+
+# -----------------------------
+# Socket.IO Events
+# -----------------------------
+
+@socketio.on('ping')
+def sio_ping(msg=None):
+    emit('pong', { 'ok': True, 'ts': datetime.utcnow().isoformat() })
 
 # In-memory storage for demo (in production, use a database)
 users = {
@@ -1049,6 +1111,10 @@ def edit_job_artifact(job_id):
 @socketio.on('connect')
 def handle_connect():
     print(f"[LOG] Client connected: {request.sid}")
+    try:
+        emit('server_ready', { 'ok': True, 'ts': datetime.utcnow().isoformat() })
+    except Exception:
+        pass
 
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -1186,8 +1252,28 @@ def handle_object_deleted(data):
     }, room=scene_id, include_self=False)
 
 # -----------------------------
+# AI Agent System Integration
+# -----------------------------
+
+# Initialize AI Agent system if available
+if AGENT_SYSTEM_AVAILABLE:
+    print("[LOG] Initializing AI Agent system...")
+    if initialize_agents():
+        print("[LOG] AI Agent system initialized successfully")
+        register_agent_routes(app, socketio)
+        print("[LOG] AI Agent routes registered")
+    else:
+        print("[ERROR] Failed to initialize AI Agent system")
+else:
+    print("[WARNING] AI Agent system not available")
+
+# -----------------------------
 # Main
 # -----------------------------
 if __name__ == "__main__":
-    print("[LOG] Starting Flask-SocketIO server on http://127.0.0.1:5000")
-    socketio.run(app, debug=True, port=5000, allow_unsafe_werkzeug=True)
+    print("[LOG] Starting Flask-SocketIO server on http://0.0.0.0:5069")
+    try:
+        socketio.run(app, debug=True, host='0.0.0.0', port=5069, allow_unsafe_werkzeug=True)
+    finally:
+        if AGENT_SYSTEM_AVAILABLE:
+            shutdown_agents()
