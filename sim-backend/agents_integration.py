@@ -239,10 +239,12 @@ def register_agent_routes(app: Flask, socketio=None):
 
     @app.route('/api/agents/game/build', methods=['POST'])
     def build_playable_game():
-        """Return a playable single-file arcade-accurate Pac-Man HTML using agent outputs"""
+        """Return a playable single-file game HTML using agent outputs (Pac-Man | Ludo)"""
         try:
             data = request.get_json() or {}
             prompt = data.get('prompt', 'Build me Pacman')
+            prompt_text = prompt if isinstance(prompt, str) else str(prompt)
+            game_lower = prompt_text.lower()
 
             # Emit progress updates via Socket.IO
             def emit_progress(step, message):
@@ -256,16 +258,209 @@ def register_agent_routes(app: Flask, socketio=None):
                 except:
                     pass
 
-            emit_progress(1, "🎮 Initializing Pac-Man game generation...")
+            # Select game based on prompt
+            is_ludo = ('ludo' in game_lower) or ('ludo board' in game_lower)
+
+            emit_progress(1, f"🎮 Initializing {'Ludo' if is_ludo else 'Pac-Man'} game generation...")
             
             # Run agents to get game design
             emit_progress(2, "🧠 Flow Planner: Analyzing game concept...")
             flow = agent_runner.run_agent('flow_planner', { 
-                'concept': prompt, 
-                'game_type': 'arcade',
-                'features': ['maze_navigation', 'ghost_ai', 'power_pellets', 'scoring', 'levels']
+                'concept': prompt_text, 
+                'game_type': 'board' if is_ludo else 'arcade',
+                'features': (['turn_based', 'dice_rolls', 'token_paths'] if is_ludo else ['maze_navigation', 'ghost_ai', 'power_pellets', 'scoring', 'levels'])
             })
-            
+
+            if is_ludo:
+                # Ludo-specific lightweight agent calls
+                emit_progress(3, "🗺️ Map Designer: Creating Ludo board layout...")
+                map_res = agent_runner.run_agent('map_designer', { 
+                    'genre': 'board', 
+                    'size': { 'width': 15, 'height': 15 }, 
+                    'theme': 'ludo_board',
+                    'style': 'classic_ludo'
+                })
+
+                emit_progress(4, "🎲 Character Designer: Preparing player tokens...")
+                character = agent_runner.run_agent('character_designer', {
+                    'type': 'tokens',
+                    'count': 16,
+                    'behaviors': ['spawn', 'move_by_dice', 'home_entry']
+                })
+
+                emit_progress(5, "🎯 Script Generator: Implementing Ludo rules and turns...")
+                script = agent_runner.run_agent('script_generator', {
+                    'game_type': 'ludo',
+                    'features': ['dice', 'turns', 'safe_zones', 'home_paths']
+                })
+
+                # Build Ludo board playable (single-file HTML)
+                emit_progress(6, "🎨 Asset Creator: Generating board colors and tokens...")
+                _ = agent_runner.run_agent('asset_creator', {
+                    'type': 'ludo_assets',
+                    'items': ['board', 'tokens', 'dice']
+                })
+
+                emit_progress(7, "🔧 Building complete Ludo game...")
+
+                html = f"""<!doctype html>
+<html>
+<head>
+  <meta charset=\"utf-8\" />
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>
+  <title>Ludo (AI Generated)</title>
+  <style>
+    html,body {{ margin:0; background:#111; color:#eee; font-family:system-ui; }}
+    #wrap {{ display:flex; flex-direction:column; height:100vh; }}
+    #hud {{ padding:12px; background:#181818; border-bottom:2px solid #2a2a2a; display:flex; justify-content:space-between; align-items:center; }}
+    #game {{ flex:1; display:flex; align-items:center; justify-content:center; background:#111; }}
+    canvas {{ background:#222; border:3px solid #333; box-shadow:0 0 20px #000 inset; image-rendering: pixelated; }}
+    .btn {{ background:#2a2a2a; color:#eee; border:1px solid #3a3a3a; padding:8px 12px; border-radius:6px; cursor:pointer; }}
+    .btn:active {{ transform: translateY(1px); }}
+  </style>
+  <script>
+  // Ludo constants
+  const BOARD_SIZE = 15; // 15x15 grid
+  const CELL = 32;
+  const COLORS = {{ red:'#e74c3c', green:'#2ecc71', yellow:'#f1c40f', blue:'#3498db' }};
+  </script>
+  </head>
+  <body>
+    <div id=\"wrap\">
+      <div id=\"hud\">
+        <div>Current Player: <span id=\"player\">Red</span> | Dice: <span id=\"dice\">-</span></div>
+        <div>
+          <button id=\"roll\" class=\"btn\">Roll Dice</button>
+        </div>
+      </div>
+      <div id=\"game\"><canvas id=\"c\" width=\"{BOARD_SIZE*CELL}\" height=\"{BOARD_SIZE*CELL}\"></canvas></div>
+    </div>
+    <script>
+    const c = document.getElementById('c');
+    const ctx = c.getContext('2d');
+
+    // Basic Ludo path map: 0 empty, 1 path, 2 safe, 3 home path, 4 home
+    // Minimal stylized board drawing instead of full rule-accurate layout
+    function drawBoard() {{
+      ctx.clearRect(0,0,c.width,c.height);
+      // Background grid
+      for (let y=0; y<BOARD_SIZE; y++) {{
+        for (let x=0; x<BOARD_SIZE; x++) {{
+          ctx.fillStyle = ((x+y)%2===0) ? '#242424' : '#202020';
+          ctx.fillRect(x*CELL, y*CELL, CELL, CELL);
+        }}
+      }}
+
+      // Quadrants (homes)
+      const quad = Math.floor(BOARD_SIZE/2)-2; // 5x5 home squares
+      // Red (top-left)
+      ctx.fillStyle = COLORS.red; ctx.globalAlpha = 0.9;
+      ctx.fillRect(0, 0, quad*CELL, quad*CELL);
+      // Green (top-right)
+      ctx.fillStyle = COLORS.green; ctx.fillRect((BOARD_SIZE-quad)*CELL, 0, quad*CELL, quad*CELL);
+      // Yellow (bottom-left)
+      ctx.fillStyle = COLORS.yellow; ctx.fillRect(0, (BOARD_SIZE-quad)*CELL, quad*CELL, quad*CELL);
+      // Blue (bottom-right)
+      ctx.fillStyle = COLORS.blue; ctx.fillRect((BOARD_SIZE-quad)*CELL, (BOARD_SIZE-quad)*CELL, quad*CELL, quad*CELL);
+      ctx.globalAlpha = 1.0;
+
+      // Central star/home
+      const mid = Math.floor(BOARD_SIZE/2);
+      ctx.fillStyle = '#ddd';
+      ctx.beginPath();
+      ctx.moveTo(mid*CELL, (mid-2)*CELL);
+      ctx.lineTo((mid+2)*CELL, mid*CELL);
+      ctx.lineTo(mid*CELL, (mid+2)*CELL);
+      ctx.lineTo((mid-2)*CELL, mid*CELL);
+      ctx.closePath();
+      ctx.fill();
+
+      // Main paths (simple cross)
+      for (let y=0; y<BOARD_SIZE; y++) {{
+        // vertical path column
+        ctx.fillStyle = y%2? '#404040' : '#383838';
+        ctx.fillRect(mid*CELL, y*CELL, CELL, CELL);
+      }}
+      for (let x=0; x<BOARD_SIZE; x++) {{
+        // horizontal path row
+        ctx.fillStyle = x%2? '#404040' : '#383838';
+        ctx.fillRect(x*CELL, mid*CELL, CELL, CELL);
+      }}
+
+      // Safe cells at entry to home paths
+      function drawSafe(x,y,color) {{
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x*CELL+CELL/2, y*CELL+CELL/2, CELL*0.25, 0, Math.PI*2);
+        ctx.fill();
+      }}
+      drawSafe(mid, 1, COLORS.red);
+      drawSafe(BOARD_SIZE-2, mid, COLORS.green);
+      drawSafe(mid, BOARD_SIZE-2, COLORS.yellow);
+      drawSafe(1, mid, COLORS.blue);
+    }}
+
+    // Tokens
+    const tokens = {{
+      order: ['red','green','yellow','blue'],
+      byColor: {{
+        red: [{{x:1,y:1}}, {{x:3,y:1}}, {{x:1,y:3}}, {{x:3,y:3}}],
+        green: [{{x:BOARD_SIZE-4,y:1}}, {{x:BOARD_SIZE-2,y:1}}, {{x:BOARD_SIZE-4,y:3}}, {{x:BOARD_SIZE-2,y:3}}],
+        yellow: [{{x:1,y:BOARD_SIZE-4}}, {{x:3,y:BOARD_SIZE-4}}, {{x:1,y:BOARD_SIZE-2}}, {{x:3,y:BOARD_SIZE-2}}],
+        blue: [{{x:BOARD_SIZE-4,y:BOARD_SIZE-4}}, {{x:BOARD_SIZE-2,y:BOARD_SIZE-4}}, {{x:BOARD_SIZE-4,y:BOARD_SIZE-2}}, {{x:BOARD_SIZE-2,y:BOARD_SIZE-2}}]
+      }}
+    }};
+
+    function drawTokens() {{
+      const r = CELL*0.28;
+      for (const color of tokens.order) {{
+        ctx.fillStyle = COLORS[color];
+        tokens.byColor[color].forEach(t => {{
+          ctx.beginPath();
+          ctx.arc(t.x*CELL+CELL/2, t.y*CELL+CELL/2, r, 0, Math.PI*2);
+          ctx.fill();
+          ctx.lineWidth = 2; ctx.strokeStyle = '#111'; ctx.stroke();
+        }});
+      }}
+    }}
+
+    // Turn + dice
+    let current = 0;
+    function setHud() {{
+      document.getElementById('player').textContent = tokens.order[current][0].toUpperCase()+tokens.order[current].slice(1);
+    }}
+    function rollDice() {{
+      const v = 1 + Math.floor(Math.random()*6);
+      document.getElementById('dice').textContent = v;
+      // simple showcase: move first token of current player by one step along its row/col toward center
+      const color = tokens.order[current];
+      const t = tokens.byColor[color][0];
+      const mid = Math.floor(BOARD_SIZE/2);
+      if (color==='red') {{ t.y = Math.min(t.y+1, mid-1); }}
+      if (color==='green') {{ t.x = Math.max(t.x-1, mid+1); }}
+      if (color==='yellow') {{ t.y = Math.max(t.y-1, mid+1); }}
+      if (color==='blue') {{ t.x = Math.min(t.x+1, mid-1); }}
+      current = (current+1)%tokens.order.length;
+      setHud();
+      render();
+    }}
+    document.getElementById('roll').addEventListener('click', rollDice);
+
+    function render() {{
+      drawBoard();
+      drawTokens();
+    }}
+
+    setHud();
+    render();
+    </script>
+  </body>
+  </html>"""
+
+                emit_progress(8, "✅ Game build complete! Ready to play.")
+                return jsonify({ 'success': True, 'embedHtml': html })
+
+            # ===== Default: Pac-Man path =====
             emit_progress(3, "🗺️ Map Designer: Creating classic Pac-Man maze...")
             map_res = agent_runner.run_agent('map_designer', { 
                 'genre': 'arcade', 

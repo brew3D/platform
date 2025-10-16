@@ -1,0 +1,650 @@
+/* Live Preview Component Styles */
+
+.livePreview {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.livePreview.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  border-radius: 0;
+}
+
+.previewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+}
+
+.previewHeader h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.previewControls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.modeSelector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.modeButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modeButton:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.modeButton.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.modeIcon {
+  font-size: 1rem;
+}
+
+.modeName {
+  font-weight: 500;
+}
+
+.viewControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.controlButton {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.controlButton:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.zoomLevel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  min-width: 40px;
+  text-align: center;
+}
+
+.previewContainer {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: #f8fafc;
+  cursor: grab;
+}
+
+.previewContainer:active {
+  cursor: grabbing;
+}
+
+/* Board View Styles */
+.boardContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.gameBoard {
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 1 / 1;
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.1s ease;
+}
+
+.boardGrid {
+  display: grid;
+  height: 100%;
+  gap: 1px;
+  background: #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.boardCell {
+  background: white;
+  border-radius: 1px;
+  transition: background-color 0.2s ease;
+}
+
+.boardCell:hover {
+  background: #f0f9ff;
+}
+
+.gameObjects {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.player, .enemy, .collectible, .powerUp {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: bounce 2s infinite;
+}
+
+.objectIcon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.objectLabel {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: #374151;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.125rem 0.25rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8px);
+  }
+  60% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Scene View Styles */
+.sceneContainer {
+  height: 100%;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.sceneTimeline {
+  height: 100%;
+}
+
+.timelineHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.timelineHeader h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.timelineControls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.timelineButton {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.timelineButton:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.timelineTrack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.timelineEvent {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.timelineEvent:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.eventTime {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  min-width: 60px;
+  text-align: center;
+  padding-top: 0.25rem;
+}
+
+.eventContent {
+  flex: 1;
+}
+
+.eventTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.eventDescription {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Code View Styles */
+.codeContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.codeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+}
+
+.codeHeader h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.codeControls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.codeButton {
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.codeButton:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.codeEditor {
+  flex: 1;
+  overflow: hidden;
+}
+
+.codeBlock {
+  height: 100%;
+  padding: 1rem;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+  overflow: auto;
+  white-space: pre;
+}
+
+/* Assets View Styles */
+.assetsContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.assetsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+}
+
+.assetsHeader h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.assetsControls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.assetButton {
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.assetButton:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.assetsGrid {
+  flex: 1;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  overflow-y: auto;
+}
+
+.assetItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.assetItem:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.assetPreview {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.assetName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.assetType {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+/* Debug View Styles */
+.debugContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.debugHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+}
+
+.debugHeader h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.debugControls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.debugButton {
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.debugButton:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.debugContent {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.debugSection {
+  margin-bottom: 1.5rem;
+}
+
+.debugSection h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.metricLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.metricValue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.agentStatus {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.statusItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+.statusLabel {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.statusValue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.statusValue.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusValue.idle {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Preview Actions */
+.previewActions {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background: white;
+}
+
+.actionButton {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.actionButton:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.actionButton.playing {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.actionButton.playing:hover {
+  background: #059669;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .previewControls {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+  
+  .modeSelector {
+    justify-content: center;
+  }
+  
+  .viewControls {
+    justify-content: center;
+  }
+  
+  .previewActions {
+    flex-wrap: wrap;
+  }
+  
+  .actionButton {
+    min-width: 120px;
+  }
+  
+  .assetsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}

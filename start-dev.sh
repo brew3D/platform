@@ -84,10 +84,9 @@ cd ..
 
 print_status "Starting servers..."
 echo ""
-echo -e "${PURPLE}🎨 Frontend: http://localhost:3000${NC}"
-echo -e "${PURPLE}🔧 Legacy Backend:  http://localhost:5000 (sim-backend)${NC}"
-echo -e "${PURPLE}🤖 Agents Backend:  http://localhost:5050 (game-engine-backend)${NC}"
-echo -e "${PURPLE}📱 Mobile:   http://10.0.0.124:3000${NC}"
+echo -e "${PURPLE}🎨 Frontend: http://localhost:5050${NC}"
+echo -e "${PURPLE}🔧 Backend:  http://localhost:5069 (sim-backend)${NC}"
+echo -e "${PURPLE}📱 Mobile:   http://10.0.0.124:5050${NC}"
 echo ""
 echo -e "${CYAN}Press Ctrl+C to stop both servers${NC}"
 echo "================================================"
@@ -99,73 +98,27 @@ cleanup() {
     if [ "$BACKEND_PID" -ne 0 ]; then
         kill $BACKEND_PID 2>/dev/null
     fi
-    kill $AGENTS_BACKEND_PID 2>/dev/null
     exit 0
 }
 
 # Set up signal handlers
 trap cleanup SIGINT SIGTERM
 
-# Optionally start legacy Flask backend (sim-backend) if requested
-START_SIM_BACKEND=${START_SIM_BACKEND:-0}
-if [ "$START_SIM_BACKEND" = "1" ]; then
-  print_status "Starting legacy Flask backend (sim-backend) on :5000..."
-  cd sim-backend
-  source venv/bin/activate
-  python app.py &
-  BACKEND_PID=$!
-  cd ..
-  sleep 1
-else
-  BACKEND_PID=0
-fi
-
-# Start new Agents backend (game-engine-backend)
-print_status "Preparing Agents backend (game-engine-backend)..."
-cd game-engine-backend
-
-# Create virtual environment if it doesn't exist
-if [ ! -d ".venv" ]; then
-    print_status "Creating Python virtual environment for agents..."
-    python3 -m venv .venv
-fi
-
-# Activate virtual environment
-source .venv/bin/activate
-
-# Install backend dependencies
-print_status "Installing agents backend dependencies..."
-pip install -r requirements.txt
-
-# Load environment variables for agents backend
-if [ -f .env ]; then
-  print_status "Loading environment from game-engine-backend/.env"
-  set -a; source .env; set +a
-else
-  print_warning "game-engine-backend/.env not found; using env.example defaults"
-  set -a; source env.example; set +a
-fi
-
-# Ensure artifacts directory exists
-export ARTIFACTS_DIR=${ARTIFACTS_DIR:-"$(pwd)/artifacts"}
-mkdir -p "$ARTIFACTS_DIR/manifests" "$ARTIFACTS_DIR/glb" "$ARTIFACTS_DIR/voxels" "$ARTIFACTS_DIR/previews"
-
-print_status "Starting Agents backend on :5050..."
-python -m game-engine-backend.app &
-AGENTS_BACKEND_PID=$!
+# Start Flask backend (sim-backend)
+print_status "Starting Flask backend (sim-backend) on :5069..."
+cd sim-backend
+source venv/bin/activate
+python app.py &
+BACKEND_PID=$!
 cd ..
 
-# Wait a moment for backend(s) to start
+# Wait a moment for backend to start
 sleep 2
 
 # Start frontend in background
-print_status "Starting Next.js frontend server..."
-yarn dev &
+print_status "Starting Next.js frontend server on :5050..."
+yarn dev --port 5050 &
 FRONTEND_PID=$!
 
-# Wait for both processes (only wait for valid PIDs)
-if [ "$BACKEND_PID" -ne 0 ]; then
-    wait $FRONTEND_PID $BACKEND_PID $AGENTS_BACKEND_PID
-else
-    wait $FRONTEND_PID $AGENTS_BACKEND_PID
-fi
+# Wait for both processes
+wait $FRONTEND_PID $BACKEND_PID

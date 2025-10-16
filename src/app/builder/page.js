@@ -1,249 +1,390 @@
-"use client";
+'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import styles from "./builder.module.css";
-import { useBuilder } from "../contexts/BuilderContext";
+import React, { useState, useEffect, useRef } from 'react';
+import styles from './builder.module.css';
+import AgentChat from './components/AgentChat';
+import LivePreview from './components/LivePreview';
+import agentService from './api/agentService';
 
-function Segmented({ options, value, onChange }) {
-  return (
-    <div className={styles.seg} role="tablist" aria-label="segmented-control">
-      {options.map((opt) => (
-        <button key={opt} type="button" className={value === opt ? `${styles.segBtn} ${styles.segBtnActive}` : styles.segBtn} onClick={() => onChange(opt)} aria-pressed={value === opt}>{opt}</button>
-      ))}
-    </div>
-  );
-}
+export default function GameBuilder() {
+  // State management
+  const [prompt, setPrompt] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [agents, setAgents] = useState([]);
+  const [activeAgents, setActiveAgents] = useState(new Set());
+  const [agentChat, setAgentChat] = useState([]);
+  const [projectStats, setProjectStats] = useState({
+    completion: 0,
+    queuedActions: 0,
+    lastUpdate: null
+  });
+  const [gameData, setGameData] = useState({});
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [collaborators, setCollaborators] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
 
-function Tabs({ tabs, active, onTab }) {
-  return (
-    <div className={styles.tabs} role="tablist" aria-label="builder-tabs">
-      {tabs.map((t) => (
-        <button key={t} className={active === t ? `${styles.tabBtn} ${styles.tabBtnActive}` : styles.tabBtn} onClick={() => onTab(t)} role="tab" aria-selected={active === t}>{t}</button>
-      ))}
-    </div>
-  );
-}
+  // Refs
+  const promptInputRef = useRef(null);
+  const recognitionRef = useRef(null);
 
-function JsonTree({ data }) {
-  const pretty = useMemo(() => {
-    try { return JSON.stringify(data, null, 2); } catch { return "{}"; }
-  }, [data]);
-  return (
-    <pre style={{ margin: 0, fontSize: 12, lineHeight: 1.5, background: '#0b1020', color: '#c7d2fe', padding: 12, borderRadius: 10, overflow: 'auto' }} aria-label="json-schema-preview">{pretty}</pre>
-  );
-}
+  // Initialize agents and voice recognition
+  useEffect(() => {
+    initializeAgents();
+    initializeVoiceRecognition();
+    loadProjectStats();
+    setupAgentService();
+    
+    // Initialize agents from service
+    const agentCategories = agentService.getAgentCategories();
+    const initialAgents = Object.entries(agentCategories).map(([key, category]) => ({
+      id: key,
+      name: category.name,
+      status: 'idle',
+      category: key,
+      ...category
+    }));
+    setAgents(initialAgents);
 
-function AssistantPanel({ open, onClose, onApply }) {
-  const [msg, setMsg] = useState("");
-  const [history, setHistory] = useState([]);
-  const append = (role, content) => setHistory((h) => [...h, { role, content }]);
-  const send = async () => {
-    if (!msg.trim()) return;
-    append('user', msg);
-    setMsg("");
-    // Placeholder assistant response
-    setTimeout(() => {
-      append('assistant', 'Proposed change: add a pause menu with resume button.');
-    }, 400);
-  };
-  if (!open) return null;
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`${styles.assistantPanel} ${styles.glass}`} aria-label="assistant-panel">
-      <div style={{ padding: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <strong>AI Assistant</strong>
-        <button onClick={onClose} aria-label="Close assistant">✕</button>
-      </div>
-      <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '52vh', overflow: 'auto' }}>
-        {history.map((h, i) => (
-          <div key={i} style={{ alignSelf: h.role === 'user' ? 'flex-end' : 'flex-start', background: h.role === 'user' ? '#ede9fe' : '#fff', color: '#111', borderRadius: 10, padding: '8px 10px', maxWidth: '90%' }}>{h.content}</div>
-        ))}
-      </div>
-      <div style={{ padding: 12, display: 'flex', gap: 8 }}>
-        <input value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Describe a change…" style={{ flex: 1, border: '1px solid #eee', borderRadius: 10, padding: '8px 10px' }} />
-        <button onClick={send} className={styles.tabBtn}>Send</button>
-        <button onClick={() => onApply && onApply(history)} className={styles.tabBtn}>Apply to Project</button>
-      </div>
-    </motion.div>
-  );
-}
+    return () => {
+      agentService.disconnect();
+    };
+  }, []);
 
-export default function BuilderPage() {
-  const router = useRouter();
-  const [prompt, setPrompt] = useState("");
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [logs, setLogs] = useState([]);
-  const [isBuilding, setIsBuilding] = useState(false);
-  const [error, setError] = useState(null);
-
-  const { mode, setMode, modeLocked, setModeLocked, appendUserMessage, appendAgentMessage, setStepStatus, setSchema, setActiveProjectId, schema, chat, progress } = useBuilder();
-  const [gameType, setGameType] = useState("3D");
-  const [engineType, setEngineType] = useState("Custom");
-  const [platforms, setPlatforms] = useState(["Web"]);
-  const [controls, setControls] = useState("Keyboard");
-  const [theme, setTheme] = useState("Sci-fi");
-  const [activeTab, setActiveTab] = useState("📝 Build Log");
-  const [schemaView, setSchemaView] = useState(null);
-  const [assistantOpen, setAssistantOpen] = useState(false);
-  const [sideOpen, setSideOpen] = useState(false);
-
-  const handlePlatformToggle = (p) => {
-    setPlatforms((prev) => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
-  };
-
-  const appendLog = (entry) => setLogs((prev) => [...prev, { t: Date.now(), ...entry }]);
-
-  const onGenerate = async () => {
-    setError(null);
-    setLogs([]);
-    setIsBuilding(true);
-    setModeLocked(true);
-    setSideOpen(true);
-    setStepStatus('parse', 'in_progress');
-    if (prompt.trim()) appendUserMessage(prompt.trim());
+  const initializeAgents = async () => {
     try {
-      const res = await fetch('/api/builder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt,
-          settings: {
-            gameType: mode || gameType,
-            engineType,
-            platforms,
-            controls,
-            theme
-          }
-        })
-      });
-      if (!res.ok || !res.body) {
-        setError('Failed to start builder');
-        setIsBuilding(false);
-        return;
+      console.log('[builder] initializeAgents: fetching status');
+      const data = await agentService.getAgentStatus();
+      console.log('[builder] initializeAgents: status result', data);
+      if (data.success) {
+        const total = data.status?.total_agents ?? 0;
+        // We don't have per-state counts; show 0% if unknown
+        setProjectStats({
+          completion: total > 0 ? 0 : 0,
+          queuedActions: 0,
+          lastUpdate: new Date().toISOString()
+        });
+        setIsConnected(true);
       }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let projectId = null;
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        for (const line of chunk.split("\n")) {
-          if (!line.trim()) continue;
-          try {
-            const evt = JSON.parse(line);
-            appendLog(evt);
-            if (evt.type === 'error') setError(evt.message || 'Error');
-            if (evt.type === 'step' && evt.data?.id && evt.data?.status) setStepStatus(evt.data.id, evt.data.status);
-            if (evt.type === 'done' && evt.data?.projectId) {
-              projectId = evt.data.projectId;
-              setActiveProjectId(projectId);
-            }
-            if (evt.type === 'schema' && evt.data) {
-              setSchema(evt.data);
-            }
-          } catch {}
-        }
-      }
-      setIsBuilding(false);
-      if (projectId) {
-        try {
-          const assistantMsg = (schema || schemaView) && (schema || schemaView).metadata ? `Project “${(schema || schemaView).metadata.title || 'Untitled'}” generated. Scenes: ${(((schema || schemaView).scenes)||[]).length}, Characters: ${(((schema || schemaView).characters)||[]).length}. You can ask me to add features.` : 'Project generated. You can ask me to add features.';
-          const initialChat = [
-            { role: 'user', text: prompt.trim() },
-            { role: 'agent', text: assistantMsg }
-          ];
-          localStorage.setItem('editorInitialChat', JSON.stringify(initialChat));
-          appendAgentMessage(assistantMsg);
-        } catch {}
-        // Stay in chat; CTA buttons below allow navigation to Editor or Dashboard
-      }
-    } catch (e) {
-      setIsBuilding(false);
-      setError(e?.message || 'Builder crashed');
+    } catch (error) {
+      console.log('[builder] initializeAgents: NETWORK_ERROR');
+      // Gracefully degrade when backend is unreachable
+      setIsConnected(false);
     }
   };
 
-  // keyboard shortcuts
-  useEffect(() => {
-    const onKey = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); onGenerate(); }
-      if (e.key === '/') { e.preventDefault(); document.getElementById('builder-input')?.focus(); }
-      if (e.key === 'Escape') { setSettingsOpen(false); setAssistantOpen(false); }
+  const setupAgentService = () => {
+    // Connect WebSocket for real-time updates (hard fail if not connected)
+    try {
+      agentService.connectWebSocket();
+    } catch (e) {
+      addChatMessage('system', 'WebSocket connection failed. Please ensure backend is running on :5000', 'error');
+      throw e;
+    }
+    
+    // Listen for real-time updates
+    agentService.on('connected', () => {
+      setIsConnected(true);
+      addChatMessage('system', 'Connected to AI Agent system', 'system');
+    });
+
+    agentService.on('disconnected', () => {
+      setIsConnected(false);
+      addChatMessage('system', 'Disconnected from AI Agent system', 'system');
+    });
+
+    agentService.on('message', (data) => {
+      // In a future iteration, parse Socket.IO frames and route agent_update
+      // For now log raw to help diagnose
+      if (data?.type === 'agent_update') handleAgentUpdate(data);
+    });
+  };
+
+  const initializeVoiceRecognition = () => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setPrompt(transcript);
+        setIsRecording(false);
+      };
+
+      recognitionRef.current.onerror = () => {
+        setIsRecording(false);
+      };
+    }
+  };
+
+  const loadProjectStats = async () => {
+    try {
+      console.log('[builder] loadProjectStats: fetching status');
+      const data = await agentService.getAgentStatus();
+      console.log('[builder] loadProjectStats: status result', data);
+      if (data.success) {
+        const total = data.status?.total_agents ?? 0;
+        setProjectStats(prev => ({
+          ...prev,
+          completion: total > 0 ? prev.completion : 0,
+          queuedActions: 0
+        }));
+        setIsConnected(true);
+      }
+    } catch (error) {
+      console.log('[builder] loadProjectStats: NETWORK_ERROR');
+      // Keep UI silent on refresh when backend is down
+      setIsConnected(false);
+    }
+  };
+
+  const handleAgentUpdate = (data) => {
+    if (data.agentId) {
+      if (data.status === 'active') {
+        setActiveAgents(prev => new Set([...prev, data.agentId]));
+      } else {
+        setActiveAgents(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(data.agentId);
+          return newSet;
+        });
+      }
+    }
+    
+    if (data.message) {
+      addChatMessage(data.agentId || 'system', data.message, data.type || 'agent');
+    }
+  };
+
+  const handleVoiceInput = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+    } else {
+      recognitionRef.current?.start();
+      setIsRecording(true);
+    }
+  };
+
+  const handlePromptSubmit = async (e) => {
+    e?.preventDefault?.();
+    if (!prompt.trim() || isProcessing) return;
+
+    setIsProcessing(true);
+    setActiveAgents(new Set());
+    setAgentChat([]);
+
+    try {
+      // Add initial system message
+      addChatMessage('system', 'Starting AI agent swarm...', 'system');
+      
+      // Use agent service to create game
+      console.log('[builder] handlePromptSubmit: creating game');
+      const result = await agentService.createGame(prompt, {
+        gameType: 'action',
+        platform: 'web',
+        visualStyle: 'modern',
+        projectStatus: projectStats
+      });
+      console.log('[builder] handlePromptSubmit: createGame result', result);
+      
+      const drivePreview = (phase) => {
+        // minimal pac-man-like demo board
+        setGameData({
+          board: { cols: 15, rows: 15 },
+          objects: [
+            { type: 'player', x: 7, y: 7 },
+            { type: 'enemy', x: 3, y: 3 },
+            { type: 'enemy', x: 11, y: 11 },
+            { type: 'collectible', x: 2, y: 2 },
+            { type: 'collectible', x: 12, y: 2 },
+            { type: 'collectible', x: 2, y: 12 },
+            { type: 'powerup', x: 7, y: 2 }
+          ]
+        });
+      };
+
+      if (result.success) {
+        // Pull a real preview dataset from backend
+        const preview = await agentService.getPreview(prompt, { gameType: 'arcade', platform: 'web', visualStyle: 'retro' });
+        if (preview?.success) setGameData({ board: preview.board, objects: preview.objects });
+        // Build playable bundle
+        const playable = await agentService.buildPlayable(prompt, { gameType: 'arcade', platform: 'web', visualStyle: 'retro' });
+        if (playable?.success && playable.embedHtml) setGameData(prev => ({ ...prev, embedHtml: playable.embedHtml }));
+        if (!preview?.success && !playable?.success) drivePreview('start');
+        agentService.simulateAgentWorkflow(
+          prompt,
+          (update) => {
+            if (update.type === 'agent_started') {
+              setActiveAgents(prev => new Set([...prev, update.agent.id]));
+              addChatMessage(update.agent.id, `${update.agent.name} started working...`, 'agent');
+            } else if (update.type === 'agent_progress') {
+              addChatMessage(update.agent.id, update.message, 'agent');
+              // keep preview static during simulation unless backend sends updates
+            } else if (update.type === 'agent_completed') {
+              setActiveAgents(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(update.agent.id);
+                return newSet;
+              });
+              addChatMessage(update.agent.id, 'Task completed successfully!', 'agent');
+            }
+          },
+          (finalResult) => {
+            addChatMessage('system', 'Game creation workflow completed! Check the preview panel.', 'system');
+            setProjectStats(prev => ({
+              ...prev,
+              completion: 100,
+              lastUpdate: new Date().toISOString()
+            }));
+            setIsProcessing(false);
+          }
+        );
+      } else if (result.error === 'NETWORK_ERROR') {
+        // Backend unreachable: run local simulation so user still sees progress
+        addChatMessage('system', 'Backend unreachable. Running local simulation…', 'system');
+        drivePreview('start');
+        agentService.simulateAgentWorkflow(
+          prompt,
+          (update) => {
+            if (update.type === 'agent_started') {
+              setActiveAgents(prev => new Set([...prev, update.agent.id]));
+              addChatMessage(update.agent.id, `${update.agent.name} started working...`, 'agent');
+            } else if (update.type === 'agent_progress') {
+              addChatMessage(update.agent.id, update.message, 'agent');
+              drivePreview('progress');
+            } else if (update.type === 'agent_completed') {
+              setActiveAgents(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(update.agent.id);
+                return newSet;
+              });
+              addChatMessage(update.agent.id, 'Task completed successfully!', 'agent');
+            }
+          },
+          () => {
+            addChatMessage('system', 'Simulation completed. Connect backend for real builds.', 'system');
+            setProjectStats(prev => ({ ...prev, completion: 100, lastUpdate: new Date().toISOString() }));
+            setIsProcessing(false);
+          }
+        );
+      } else {
+        addChatMessage('error', `Workflow failed: ${result.error}`, 'system');
+        setIsProcessing(false);
+      }
+    } catch (error) {
+      addChatMessage('error', `Failed to process request: ${error.message}`, 'system');
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePlay = () => {
+    setIsPlaying(true);
+    addChatMessage('system', 'Starting game preview...', 'system');
+  };
+
+  const handlePause = () => {
+    setIsPlaying(false);
+    addChatMessage('system', 'Game preview paused', 'system');
+  };
+
+  const handleReset = () => {
+    setIsPlaying(false);
+    setGameData({});
+    addChatMessage('system', 'Game preview reset', 'system');
+  };
+
+  const handleExport = () => {
+    addChatMessage('system', 'Exporting game...', 'system');
+    // Export logic would go here
+  };
+
+  const addChatMessage = (agentId, message, type) => {
+    const agent = agents.find(a => a.id === agentId);
+    const newMessage = {
+      id: Date.now() + Math.random(),
+      agentId,
+      agentName: agent?.name || 'System',
+      message,
+      type,
+      timestamp: new Date(),
+      color: agent?.color || '#6B7280'
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onGenerate]);
+    
+    setAgentChat(prev => [...prev, newMessage]);
+  };
 
   return (
-    <div className={styles.root}>
-      <div className={styles.waterBg} aria-hidden="true">
-        <div className={styles.lights} />
-      </div>
-      <div className={styles.fullscreenWrap}>
-        <div className={styles.chatPanel}>
-          <div className={styles.heroTitle}>AI Game Builder</div>
-          {!modeLocked && (
-            <div className={styles.modeRow}>
-              <button className={mode === '2D' ? `${styles.modeBtn} ${styles.modeActive}` : styles.modeBtn} onClick={() => setMode('2D')} disabled={modeLocked} title={modeLocked ? 'Can only change before generation' : '2D Generator'}>🌐 2D Generator</button>
-              <button className={mode === '3D' ? `${styles.modeBtn} ${styles.modeActive}` : styles.modeBtn} onClick={() => setMode('3D')} disabled={modeLocked} title={modeLocked ? 'Can only change before generation' : '3D Generator'}>🌍 3D Generator</button>
-            </div>
-          )}
-          <div className={styles.messages}>
-            <AnimatePresence initial={false}>
-              {chat.map((m, i) => (
-                <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={m.role === 'user' ? styles.msgUser : styles.msgAgent}>
-                  <div className={styles.msgBubble}>{m.text}</div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            {error && <div className={styles.errorBox}>{error}</div>}
-            {schema && (
-              <div className={styles.schemaBox}>
-                <div className={styles.schemaHeader}>
-                  <strong>Project Schema</strong>
-                  <button className={styles.tabBtn} onClick={() => { try { navigator.clipboard.writeText(JSON.stringify(schema || {}, null, 2)); } catch {} }}>Copy</button>
-                </div>
-                <JsonTree data={schema} />
-              </div>
-            )}
-            {!isBuilding && schema && (
-              <div className={styles.ctaRow}>
-                <button className={styles.ctaBtn} onClick={() => router.push(`/editor?project=${encodeURIComponent(String(schema?.metadata?.projectId || ''))}`)} disabled={!schema}>✏️ Open in Editor</button>
-                <button className={styles.tabBtn} onClick={() => router.push('/dashboard')}>🧭 Go to Dashboard</button>
-              </div>
-            )}
-          </div>
-          <div className={styles.inputBarWrap}>
-            <div className={styles.inputInner}>
-              <input id="builder-input" className={styles.inputBar} value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Describe your game idea... e.g., Build a 3D multiplayer racing game with obstacles and nitro boosts." onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onGenerate(); } }} />
-              <button className={styles.sendBtn} onClick={onGenerate} disabled={isBuilding || prompt.trim().length === 0}>{isBuilding ? 'Generating…' : 'Send'}</button>
-            </div>
-            <div className={styles.hint}>Press / to focus • Shift+Enter for newline</div>
-          </div>
+    <div className={styles.page}>
+      <div className={styles.toolbar}>
+        <div className={styles.connectionStatus}>
+          <div className={`${styles.statusIndicator} ${isConnected ? styles.connected : styles.disconnected}`} />
+          <span>{isConnected ? 'Connected' : 'Disconnected'}</span>
         </div>
-        <AnimatePresence>
-          {sideOpen && (
-            <motion.aside initial={{ x: 320, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 320, opacity: 0 }} className={`${styles.sidePanel} ${styles.glass}`}>
-              <div className={styles.sideTitle}>🧱 Generation Steps</div>
-              <div className={styles.stepList}>
-                {progress.steps.map((s) => (
-                  <div key={s.id} className={styles.stepItem}>
-                    <span className={s.status === 'done' ? styles.stepDotDone : s.status === 'in_progress' ? styles.stepDotActive : styles.stepDot} />
-                    <span className={styles.stepLabel}>{s.label}</span>
-                    {s.status === 'in_progress' && <span className={styles.spinner} aria-label="loading" />}
-                    {s.status === 'done' && <span className={styles.check}>✓</span>}
-                    {s.status === 'error' && <button className={styles.retry}>Retry</button>}
-                  </div>
-                ))}
-              </div>
-            </motion.aside>
-          )}
-        </AnimatePresence>
+        <div className={styles.spacer} />
+        <button
+          className={styles.previewToggle}
+          onClick={() => setShowPreview(!showPreview)}
+        >
+          {showPreview ? 'Hide Preview' : 'Show Preview'}
+        </button>
+      </div>
+
+      <div className={styles.content}>
+        <div className={styles.chatColumn}>
+          <AgentChat
+            messages={agentChat}
+            activeAgents={activeAgents}
+            onAgentSelect={setSelectedAgent}
+            selectedAgent={selectedAgent}
+          />
+
+          <form className={styles.composer} onSubmit={handlePromptSubmit}>
+            <button
+              type="button"
+              className={`${styles.composerBtn} ${isRecording ? styles.recording : ''}`}
+              onClick={handleVoiceInput}
+              disabled={isProcessing}
+              title="Voice input"
+            >
+              🎤
+            </button>
+            <input
+              ref={promptInputRef}
+              className={styles.composerInput}
+              placeholder="Type a request… e.g. Build me Pac-Man"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              disabled={isProcessing}
+            />
+            <button
+              type="submit"
+              className={styles.sendBtn}
+              disabled={!prompt.trim() || isProcessing}
+            >
+              {isProcessing ? 'Running…' : 'Send'}
+            </button>
+          </form>
+        </div>
+
+        {showPreview && (
+          <div className={styles.previewColumn}>
+            <LivePreview
+              gameData={gameData}
+              isPlaying={isPlaying}
+              onPlay={handlePlay}
+              onPause={handlePause}
+              onReset={handleReset}
+              onExport={handleExport}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
-
