@@ -22,7 +22,7 @@ export default function InvitePage() {
       <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
         <DashboardTopbar user={{ name: 'User' }} onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
         <div className={styles.content}>
-          <h1 className={styles.title}>Invite to Ruchi AI</h1>
+          <h1 className={styles.title}>Invite to NUVRA</h1>
           <p className={styles.subtitle}>Send an invitation to join your team</p>
           <div className={styles.card}>
             <div className={styles.row}>

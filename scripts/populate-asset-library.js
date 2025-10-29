@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Populate RuchiAI Asset Library in DynamoDB
+ * Populate NUVRA Asset Library in DynamoDB
  * This script populates the ruchi-ai-assets table with all the comprehensive asset library
  */
 
@@ -236,7 +236,7 @@ async function batchWriteItems(items) {
 
 // Main function
 async function populateAssetLibrary() {
-  console.log('🚀 Starting RuchiAI Asset Library population...');
+  console.log('🚀 Starting NUVRA Asset Library population...');
   console.log(`📊 Table: ${TABLE_NAME}`);
   
   try {

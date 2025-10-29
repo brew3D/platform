@@ -40,7 +40,7 @@ export default function CommunityPage() {
       <nav className={`${landingStyles.navbar} ${scrolled ? landingStyles.navbarScrolled : ""}`} ref={navbarRef}>
         <div className={landingStyles.navContainer}>
           <div className={landingStyles.logo}>
-            <span className={landingStyles.logoText}>Ruchi AI</span>
+            <span className={landingStyles.logoText}>PiWea</span>
             <div className={landingStyles.logoAccent}></div>
           </div>
 
@@ -125,7 +125,7 @@ export default function CommunityPage() {
       <section className={styles.hero}>
         <div className={styles.heroGlow}></div>
         <div className={styles.heroContainer}>
-          <h1 className={styles.heroTitle}>Ruchi AI Community</h1>
+          <h1 className={styles.heroTitle}>PiWea Community</h1>
           <p className={styles.heroSubtitle}>Build together. Learn together. Ship together.</p>
           <div className={styles.heroActions}>
             <Link href="#pillars" className={styles.primaryButton}>Explore Pillars</Link>
@@ -145,7 +145,7 @@ export default function CommunityPage() {
       <section id="pillars" className={styles.pillarsIntro}>
         <div className={styles.container}>
           <h2 className={styles.sectionTitle}>Core Pillars</h2>
-          <p className={styles.sectionSubtitle}>The engine that powers the Ruchi AI creator ecosystem</p>
+          <p className={styles.sectionSubtitle}>The engine that powers the PiWea creator ecosystem</p>
         </div>
       </section>
 
@@ -195,7 +195,7 @@ export default function CommunityPage() {
           <div className={landingStyles.footerContent}>
             <div className={landingStyles.footerBrand}>
               <div className={landingStyles.logo}>
-                <span className={landingStyles.logoText}>Ruchi AI</span>
+                <span className={landingStyles.logoText}>PiWea</span>
               </div>
               <p className={landingStyles.footerDescription}>The future of AI-powered 3D creation</p>
             </div>
@@ -221,7 +221,7 @@ export default function CommunityPage() {
             </div>
           </div>
           <div className={landingStyles.footerBottom}>
-            <p>© 2025 Ruchi AI. All rights reserved.</p>
+            <p>© 2025 PiWea. All rights reserved.</p>
             <div className={landingStyles.footerLegal}>
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>

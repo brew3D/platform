@@ -49,7 +49,7 @@ export default function LandingPage() {
     setTimeout(() => setShowNextOptions(true), 0);
   };
   const [chatMessages, setChatMessages] = useState([
-    { role: 'bot', text: 'Hi! I can build interactive 3D for you.' },
+    { role: 'bot', text: 'Hi, I\'m Pea! Let\'s make Mario jump!' },
     { role: 'user', text: 'MAKE ME A MARIO THAT JUMPS WITH SOUND' },
     { role: 'bot', text: 'Great! Click Start and I’ll guide you step-by-step.' }
   ]);
@@ -60,6 +60,52 @@ export default function LandingPage() {
   const [awaitingSpeech, setAwaitingSpeech] = useState(false);
   const [jumpScaleInput, setJumpScaleInput] = useState('');
   const [speechInput, setSpeechInput] = useState('');
+  const [isAIGenerating, setIsAIGenerating] = useState(false);
+  const [emailSubmitted, setEmailSubmitted] = useState(false);
+  const [emailValue, setEmailValue] = useState('');
+  const [promptValue, setPromptValue] = useState('');
+  const [isPromptFocused, setIsPromptFocused] = useState(false);
+
+  // Animated stats state
+  const [animatedStats, setAnimatedStats] = useState({
+    users: 0,
+    scenes: 0,
+    uptime: 0
+  });
+
+  // Animate stats counters
+  useEffect(() => {
+    const animateStats = () => {
+      const duration = 2000; // 2 seconds
+      const steps = 60;
+      const stepDuration = duration / steps;
+      
+      let step = 0;
+      const interval = setInterval(() => {
+        step++;
+        const progress = step / steps;
+        
+        setAnimatedStats({
+          users: Math.floor(10000 * progress),
+          scenes: Math.floor(50000 * progress),
+          uptime: Math.floor(99.9 * progress * 10) / 10
+        });
+        
+        if (step >= steps) {
+          clearInterval(interval);
+          setAnimatedStats({
+            users: 10000,
+            scenes: 50000,
+            uptime: 99.9
+          });
+        }
+      }, stepDuration);
+    };
+
+    // Start animation when component mounts
+    const timer = setTimeout(animateStats, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (marioAdded && marioHasSound && marioHasJumped) {
@@ -181,6 +227,11 @@ export default function LandingPage() {
   const navLinksRef = useRef([]);
   const navButtonRef = useRef(null);
   const hamburgerRef = useRef(null);
+
+  // PromptHero and Playground refs
+  const promptHeroRef = useRef(null);
+  const playgroundRef = useRef(null);
+  const promptInputRef = useRef(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -410,6 +461,65 @@ export default function LandingPage() {
       }
     });
 
+    // PromptHero to Playground transition
+    if (promptHeroRef.current && playgroundRef.current) {
+      // PromptHero fade out animation
+      ScrollTrigger.create({
+        trigger: playgroundRef.current,
+        start: "top 80%",
+        onEnter: () => {
+          gsap.to(promptHeroRef.current, {
+            opacity: 0.3,
+            scale: 0.95,
+            duration: 1,
+            ease: "power2.out"
+          });
+        },
+        onLeaveBack: () => {
+          gsap.to(promptHeroRef.current, {
+            opacity: 1,
+            scale: 1,
+            duration: 1,
+            ease: "power2.out"
+          });
+        }
+      });
+
+      // Playground entrance animation
+      ScrollTrigger.create({
+        trigger: playgroundRef.current,
+        start: "top 70%",
+        onEnter: () => {
+          gsap.fromTo(playgroundRef.current, 
+            { opacity: 0, y: 100 },
+            { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }
+          );
+        }
+      });
+
+      // Prompt input animation on scroll
+      ScrollTrigger.create({
+        trigger: playgroundRef.current,
+        start: "top 90%",
+        onEnter: () => {
+          gsap.to(promptInputRef.current, {
+            y: -20,
+            scale: 0.95,
+            duration: 0.8,
+            ease: "power2.out"
+          });
+        },
+        onLeaveBack: () => {
+          gsap.to(promptInputRef.current, {
+            y: 0,
+            scale: 1,
+            duration: 0.8,
+            ease: "power2.out"
+          });
+        }
+      });
+    }
+
     // 3D Canvas Scroll Animations - INCREDIBLE EFFECTS
     const macbookTrigger = document.querySelector('[data-scroll-trigger="macbook"]');
     if (macbookTrigger) {
@@ -555,7 +665,7 @@ export default function LandingPage() {
       <nav className={`${styles.navbar} ${scrolled ? styles.navbarScrolled : ''}`} ref={navbarRef}>
         <div className={styles.navContainer}>
           <div className={styles.logo} ref={logoRef}>
-            <span className={styles.logoText}>Ruchi AI</span>
+            <span className={styles.logoText}>PiWea</span>
             <div className={styles.logoAccent}></div>
           </div>
           
@@ -571,11 +681,11 @@ export default function LandingPage() {
               </Link>
             )}
             <Link 
-              href="#features" 
+              href="#prompt-hero" 
               className={styles.navLink}
               ref={el => navLinksRef.current[user ? 1 : 0] = el}
             >
-              <span className={styles.navText}>Features</span>
+              <span className={styles.navText}>Try Demo</span>
               <div className={styles.navUnderline}></div>
             </Link>
             <Link 
@@ -676,6 +786,54 @@ export default function LandingPage() {
         </div>
       </nav>
 
+      {/* Prompt Hero Section */}
+      <section id="prompt-hero" className={styles.promptHero} ref={promptHeroRef}>
+        <div className={styles.promptParticles}>
+          <div className={styles.particle}></div>
+          <div className={styles.particle}></div>
+          <div className={styles.particle}></div>
+          <div className={styles.particle}></div>
+          <div className={styles.particle}></div>
+          <div className={styles.particle}></div>
+          <div className={styles.particle}></div>
+          <div className={styles.particle}></div>
+        </div>
+        
+        <div className={styles.promptContainer}>
+          <div className={styles.promptContent}>
+            <h1 className={styles.promptTitle}>
+              What do you want to <span className={styles.gradientText}>build</span>?
+            </h1>
+            <div className={styles.promptInputContainer}>
+              <input
+                type="text"
+                placeholder="build me [a game]"
+                className={`${styles.promptInput} ${isPromptFocused ? styles.promptInputFocused : ''}`}
+                value={promptValue}
+                onChange={(e) => setPromptValue(e.target.value)}
+                onFocus={() => setIsPromptFocused(true)}
+                onBlur={() => setIsPromptFocused(false)}
+                ref={promptInputRef}
+              />
+              <div className={styles.promptGlow}></div>
+            </div>
+            <div className={styles.promptButtons}>
+              <a href="#playground" className={styles.promptButtonSecondary}>
+                See Live Demo
+                <span className={styles.buttonIcon}>▶</span>
+              </a>
+              <a href="#cta" className={styles.promptButtonPrimary}>
+                Get Started
+                <span className={styles.buttonIcon}>→</span>
+              </a>
+            </div>
+            <p className={styles.promptSubtext}>
+              Describe what you want to build — Pea will take it from there.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Hero Section */}
       <section className={styles.hero}>
         {/* Particle Effects */}
@@ -698,7 +856,10 @@ export default function LandingPage() {
               <span className={styles.aiText}>Without Breaking Your Computer.</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              Collaborate in real-time, render in the cloud, and let AI guide your every move. Ruchi AI makes professional 3D creation effortless.
+              Collaborate in real-time, render in the cloud, and let AI guide your every move. PiWea makes professional 3D creation effortless.
+            </p>
+            <p className={styles.heroSupporting}>
+              Empowering every creator to turn imagination into interactive worlds — powered by AI.
             </p>
             <div className={styles.heroButtons}>
               <Link href="#playground" className={styles.primaryButton}>
@@ -710,17 +871,21 @@ export default function LandingPage() {
                 <span className={styles.buttonIcon}>▶</span>
               </a>
             </div>
+            <div className={styles.trustRibbon}>
+              <span className={styles.trustText}>Trusted by 10,000+ creators and studios worldwide</span>
+              <div className={styles.trustGlow}></div>
+            </div>
             <div className={styles.heroStats}>
               <div className={styles.stat}>
-                <span className={styles.statNumber}>10K+</span>
+                <span className={styles.statNumber}>{animatedStats.users.toLocaleString()}K+</span>
                 <span className={styles.statLabel}>Active Users</span>
               </div>
               <div className={styles.stat}>
-                <span className={styles.statNumber}>50K+</span>
+                <span className={styles.statNumber}>{animatedStats.scenes.toLocaleString()}K+</span>
                 <span className={styles.statLabel}>Scenes Created</span>
               </div>
               <div className={styles.stat}>
-                <span className={styles.statNumber}>99.9%</span>
+                <span className={styles.statNumber}>{animatedStats.uptime}%</span>
                 <span className={styles.statLabel}>Uptime</span>
               </div>
             </div>
@@ -764,7 +929,7 @@ export default function LandingPage() {
                   <span></span>
                   <span></span>
                 </div>
-                <span className={styles.editorTitle}>Ruchi AI Editor</span>
+                <span className={styles.editorTitle}>PiWea Editor</span>
                 <div className={styles.aiIndicator}>
                   <span className={styles.aiPulse}></span>
                   <span>AI Active</span>
@@ -801,12 +966,191 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Interactive Playground (Pea Demo) */}
+      <section id="playground" className={styles.playgroundSection} ref={playgroundRef}>
+        <div className={styles.container}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Watch Pea Build Instantly</h2>
+            <p className={styles.sectionSubtitle}>Add objects and orbit the scene. AI-style snapping hints included.</p>
+            <div className={styles.playgroundTooltip}>
+              <span className={styles.tooltipIcon}>✨</span>
+              <span className={styles.tooltipText}>Try building with AI — no install required.</span>
+            </div>
+          </div>
+          <div className={styles.playground}>
+            <div className={styles.playgroundCanvas}>
+              <Canvas shadows camera={{ position: [3, 3, 3], fov: 50 }}>
+                <ambientLight intensity={0.6} />
+                <directionalLight position={[5,5,5]} intensity={0.8} castShadow />
+                <gridHelper args={[10, 10, '#3b2f4a', '#1f1530']} />
+                <OrbitControls enableDamping />
+                {demoObjects.map(obj => (
+                  <mesh key={obj.id} position={obj.pos} castShadow receiveShadow>
+                    {obj.type === 'cube' && <boxGeometry args={[0.6,0.6,0.6]} />}
+                    {obj.type === 'sphere' && <sphereGeometry args={[0.35, 32, 32]} />}
+                    {obj.type === 'cylinder' && <cylinderGeometry args={[0.25,0.25,0.6, 32]} />}
+                    <meshStandardMaterial color={obj.type === 'cube' ? '#9b59b6' : obj.type === 'sphere' ? '#4ecdc4' : '#ffd93d'} emissiveIntensity={0.2} />
+                  </mesh>
+                ))}
+                {/* Fake AI snap hint */}
+                <mesh position={[0,0.01,0]} rotation={[-Math.PI/2,0,0]}>
+                  <ringGeometry args={[0.6,0.62, 64]} />
+                  <meshBasicMaterial color="#9b59b6" transparent opacity={0.4} />
+                </mesh>
+                {marioAdded && (
+                  <Suspense fallback={null}>
+                    <MarioModel ref={marioRef} position={[0, 0, 0]} showBubble={showItsThatEasy} />
+                  </Suspense>
+                )}
+              </Canvas>
+            </div>
+            <div className={styles.playgroundSidebar}>
+              <div className={styles.chatbotPanel}>
+                <div className={styles.chatHeader}>
+                  <div className={styles.peaAvatar}>
+                    <div className={styles.peaIcon}>🤖</div>
+                    <div className={styles.peaGlow}></div>
+                  </div>
+                  <div className={styles.botTitle}>Pea</div>
+                </div>
+                <div className={styles.chatScroll}>
+                  {chatMessages.map((m, idx) => (
+                    <div key={idx} className={m.role === 'bot' ? styles.botMessage : styles.userMessage}>
+                      <span className={m.role === 'bot' ? styles.botName : styles.userName}>
+                        {m.role === 'bot' ? 'Pea' : 'You'}
+                      </span>
+                      <div className={m.role === 'bot' ? styles.messageBubble : styles.messageBubbleUser}>{m.text}</div>
+                    </div>
+                  ))}
+                  {showNextOptions && (
+                    <div className={styles.optionsGroup}>
+                      <button className={styles.optionButton} onClick={() => {
+                        setChatMessages(prev => ([...prev, { role: 'user', text: 'Make mario double in size' }, { role: 'bot', text: 'Gotcha!' }]));
+                        setMarioScale(prev => prev * 2);
+                        showOptionsOnce();
+                      }}>Make mario double in size</button>
+                      <button className={styles.optionButton} onClick={() => {
+                        setChatMessages(prev => ([...prev, { role: 'user', text: 'Make the jump higher' }, { role: 'bot', text: 'scale jump by Input' }]));
+                        setAwaitingJumpScale(true);
+                        setShowNextOptions(false);
+                      }}>Make the jump higher</button>
+                      <button className={styles.optionButton} onClick={() => {
+                        setChatMessages(prev => ([...prev, { role: 'user', text: 'Make him say something else' }]));
+                        setAwaitingSpeech(true);
+                        setShowNextOptions(false);
+                      }}>Make him say something else</button>
+                    </div>
+                  )}
+                  {awaitingJumpScale && (
+                    <div className={styles.chatInputRow}>
+                      <input type="number" min="1" max="1000" step="0.1" placeholder="Enter jump scale (1 - 1000)" className={styles.chatInput} value={jumpScaleInput} onChange={(e) => setJumpScaleInput(e.target.value)} />
+                      <button className={styles.primaryButton} onClick={() => {
+                        const val = parseFloat(jumpScaleInput);
+                        if (!isNaN(val) && val > 0) {
+                          const clamped = Math.max(1, Math.min(1000, val));
+                          setJumpScale(clamped);
+                          setChatMessages(prev => ([...prev, { role: 'user', text: String(val) }, { role: 'bot', text: `Jump scaled to ${clamped}x` }]));
+                          setAwaitingJumpScale(false);
+                          setJumpScaleInput('');
+                          showOptionsOnce();
+                        }
+                      }}>Set</button>
+                    </div>
+                  )}
+                  {awaitingSpeech && (
+                    <div className={styles.chatInputRow}>
+                      <input type="text" placeholder="What should Mario say while jumping?" className={styles.chatInput} value={speechInput} onChange={(e) => setSpeechInput(e.target.value)} />
+                      <button className={styles.primaryButton} onClick={() => {
+                        const txt = (speechInput || '').trim();
+                        if (txt) {
+                          setSpeechText(txt);
+                          setChatMessages(prev => ([...prev, { role: 'user', text: txt }, { role: 'bot', text: 'Updated speech!' }]));
+                          setAwaitingSpeech(false);
+                          setSpeechInput('');
+                          showOptionsOnce();
+                        }
+                      }}>Set</button>
+                    </div>
+                  )}
+                </div>
+                <div className={styles.chatFooter}>
+                  {!hasStarted ? (
+                    <button className={styles.primaryButton} onClick={() => { 
+                      setIsAIGenerating(true);
+                      setTimeout(() => {
+                        setShowControls(true); 
+                        setHasStarted(true);
+                        setIsAIGenerating(false);
+                      }, 1500);
+                    }}>
+                      {isAIGenerating ? (
+                        <div className={styles.aiLoading}>
+                          <div className={styles.loadingDots}>...</div>
+                          <span>AI is generating...</span>
+                        </div>
+                      ) : 'Start'}
+                    </button>
+                  ) : !showControls ? (
+                    <div className={styles.loaderDots} aria-label="Loading steps">...</div>
+                  ) : null}
+                  <button 
+                    className={styles.infoButton} 
+                    aria-label="Asset credits"
+                    title="Asset credits"
+                    onClick={() => setShowCredits(v => !v)}
+                  >
+                    i
+                  </button>
+                  {showCredits && (
+                    <div className={styles.creditsTooltip}>
+                      <span>"Mario obj" by MatiasH290 is licensed under </span>
+                      <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+                      <span>. Source: </span>
+                      <a href="https://skfb.ly/6X8o8" target="_blank" rel="noopener noreferrer">skfb.ly/6X8o8</a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+          {showControls && (
+            <div className={styles.playgroundFooter}>
+              <div className={styles.controlsCard}>
+                <div className={styles.controlsHeader}>Steps</div>
+                <div className={styles.playgroundControls}>
+                  <button className={styles.primaryButton} onClick={onAddMario} disabled={!showControls || marioAdded}>Add Mario</button>
+                  <button className={styles.secondaryButton} onClick={onMarioJump} disabled={!marioAdded || marioHasJumped}>Make Mario Jump</button>
+                  <button className={styles.secondaryButton} onClick={onAddJumpSound} disabled={!marioHasJumped || marioHasSound}>Add the jump sound</button>
+                  <button 
+                    className={styles.secondaryButton} 
+                    onClick={() => (isLooping ? stopLoop() : startLoop())}
+                    disabled={!marioAdded || !marioHasSound || !marioHasJumped}
+                  >
+                    {isLooping ? 'Stop Loop' : 'Loop and sync'}
+                  </button>
+                  <button className={styles.textButton} onClick={() => {
+                    // stop loop and audio, reset everything
+                    stopLoop();
+                    if (audioRef.current) { try { audioRef.current.pause(); audioRef.current.currentTime = 0; } catch {} }
+                    setMarioAdded(false);
+                    setMarioHasSound(false);
+                    setMarioHasJumped(false);
+                    setShowItsThatEasy(false);
+                    setDemoObjects([]);
+                  }}>Clear</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Features Section - MIRACULOUS GSAP ANIMATIONS */}
       <section id="features" className={styles.features} ref={featuresRef}>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle} ref={sectionTitleRef}>
-              Why Choose <span className={styles.gradientText}>Ruchi AI</span>?
+              What Makes <span className={styles.gradientText}>PiWea</span> Powerful
             </h2>
             <p className={styles.sectionSubtitle} ref={sectionSubtitleRef}>
               Built for the modern creator who values collaboration, efficiency, and innovation
@@ -916,178 +1260,58 @@ export default function LandingPage() {
               <div className={styles.featureAccent}></div>
             </div>
           </div>
+          
+          {/* Testimonial Carousel */}
+          <div className={styles.testimonialCarousel}>
+            <div className={styles.testimonialTrack}>
+              <div className={styles.testimonial}>
+                <div className={styles.testimonialContent}>
+                  <p className={styles.testimonialText}>
+                    "PiWea feels like magic. Our team shipped faster than ever."
+                  </p>
+                  <span className={styles.testimonialAuthor}>— Indie Studio Lead</span>
+                </div>
+              </div>
+              <div className={styles.testimonial}>
+                <div className={styles.testimonialContent}>
+                  <p className={styles.testimonialText}>
+                    "Finally, 3D collaboration that actually works."
+                  </p>
+                  <span className={styles.testimonialAuthor}>— Creative Director</span>
+                </div>
+              </div>
+              <div className={styles.testimonial}>
+                <div className={styles.testimonialContent}>
+                  <p className={styles.testimonialText}>
+                    "The AI assistance is incredible. It's like having a senior artist on the team."
+                  </p>
+                  <span className={styles.testimonialAuthor}>— 3D Artist</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Playground Section */}
-      <section id="playground" className={styles.playgroundSection}>
-        <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Try the Mini 3D Playground</h2>
-            <p className={styles.sectionSubtitle}>Add objects and orbit the scene. AI-style snapping hints included.</p>
-          </div>
-          <div className={styles.playground}>
-            <div className={styles.playgroundCanvas}>
-              <Canvas shadows camera={{ position: [3, 3, 3], fov: 50 }}>
-                <ambientLight intensity={0.6} />
-                <directionalLight position={[5,5,5]} intensity={0.8} castShadow />
-                <gridHelper args={[10, 10, '#3b2f4a', '#1f1530']} />
-                <OrbitControls enableDamping />
-                {demoObjects.map(obj => (
-                  <mesh key={obj.id} position={obj.pos} castShadow receiveShadow>
-                    {obj.type === 'cube' && <boxGeometry args={[0.6,0.6,0.6]} />}
-                    {obj.type === 'sphere' && <sphereGeometry args={[0.35, 32, 32]} />}
-                    {obj.type === 'cylinder' && <cylinderGeometry args={[0.25,0.25,0.6, 32]} />}
-                    <meshStandardMaterial color={obj.type === 'cube' ? '#9b59b6' : obj.type === 'sphere' ? '#4ecdc4' : '#ffd93d'} emissiveIntensity={0.2} />
-                  </mesh>
-                ))}
-                {/* Fake AI snap hint */}
-                <mesh position={[0,0.01,0]} rotation={[-Math.PI/2,0,0]}>
-                  <ringGeometry args={[0.6,0.62, 64]} />
-                  <meshBasicMaterial color="#9b59b6" transparent opacity={0.4} />
-                </mesh>
-                {marioAdded && (
-                  <Suspense fallback={null}>
-                    <MarioModel ref={marioRef} position={[0, 0, 0]} showBubble={showItsThatEasy} />
-                  </Suspense>
-                )}
-              </Canvas>
-            </div>
-            <div className={styles.playgroundSidebar}>
-              <div className={styles.chatbotPanel}>
-                <div className={styles.chatHeader}>
-                  <div className={styles.botTitle}>AI Assistant</div>
-                </div>
-                <div className={styles.chatScroll}>
-                  {chatMessages.map((m, idx) => (
-                    <div key={idx} className={m.role === 'bot' ? styles.botMessage : styles.userMessage}>
-                      <span className={m.role === 'bot' ? styles.botName : styles.userName}>
-                        {m.role === 'bot' ? 'Ruchi' : 'You'}
-                      </span>
-                      <div className={m.role === 'bot' ? styles.messageBubble : styles.messageBubbleUser}>{m.text}</div>
-                    </div>
-                  ))}
-                  {showNextOptions && (
-                    <div className={styles.optionsGroup}>
-                      <button className={styles.optionButton} onClick={() => {
-                        setChatMessages(prev => ([...prev, { role: 'user', text: 'Make mario double in size' }, { role: 'bot', text: 'Gotcha!' }]));
-                        setMarioScale(prev => prev * 2);
-                        showOptionsOnce();
-                      }}>Make mario double in size</button>
-                      <button className={styles.optionButton} onClick={() => {
-                        setChatMessages(prev => ([...prev, { role: 'user', text: 'Make the jump higher' }, { role: 'bot', text: 'scale jump by Input' }]));
-                        setAwaitingJumpScale(true);
-                        setShowNextOptions(false);
-                      }}>Make the jump higher</button>
-                      <button className={styles.optionButton} onClick={() => {
-                        setChatMessages(prev => ([...prev, { role: 'user', text: 'Make him say something else' }]));
-                        setAwaitingSpeech(true);
-                        setShowNextOptions(false);
-                      }}>Make him say something else</button>
-                    </div>
-                  )}
-                  {awaitingJumpScale && (
-                    <div className={styles.chatInputRow}>
-                      <input type="number" min="1" max="1000" step="0.1" placeholder="Enter jump scale (1 - 1000)" className={styles.chatInput} value={jumpScaleInput} onChange={(e) => setJumpScaleInput(e.target.value)} />
-                      <button className={styles.primaryButton} onClick={() => {
-                        const val = parseFloat(jumpScaleInput);
-                        if (!isNaN(val) && val > 0) {
-                          const clamped = Math.max(1, Math.min(1000, val));
-                          setJumpScale(clamped);
-                          setChatMessages(prev => ([...prev, { role: 'user', text: String(val) }, { role: 'bot', text: `Jump scaled to ${clamped}x` }]));
-                          setAwaitingJumpScale(false);
-                          setJumpScaleInput('');
-                          showOptionsOnce();
-                        }
-                      }}>Set</button>
-                    </div>
-                  )}
-                  {awaitingSpeech && (
-                    <div className={styles.chatInputRow}>
-                      <input type="text" placeholder="What should Mario say while jumping?" className={styles.chatInput} value={speechInput} onChange={(e) => setSpeechInput(e.target.value)} />
-                      <button className={styles.primaryButton} onClick={() => {
-                        const txt = (speechInput || '').trim();
-                        if (txt) {
-                          setSpeechText(txt);
-                          setChatMessages(prev => ([...prev, { role: 'user', text: txt }, { role: 'bot', text: 'Updated speech!' }]));
-                          setAwaitingSpeech(false);
-                          setSpeechInput('');
-                          showOptionsOnce();
-                        }
-                      }}>Set</button>
-                    </div>
-                  )}
-                </div>
-                <div className={styles.chatFooter}>
-                  {!hasStarted ? (
-                    <button className={styles.primaryButton} onClick={() => { setShowControls(true); setHasStarted(true); }}>
-                      Start
-                    </button>
-                  ) : !showControls ? (
-                    <div className={styles.loaderDots} aria-label="Loading steps">...</div>
-                  ) : null}
-                  <button 
-                    className={styles.infoButton} 
-                    aria-label="Asset credits"
-                    title="Asset credits"
-                    onClick={() => setShowCredits(v => !v)}
-                  >
-                    i
-                  </button>
-                  {showCredits && (
-                    <div className={styles.creditsTooltip}>
-                      <span>“Mario obj” by MatiasH290 is licensed under </span>
-                      <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
-                      <span>. Source: </span>
-                      <a href="https://skfb.ly/6X8o8" target="_blank" rel="noopener noreferrer">skfb.ly/6X8o8</a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-          {showControls && (
-            <div className={styles.playgroundFooter}>
-              <div className={styles.controlsCard}>
-                <div className={styles.controlsHeader}>Steps</div>
-                <div className={styles.playgroundControls}>
-                  <button className={styles.primaryButton} onClick={onAddMario} disabled={!showControls || marioAdded}>Add Mario</button>
-                  <button className={styles.secondaryButton} onClick={onMarioJump} disabled={!marioAdded || marioHasJumped}>Make Mario Jump</button>
-                  <button className={styles.secondaryButton} onClick={onAddJumpSound} disabled={!marioHasJumped || marioHasSound}>Add the jump sound</button>
-                  <button 
-                    className={styles.secondaryButton} 
-                    onClick={() => (isLooping ? stopLoop() : startLoop())}
-                    disabled={!marioAdded || !marioHasSound || !marioHasJumped}
-                  >
-                    {isLooping ? 'Stop Loop' : 'Loop and sync'}
-                  </button>
-                  <button className={styles.textButton} onClick={() => {
-                    // stop loop and audio, reset everything
-                    stopLoop();
-                    if (audioRef.current) { try { audioRef.current.pause(); audioRef.current.currentTime = 0; } catch {} }
-                    setMarioAdded(false);
-                    setMarioHasSound(false);
-                    setMarioHasJumped(false);
-                    setShowItsThatEasy(false);
-                    setDemoObjects([]);
-                  }}>Clear</button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* Solution Section - ENHANCED WITH DESCRIPTIONS */}
       <section className={styles.solutionSection}>
         <div className={styles.container}>
+          <div className={styles.solutionIntro}>
+            <p className={styles.solutionIntroText}>Every creator hits these roadblocks. We fixed them.</p>
+          </div>
+          <div className={styles.solutionDivider}>
+            <h2 className={styles.solutionDividerTitle}>Built to Solve Real Problems</h2>
+            <div className={styles.solutionDividerLine}></div>
+          </div>
+          
           <div className={styles.solutionBanner}>
             <div className={styles.solutionContent}>
               <div className={styles.solutionIcon}>
                 <div className={styles.techIcon}></div>
                 <div className={styles.iconGlow}></div>
               </div>
-              <h3 className={styles.solutionTitle}>Ruchi AI Solves All of These</h3>
+              <h3 className={styles.solutionTitle}>PiWea Solves All of These</h3>
               <p className={styles.solutionSubtitle}>Real-time collaboration • AI assistance • Browser-based • Affordable pricing</p>
               
               <div className={styles.solutionPoints}>
@@ -1154,6 +1378,40 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+          
+          {/* Visual Flow Graphic */}
+          <div className={styles.visualFlow}>
+            <div className={styles.flowStep}>
+              <div className={styles.flowIcon}>💡</div>
+              <span className={styles.flowText}>Idea</span>
+            </div>
+            <div className={styles.flowArrow}>→</div>
+            <div className={styles.flowStep}>
+              <div className={styles.flowIcon}>🔨</div>
+              <span className={styles.flowText}>Build</span>
+            </div>
+            <div className={styles.flowArrow}>→</div>
+            <div className={styles.flowStep}>
+              <div className={styles.flowIcon}>👥</div>
+              <span className={styles.flowText}>Collaborate</span>
+            </div>
+            <div className={styles.flowArrow}>→</div>
+            <div className={styles.flowStep}>
+              <div className={styles.flowIcon}>🚀</div>
+              <span className={styles.flowText}>Export</span>
+            </div>
+          </div>
+          
+          {/* Vision Quote Block */}
+          <div className={styles.visionQuote}>
+            <div className={styles.visionContent}>
+              <p className={styles.visionText}>
+                "We believe creation should feel like flow, not friction."
+              </p>
+              <span className={styles.visionAuthor}>— PiWea Team</span>
+            </div>
+            <div className={styles.visionGlow}></div>
+          </div>
         </div>
       </section>
 
@@ -1172,14 +1430,46 @@ export default function LandingPage() {
                   type="email" 
                   placeholder="Enter your email address" 
                   className={styles.emailInput}
+                  value={emailValue}
+                  onChange={(e) => setEmailValue(e.target.value)}
                 />
-                <button className={styles.emailButton}>
-                  Join Waitlist
+                <button 
+                  className={styles.emailButton}
+                  onClick={() => {
+                    if (emailValue.trim()) {
+                      setEmailSubmitted(true);
+                      setTimeout(() => setEmailSubmitted(false), 3000);
+                    }
+                  }}
+                >
+                  {emailSubmitted ? '✓ Joined!' : 'Get Early Access'}
                 </button>
               </div>
+              {emailSubmitted && (
+                <div className={styles.successMessage}>
+                  <span className={styles.successText}>You're in! Check your inbox.</span>
+                </div>
+              )}
               <p className={styles.emailDisclaimer}>
                 Be the first to know when we launch. No spam, ever.
               </p>
+              
+              {/* Social Growth Nudge */}
+              <div className={styles.socialNudge}>
+                <p className={styles.nudgeText}>Share PiWea to move up the waitlist</p>
+                <div className={styles.socialIcons}>
+                  <a href="#" className={styles.socialIcon} aria-label="Share on LinkedIn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                  </a>
+                  <a href="#" className={styles.socialIcon} aria-label="Share on Twitter">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1191,7 +1481,7 @@ export default function LandingPage() {
           <div className={styles.footerContent}>
             <div className={styles.footerBrand}>
               <div className={styles.logo}>
-                <span className={styles.logoText}>Ruchi AI</span>
+                <span className={styles.logoText}>PiWea</span>
               </div>
               <p className={styles.footerDescription}>
                 The future of AI-powered 3D creation
@@ -1209,8 +1499,9 @@ export default function LandingPage() {
               <div className={styles.footerColumn}>
                 <h4>Community</h4>
                 <Link href="/community">Discord</Link>
-                <Link href="/community">Tutorials</Link>
-                <Link href="/community">Templates</Link>
+                <Link href="https://twitter.com/nuvra" target="_blank" rel="noopener noreferrer">Twitter</Link>
+                <Link href="https://youtube.com/nuvra" target="_blank" rel="noopener noreferrer">YouTube</Link>
+                <Link href="/blog">Blog</Link>
               </div>
               
               <div className={styles.footerColumn}>
@@ -1223,7 +1514,10 @@ export default function LandingPage() {
           </div>
           
           <div className={styles.footerBottom}>
-            <p>&copy; 2025 Ruchi AI. All rights reserved.</p>
+            <p>&copy; 2025 PiWea Studios. All rights reserved.</p>
+            <div className={styles.footerTagline}>
+              <span>Made with ❤️ by creators, for creators.</span>
+            </div>
             <div className={styles.footerLegal}>
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>

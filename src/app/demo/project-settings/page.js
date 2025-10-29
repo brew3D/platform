@@ -20,7 +20,7 @@ export default function DemoProjectSettingsPage() {
       }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#1a1a1a' }}>
-            RuchiAI Project Settings Demo
+            NUVRA Project Settings Demo
           </h1>
           <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>
             Beautiful project creation form inspired by Itch.io with white & purple theme

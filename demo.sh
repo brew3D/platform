@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Ruchi AI - Demo Script
+# NUVRA - Demo Script
 # Shows all the features and URLs for easy demo
 
-echo "🎨 Ruchi AI - Demo Guide"
+echo "🎨 NUVRA - Demo Guide"
 echo "========================"
 echo ""
 

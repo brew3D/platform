@@ -65,7 +65,7 @@ export default function SignupPage() {
       <div className={styles.authCard}>
         <div className={styles.authHeader}>
           <Link href="/" className={styles.logo}>
-            <span className={styles.logoText}>Ruchi AI</span>
+            <span className={styles.logoText}>PiWea</span>
           </Link>
           <h1 className={styles.title}>Create Account</h1>
           <p className={styles.subtitle}>Join the future of 3D creation</p>

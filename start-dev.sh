@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Ruchi AI - Development Startup Script
+# NUVRA - Development Startup Script
 # This script starts both the frontend (Next.js) and backend (Flask) servers
 
-echo "🚀 Starting Ruchi AI Development Environment..."
+echo "🚀 Starting NUVRA Development Environment..."
 echo "================================================"
 
 # Colors for output

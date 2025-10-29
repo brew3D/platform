@@ -1,4 +1,4 @@
-// RuchiAI Asset Library - Comprehensive 3D Asset Collection
+// NUVRA Asset Library - Comprehensive 3D Asset Collection
 // Organized into 8 themed packs for easy browsing and management
 
 export const ASSET_PACKS = {

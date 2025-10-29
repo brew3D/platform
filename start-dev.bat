@@ -1,9 +1,9 @@
 @echo off
-REM Ruchi AI - Development Startup Script for Windows
+REM NUVRA - Development Startup Script for Windows
 REM This script starts both the frontend (Next.js) and backend (Flask) servers
 
 echo.
-echo 🚀 Starting Ruchi AI Development Environment...
+echo 🚀 Starting NUVRA Development Environment...
 echo ================================================
 echo.
 

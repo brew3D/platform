@@ -503,7 +503,7 @@ export default function ProjectSettingsPage() {
                   File size limit: 1GB
                 </p>
                 <p className={styles.helperText}>
-                  Use Butler to upload files: it only uploads what's changed, generates patches for the RuchiAI App, and you can automate it.
+                  Use Butler to upload files: it only uploads what's changed, generates patches for the NUVRA App, and you can automate it.
                 </p>
               </div>
               </motion.section>

@@ -8,7 +8,7 @@ export const pillars = [
       { slug: "interactive-tutorials", title: "Interactive Tutorials", blurb: "In-editor walkthroughs for beginners." },
       { slug: "academy", title: "Academy", blurb: "Structured courses: 3D basics, robotics, AI-assisted modeling." },
       { slug: "certifications", title: "Certifications / Badges", blurb: "Complete paths to earn credentials." },
-      { slug: "teacher-dashboard", title: "Teacher Dashboard", blurb: "Manage classes and progress in Ruchi AI." },
+      { slug: "teacher-dashboard", title: "Teacher Dashboard", blurb: "Manage classes and progress in NUVRA." },
       { slug: "hackathons", title: "Hackathons & Challenges", blurb: "Time-bound builds like 'Robot arm in 1 hour'." },
       { slug: "webinars", title: "Webinars / Masterclasses", blurb: "Live sessions with industry experts." }
     ]
@@ -46,7 +46,7 @@ export const pillars = [
     description: "Publish, remix, and monetize your creations.",
     color: "#9b59b6",
     cards: [
-      { slug: "gallery", title: "Ruchi Gallery", blurb: "Dribbble/Behance for 3D." },
+      { slug: "gallery", title: "NUVRA Gallery", blurb: "Dribbble/Behance for 3D." },
       { slug: "remix", title: "Remix Feature", blurb: "Fork and republish with your twist." },
       { slug: "social", title: "Like/Comment/Follow", blurb: "Social engagement around models." },
       { slug: "templates", title: "Template Store", blurb: "Free & paid templates." },
@@ -71,7 +71,7 @@ export const pillars = [
   {
     id: "enterprise",
     title: "B2B & Enterprise Extensions",
-    description: "Scale Ruchi AI across your organization.",
+    description: "Scale NUVRA across your organization.",
     color: "#6f42c1",
     cards: [
       { slug: "enterprise-portal", title: "Enterprise Portal", blurb: "Onboarding for companies." },
@@ -79,7 +79,7 @@ export const pillars = [
       { slug: "integrations", title: "Custom Integrations", blurb: "CAD, Unity, Unreal, pipelines." },
       { slug: "insights", title: "Data Insights Dashboard", blurb: "Usage analytics." },
       { slug: "company-profiles", title: "Company Profiles", blurb: "Org pages like GitHub orgs." },
-      { slug: "jobs", title: "Job Board / Talent Pool", blurb: "Hire Ruchi-trained designers." }
+      { slug: "jobs", title: "Job Board / Talent Pool", blurb: "Hire NUVRA-trained designers." }
     ]
   },
   {
@@ -88,7 +88,7 @@ export const pillars = [
     description: "Fun, inclusive, and unforgettable.",
     color: "#8e44ad",
     cards: [
-      { slug: "weekly-digest", title: "Ruchi AI Weekly Digest", blurb: "Top creations and updates." },
+      { slug: "weekly-digest", title: "NUVRA Weekly Digest", blurb: "Top creations and updates." },
       { slug: "podcast", title: "Podcast / YouTube", blurb: "Interviews with creators." },
       { slug: "battles", title: "Design Battles / Contests", blurb: "Compete and win prizes." },
       { slug: "events", title: "Meetups / Summits", blurb: "Global gatherings." },

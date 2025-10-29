@@ -1,7 +1,7 @@
-# 🚀 Ruchi AI - Complete Tech Stack
+# 🚀 NUVRA - Complete Tech Stack
 
 ## 📋 Overview
-Ruchi AI is a revolutionary 3D collaborative modeling platform built with modern web technologies, featuring real-time collaboration, authentication, and a beautiful dark-themed UI.
+NUVRA is a revolutionary 3D collaborative modeling platform built with modern web technologies, featuring real-time collaboration, authentication, and a beautiful dark-themed UI.
 
 ---
 

@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
       <nav className={`${landingStyles.navbar} ${scrolled ? landingStyles.navbarScrolled : ''}`} ref={navbarRef}>
         <div className={landingStyles.navContainer}>
           <div className={landingStyles.logo} ref={logoRef}>
-            <span className={landingStyles.logoText}>Ruchi AI</span>
+            <span className={landingStyles.logoText}>NUVRA</span>
             <div className={landingStyles.logoAccent}></div>
           </div>
 
@@ -144,7 +144,7 @@ export default function ForgotPasswordPage() {
       <div className={styles.authCard}>
         <div className={styles.authHeader}>
           <Link href="/" className={styles.logo}>
-            <span className={styles.logoText}>Ruchi AI</span>
+            <span className={styles.logoText}>NUVRA</span>
           </Link>
           <h1 className={styles.title}>Forgot Password</h1>
           <p className={styles.subtitle}>Reset your password using a one-time code</p>
@@ -275,7 +275,7 @@ export default function ForgotPasswordPage() {
           <div className={landingStyles.footerGrid}>
             <div>
               <div className={landingStyles.logo} style={{ marginBottom: '0.5rem' }}>
-                <span className={landingStyles.logoText}>Ruchi AI</span>
+                <span className={landingStyles.logoText}>NUVRA</span>
                 <div className={landingStyles.logoAccent}></div>
               </div>
               <p className={landingStyles.footerText}>Build interactive 3D faster with AI.</p>
@@ -305,7 +305,7 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
           <div className={landingStyles.footerBottom}>
-            <span className={landingStyles.footerCopy}>© {new Date().getFullYear()} Ruchi AI. All rights reserved.</span>
+            <span className={landingStyles.footerCopy}>© {new Date().getFullYear()} NUVRA. All rights reserved.</span>
           </div>
         </div>
       </footer>

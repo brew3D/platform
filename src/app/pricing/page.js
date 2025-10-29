@@ -30,7 +30,7 @@ export default function PricingPage() {
       <nav className={`${styles.navbar} ${scrolled ? styles.navbarScrolled : ''}`} ref={navbarRef}>
         <div className={styles.navContainer}>
           <div className={styles.logo} ref={logoRef}>
-            <span className={styles.logoText}>Ruchi AI</span>
+            <span className={styles.logoText}>PiWea</span>
             <div className={styles.logoAccent}></div>
           </div>
 
@@ -170,7 +170,7 @@ export default function PricingPage() {
         <div className={styles.footerGrid}>
           <div>
             <div className={styles.logo} style={{ marginBottom: '0.5rem' }}>
-              <span className={styles.logoText}>Ruchi AI</span>
+              <span className={styles.logoText}>PiWea</span>
               <div className={styles.logoAccent}></div>
             </div>
             <p className={styles.footerText}>Build interactive 3D faster with AI.</p>
@@ -200,7 +200,7 @@ export default function PricingPage() {
           </div>
         </div>
         <div className={styles.footerBottom}>
-          <span className={styles.footerCopy}>© {new Date().getFullYear()} Ruchi AI. All rights reserved.</span>
+          <span className={styles.footerCopy}>© {new Date().getFullYear()} PiWea. All rights reserved.</span>
         </div>
       </div>
     </footer>

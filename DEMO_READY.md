@@ -1,4 +1,4 @@
-# 🎉 Ruchi AI - Demo Ready!
+# 🎉 NUVRA - Demo Ready!
 
 ## 🚀 One-Command Startup
 
@@ -101,4 +101,4 @@ start-dev.bat
 
 **Just run `./start-dev.sh` and open http://localhost:3000**
 
-Your Ruchi AI application is now **demo-ready** with a complete authentication system, profile management, 3D collaboration, and beautiful UI! 🚀✨
+Your NUVRA application is now **demo-ready** with a complete authentication system, profile management, 3D collaboration, and beautiful UI! 🚀✨

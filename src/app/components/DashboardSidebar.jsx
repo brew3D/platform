@@ -169,7 +169,7 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
             </svg>
           </div>
           {!collapsed && (
-            <span className={styles.logoText}>Ruchi AI</span>
+            <span className={styles.logoText}>PiWea</span>
           )}
         </Link>
         {!collapsed && (

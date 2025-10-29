@@ -21,7 +21,7 @@ export default function PrivacyPage() {
           <div className={styles.headerContent}>
             <div className={styles.logo}>
               <a href="/" className={styles.logoLink}>
-                <span className={styles.logoText}>Ruchi AI</span>
+                <span className={styles.logoText}>PiWea</span>
               </a>
             </div>
             <nav className={styles.nav}>
@@ -163,7 +163,7 @@ export default function PrivacyPage() {
             <div className={styles.sectionContent}>
               <p>If you have any questions about this privacy policy or our data practices, please contact us at:</p>
               <div className={styles.contactInfo}>
-                <p><strong>Email:</strong> privacy@ruchi-ai.com</p>
+                <p><strong>Email:</strong> privacy@nuvra.com</p>
                 <p><strong>Address:</strong> 123 Innovation Drive, Tech City, TC 12345</p>
                 <p><strong>Phone:</strong> +1 (555) 123-4567</p>
               </div>
@@ -179,7 +179,7 @@ export default function PrivacyPage() {
           <div className={styles.footerContent}>
             <div className={styles.footerBrand}>
               <div className={styles.logo}>
-                <span className={styles.logoText}>Ruchi AI</span>
+                <span className={styles.logoText}>PiWea</span>
               </div>
               <p className={styles.footerDescription}>
                 The future of AI-powered 3D creation
@@ -211,7 +211,7 @@ export default function PrivacyPage() {
           </div>
           
           <div className={styles.footerBottom}>
-            <p>&copy; 2025 Ruchi AI. All rights reserved.</p>
+            <p>&copy; 2025 PiWea. All rights reserved.</p>
             <div className={styles.footerLegal}>
               <a href="/privacy">Privacy</a>
               <a href="/terms">Terms</a>

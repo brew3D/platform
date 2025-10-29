@@ -1,4 +1,4 @@
-# 🚀 Ruchi AI - Quick Start Guide
+# 🚀 NUVRA - Quick Start Guide
 
 ## One-Command Startup
 

@@ -50,7 +50,7 @@ export default function CommunityPage() {
                         <div className={styles.time}>Just now</div>
                       </div>
                     </div>
-                    <div className={styles.postContent}>Here is a tip for building better maps in RuchiAI...</div>
+                    <div className={styles.postContent}>Here is a tip for building better maps in NUVRA...</div>
                     <div className={styles.postActions}>
                       <button>Like</button><button>Comment</button><button>Share</button><button>Bookmark</button>
                     </div>

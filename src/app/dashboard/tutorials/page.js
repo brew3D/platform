@@ -26,7 +26,7 @@ export default function TutorialsPage() {
 
         <div className={styles.content}>
           <header className={styles.header}>
-            <h1 className={styles.title}>Tutorials – Learn & Master RuchiAI</h1>
+            <h1 className={styles.title}>Tutorials – Learn & Master NUVRA</h1>
             <p className={styles.subtitle}>From basics to advanced workflows</p>
           </header>
 
@@ -57,7 +57,7 @@ export default function TutorialsPage() {
                     <div className={styles.videoMeta}>10:0{i} • by Creator</div>
                   </div>
                   <div className={styles.videoHover}>
-                    <div className={styles.videoDesc}>Learn the essentials to start building with RuchiAI.</div>
+                    <div className={styles.videoDesc}>Learn the essentials to start building with NUVRA.</div>
                     <button className={styles.watchBtn}>Watch</button>
                   </div>
                 </div>

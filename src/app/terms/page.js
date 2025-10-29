@@ -21,7 +21,7 @@ export default function TermsPage() {
           <div className={styles.headerContent}>
             <div className={styles.logo}>
               <a href="/" className={styles.logoLink}>
-                <span className={styles.logoText}>Ruchi AI</span>
+                <span className={styles.logoText}>PiWea</span>
               </a>
             </div>
             <nav className={styles.nav}>
@@ -55,7 +55,7 @@ export default function TermsPage() {
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Acceptance of Terms</h2>
             <div className={styles.sectionContent}>
-              <p>By accessing and using Ruchi AI's services, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+              <p>By accessing and using PiWea's services, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
               <p>These terms apply to all visitors, users, and others who access or use our service.</p>
             </div>
           </section>
@@ -63,7 +63,7 @@ export default function TermsPage() {
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Description of Service</h2>
             <div className={styles.sectionContent}>
-              <p>Ruchi AI provides a cloud-based, AI-powered 3D modeling and collaboration platform that includes:</p>
+              <p>PiWea provides a cloud-based, AI-powered 3D modeling and collaboration platform that includes:</p>
               <ul>
                 <li>Real-time collaborative 3D modeling tools</li>
                 <li>AI-assisted design and modeling features</li>
@@ -104,7 +104,7 @@ export default function TermsPage() {
                 <li>Interfere with or disrupt the service</li>
                 <li>Create content that is defamatory, offensive, or inappropriate</li>
                 <li>Infringe on intellectual property rights</li>
-                <li>Use the service to compete with Ruchi AI</li>
+                <li>Use the service to compete with PiWea</li>
               </ul>
             </div>
           </section>
@@ -164,7 +164,7 @@ export default function TermsPage() {
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Limitation of Liability</h2>
             <div className={styles.sectionContent}>
-              <p>To the maximum extent permitted by law, Ruchi AI shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or use, arising from your use of our service.</p>
+              <p>To the maximum extent permitted by law, PiWea shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or use, arising from your use of our service.</p>
               <p>Our total liability to you for any claims arising from these terms or your use of our service shall not exceed the amount you paid us in the 12 months preceding the claim.</p>
             </div>
           </section>
@@ -172,7 +172,7 @@ export default function TermsPage() {
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Indemnification</h2>
             <div className={styles.sectionContent}>
-              <p>You agree to indemnify and hold harmless Ruchi AI, its officers, directors, employees, and agents from any claims, damages, or expenses arising from:</p>
+              <p>You agree to indemnify and hold harmless PiWea, its officers, directors, employees, and agents from any claims, damages, or expenses arising from:</p>
               <ul>
                 <li>Your use of our service</li>
                 <li>Your violation of these terms</li>
@@ -218,7 +218,7 @@ export default function TermsPage() {
           <div className={styles.footerContent}>
             <div className={styles.footerBrand}>
               <div className={styles.logo}>
-                <span className={styles.logoText}>Ruchi AI</span>
+                <span className={styles.logoText}>PiWea</span>
               </div>
               <p className={styles.footerDescription}>
                 The future of AI-powered 3D creation
@@ -250,7 +250,7 @@ export default function TermsPage() {
           </div>
           
           <div className={styles.footerBottom}>
-            <p>&copy; 2025 Ruchi AI. All rights reserved.</p>
+            <p>&copy; 2025 PiWea. All rights reserved.</p>
             <div className={styles.footerLegal}>
               <a href="/privacy">Privacy</a>
               <a href="/terms">Terms</a>
