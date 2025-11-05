@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import styles from './privacy.module.css';
 
 export default function PrivacyPage() {
@@ -20,16 +21,16 @@ export default function PrivacyPage() {
         <div className={styles.inner}>
           <div className={styles.headerContent}>
             <div className={styles.logo}>
-              <a href="/" className={styles.logoLink}>
+              <Link href="/" className={styles.logoLink}>
                 <span className={styles.logoText}>PiWea</span>
-              </a>
+              </Link>
             </div>
             <nav className={styles.nav}>
-              <a href="/landing" className={styles.navLink}>Home</a>
-              <a href="/landing#features" className={styles.navLink}>Features</a>
-              <a href="/pricing" className={styles.navLink}>Pricing</a>
-              <a href="/community" className={styles.navLink}>Community</a>
-              <a href="/editor" className={styles.navButton}>Start Creating</a>
+              <Link href="/landing" className={styles.navLink}>Home</Link>
+              <Link href="/landing#features" className={styles.navLink}>Features</Link>
+              <Link href="/pricing" className={styles.navLink}>Pricing</Link>
+              <Link href="/community" className={styles.navLink}>Community</Link>
+              <Link href="/editor" className={styles.navButton}>Start Creating</Link>
             </nav>
           </div>
         </div>
@@ -154,7 +155,7 @@ export default function PrivacyPage() {
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Changes to This Policy</h2>
             <div className={styles.sectionContent}>
-              <p>We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date. Your continued use of our services after any changes constitutes acceptance of the updated policy.</p>
+              <p>We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the &quot;Last updated&quot; date. Your continued use of our services after any changes constitutes acceptance of the updated policy.</p>
             </div>
           </section>
 
@@ -189,23 +190,23 @@ export default function PrivacyPage() {
             <div className={styles.footerLinks}>
               <div className={styles.footerColumn}>
                 <h4>Product</h4>
-                <a href="/landing#features">Features</a>
-                <a href="/pricing">Pricing</a>
-                <a href="/editor">Editor</a>
+                <Link href="/landing#features">Features</Link>
+                <Link href="/pricing">Pricing</Link>
+                <Link href="/editor">Editor</Link>
               </div>
               
               <div className={styles.footerColumn}>
                 <h4>Community</h4>
-                <a href="/community">Discord</a>
-                <a href="/community">Tutorials</a>
-                <a href="/community">Templates</a>
+                <Link href="/community">Discord</Link>
+                <Link href="/community">Tutorials</Link>
+                <Link href="/community">Templates</Link>
               </div>
               
               <div className={styles.footerColumn}>
                 <h4>Support</h4>
-                <a href="/landing#help">Help Center</a>
-                <a href="/landing#contact">Contact</a>
-                <a href="/landing#status">Status</a>
+                <Link href="/landing#help">Help Center</Link>
+                <Link href="/landing#contact">Contact</Link>
+                <Link href="/landing#status">Status</Link>
               </div>
             </div>
           </div>
@@ -213,8 +214,8 @@ export default function PrivacyPage() {
           <div className={styles.footerBottom}>
             <p>&copy; 2025 PiWea. All rights reserved.</p>
             <div className={styles.footerLegal}>
-              <a href="/privacy">Privacy</a>
-              <a href="/terms">Terms</a>
+              <Link href="/privacy">Privacy</Link>
+              <Link href="/terms">Terms</Link>
             </div>
           </div>
         </div>

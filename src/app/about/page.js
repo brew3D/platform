@@ -32,7 +32,7 @@ export default function AboutPage() {
               <span className={styles.gradientText}> Simo</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              We're revolutionizing 3D modeling by making it accessible to everyone through the power of AI.
+              We&apos;re revolutionizing 3D modeling by making it accessible to everyone through the power of AI.
             </p>
           </div>
         </div>
@@ -45,13 +45,13 @@ export default function AboutPage() {
             <div className={styles.missionContent}>
               <h2 className={styles.sectionTitle}>Our Mission</h2>
               <p className={styles.missionText}>
-                At Simo, we believe that 3D modeling shouldn't be limited to professionals with years of training. 
+                At Simo, we believe that 3D modeling shouldn&apos;t be limited to professionals with years of training. 
                 Our mission is to democratize 3D creation by combining cutting-edge AI technology with intuitive 
                 design tools that anyone can use.
               </p>
               <p className={styles.missionText}>
-                We're building the future where ideas can be transformed into 3D reality in minutes, not months. 
-                Whether you're a designer, educator, entrepreneur, or just someone with a creative vision, 
+                We&apos;re building the future where ideas can be transformed into 3D reality in minutes, not months. 
+                Whether you&apos;re a designer, educator, entrepreneur, or just someone with a creative vision, 
                 Simo empowers you to bring your ideas to life.
               </p>
             </div>
@@ -109,7 +109,7 @@ export default function AboutPage() {
               <div className={styles.timelineItem}>
                 <div className={styles.timelineYear}>Future</div>
                 <div className={styles.timelineContent}>
-                  <h3 className={styles.timelineTitle}>What's Next</h3>
+                  <h3 className={styles.timelineTitle}>What&apos;s Next</h3>
                   <p className={styles.timelineText}>
                     Expanding into VR/AR integration, advanced physics simulation, and 
                     enterprise solutions for large-scale 3D content creation.
@@ -207,7 +207,7 @@ export default function AboutPage() {
               <div className={styles.valueIcon}>🚀</div>
               <h3 className={styles.valueTitle}>Innovation</h3>
               <p className={styles.valueDescription}>
-                We constantly push the boundaries of what's possible with AI and 
+                We constantly push the boundaries of what&apos;s possible with AI and 
                 3D technology to create better tools for creators.
               </p>
             </div>
@@ -217,7 +217,7 @@ export default function AboutPage() {
               <h3 className={styles.valueTitle}>Collaboration</h3>
               <p className={styles.valueDescription}>
                 We believe the best creations come from working together, which is why 
-                we've built collaboration into every aspect of our platform.
+                we&apos;ve built collaboration into every aspect of our platform.
               </p>
             </div>
             

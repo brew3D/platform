@@ -64,7 +64,7 @@ export default function ContactPage() {
               <span className={styles.gradientText}> Touch</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              Have questions? Need support? We're here to help you succeed with your 3D modeling journey.
+              Have questions? Need support? We&apos;re here to help you succeed with your 3D modeling journey.
             </p>
           </div>
         </div>

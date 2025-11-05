@@ -549,7 +549,7 @@ export default function ProfilePage() {
                 <h2 className={styles.sectionTitle}>Billing & Subscription</h2>
                 <div className={styles.billingCard}>
                   <h3>Current Plan: Free</h3>
-                  <p>You're currently on the free plan. Upgrade to unlock more features!</p>
+                  <p>You&apos;re currently on the free plan. Upgrade to unlock more features!</p>
                   <Link href="/landing#pricing" className={styles.upgradeButton}>
                     View Plans
                   </Link>

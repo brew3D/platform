@@ -340,7 +340,7 @@ export default function CharactersPage() {
           <div className={styles.headerLeft}>
           <h1 className={styles.title}>Characters</h1>
             <p className={styles.subtitle}>
-              Manage your project's characters and import from the public library
+              Manage your project&apos;s characters and import from the public library
             </p>
           </div>
           
@@ -420,7 +420,7 @@ export default function CharactersPage() {
           >
             <h2 className={styles.sectionTitle}>My Characters</h2>
             <p className={styles.sectionDescription}>
-              Characters you've added to this project
+              Characters you&apos;ve added to this project
             </p>
           </motion.div>
         )}

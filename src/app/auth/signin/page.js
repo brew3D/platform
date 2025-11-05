@@ -195,7 +195,7 @@ export default function SigninPage() {
         {/* Google OAuth temporarily disabled */}
 
         <div className={styles.authFooter}>
-          <p>Don't have an account? <Link href="/auth/signup" className={styles.authLink}>Sign up</Link></p>
+          <p>Don&apos;t have an account? <Link href="/auth/signup" className={styles.authLink}>Sign up</Link></p>
         </div>
       </div>
 

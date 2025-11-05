@@ -47,7 +47,7 @@ export default function OfflinePage() {
       <div className={styles.offlinePage}>
         <div className={styles.content}>
           <div className={styles.icon}>🌐</div>
-          <h1>You're back online!</h1>
+          <h1>You&apos;re back online!</h1>
           <p>Redirecting you to the dashboard...</p>
           <div className={styles.spinner}></div>
         </div>
@@ -59,8 +59,8 @@ export default function OfflinePage() {
     <div className={styles.offlinePage}>
       <div className={styles.content}>
         <div className={styles.icon}>📡</div>
-        <h1>You're offline</h1>
-        <p>It looks like you've lost your internet connection. Don't worry, some features are still available offline.</p>
+        <h1>You&apos;re offline</h1>
+        <p>It looks like you&apos;ve lost your internet connection. Don&apos;t worry, some features are still available offline.</p>
         
         <div className={styles.features}>
           <h3>Available offline:</h3>
@@ -107,7 +107,7 @@ export default function OfflinePage() {
           <h3>Tips for offline use:</h3>
           <ul>
             <li>Keep the app open to maintain cached content</li>
-            <li>Actions performed offline will sync when you're back online</li>
+            <li>Actions performed offline will sync when you&apos;re back online</li>
             <li>Check your internet connection and try refreshing the page</li>
             <li>Some features require an active internet connection</li>
           </ul>

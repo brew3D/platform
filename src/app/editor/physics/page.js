@@ -18,7 +18,7 @@ import {
   FiPlus, FiMinus, FiCopy, FiTrash2, FiSave, FiDownload,
   FiUpload, FiRefreshCw, FiChevronDown, FiChevronRight,
   FiX, FiCheck, FiAlertCircle, FiInfo, FiHelpCircle,
-  FiMove, FiRotateCw, FiMaximize2, FiTarget, FiCpu
+  FiMove, FiRotateCw, FiMaximize2, FiTarget, FiCpu, FiGrid
 } from "react-icons/fi";
 
 // Physics Objects Component

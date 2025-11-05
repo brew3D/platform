@@ -130,7 +130,7 @@ export default function OnboardingPage() {
     <div className={styles.onboardingPage}>
       <div className={styles.header}>
         <h1>Welcome to Simo Platform!</h1>
-        <p>Let's get you set up in just a few steps</p>
+        <p>Let&apos;s get you set up in just a few steps</p>
       </div>
 
       <div className={styles.progressContainer}>
@@ -195,7 +195,7 @@ function WelcomeStep({ onComplete }) {
       <div className={styles.welcomeContent}>
         <div className={styles.welcomeIcon}>🎉</div>
         <h3>Welcome to your new community!</h3>
-        <p>We're excited to have you join us. Let's start by getting to know you better.</p>
+        <p>We&apos;re excited to have you join us. Let&apos;s start by getting to know you better.</p>
         
         <div className={styles.inputGroup}>
           <label htmlFor="name">What should we call you?</label>
@@ -225,7 +225,7 @@ function WelcomeStep({ onComplete }) {
           onClick={handleComplete}
           disabled={!name.trim()}
         >
-          Let's get started!
+          Let&apos;s get started!
         </button>
       </div>
     </div>
@@ -478,10 +478,10 @@ function FirstPostStep({ onComplete }) {
     <div className={styles.stepContent}>
       <div className={styles.postContent}>
         <h3>Share your first post</h3>
-        <p>Introduce yourself to the community and let others know what you're interested in.</p>
+        <p>Introduce yourself to the community and let others know what you&apos;re interested in.</p>
 
         <div className={styles.formGroup}>
-          <label htmlFor="post-content">What's on your mind?</label>
+          <label htmlFor="post-content">What&apos;s on your mind?</label>
           <textarea
             id="post-content"
             value={post.content}
@@ -677,10 +677,10 @@ function OnboardingComplete() {
       <div className={styles.completeContent}>
         <div className={styles.completeIcon}>🎉</div>
         <h1>Welcome to the community!</h1>
-        <p>You've successfully completed the onboarding process. You're all set to start exploring and engaging with the community.</p>
+        <p>You&apos;ve successfully completed the onboarding process. You&apos;re all set to start exploring and engaging with the community.</p>
         
         <div className={styles.nextSteps}>
-          <h3>What's next?</h3>
+          <h3>What&apos;s next?</h3>
           <ul>
             <li>📝 Create your first post</li>
             <li>📅 Check out upcoming events</li>

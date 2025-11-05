@@ -391,7 +391,7 @@ function MyEventsView({ events, onEventSelect, onEdit }) {
       <h3>My Events ({events.length})</h3>
       {events.length === 0 ? (
         <div className={styles.emptyState}>
-          <h4>You haven't created any events yet</h4>
+          <h4>You haven&apos;t created any events yet</h4>
           <p>Create your first event to get started!</p>
         </div>
       ) : (

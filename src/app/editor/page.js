@@ -2798,7 +2798,7 @@ export default function EditorPage() {
             </div>
             <div className={styles.deleteToastText}>
               <h4>Delete Object</h4>
-              <p>Are you sure you want to delete "{objectToDelete?.id}"?</p>
+              <p>Are you sure you want to delete &quot;{objectToDelete?.id}&quot;?</p>
             </div>
             <div className={styles.deleteToastActions}>
               <button 
@@ -2856,7 +2856,7 @@ export default function EditorPage() {
             </div>
             <div className={styles.deleteToastText}>
               <h4>Save Scene</h4>
-              <p>Do you want to save to current scene "{currentScene?.name || 'Untitled Scene'}"?</p>
+              <p>Do you want to save to current scene &quot;{currentScene?.name || 'Untitled Scene'}&quot;?</p>
             </div>
             <div className={styles.deleteToastActions}>
               <button 

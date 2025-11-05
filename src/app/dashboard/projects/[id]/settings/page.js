@@ -193,7 +193,7 @@ export default function ProjectSettingsPage() {
             <div className={styles.headerContent}>
               <h1 className={styles.title}>Create a new project</h1>
               <p className={styles.subtitle}>
-                You don't have payment configured. If you set a minimum price above 0, 
+                You don&apos;t have payment configured. If you set a minimum price above 0, 
                 no one will be able to download your project. <a href="#" className={styles.editLink}>Edit account</a>
               </p>
             </div>
@@ -367,7 +367,7 @@ export default function ProjectSettingsPage() {
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>Pricing</h2>
                 <p className={styles.sectionDescription}>
-                  Set your project's pricing model
+                  Set your project&apos;s pricing model
                 </p>
               </div>
 
@@ -503,7 +503,7 @@ export default function ProjectSettingsPage() {
                   File size limit: 1GB
                 </p>
                 <p className={styles.helperText}>
-                  Use Butler to upload files: it only uploads what's changed, generates patches for the NUVRA App, and you can automate it.
+                  Use Butler to upload files: it only uploads what&apos;s changed, generates patches for the NUVRA App, and you can automate it.
                 </p>
               </div>
               </motion.section>

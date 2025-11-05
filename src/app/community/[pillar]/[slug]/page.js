@@ -13,7 +13,7 @@ export default function CardDetailPage({ params }) {
       <div className={styles.container}>
         <div className={styles.pillarHeader}>
           <h3>Not Found</h3>
-          <p>We couldn't find that page.</p>
+          <p>We couldn&apos;t find that page.</p>
           <Link href={`/community/${params.pillar ?? ""}`} className={styles.secondaryButton}>Back</Link>
         </div>
       </div>

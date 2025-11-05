@@ -114,7 +114,7 @@ export default function ScriptWorkspacePage() {
               </div>
             ))}
             {blocks.length === 0 && (
-              <div className={styles.empty}>No blocks yet. Use "+ Add Block" or the chatbot to generate.</div>
+              <div className={styles.empty}>No blocks yet. Use &quot;+ Add Block&quot; or the chatbot to generate.</div>
             )}
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function ScriptWorkspacePage() {
               </button>
             </form>
             {error && <div className={styles.error}>{error}</div>}
-            <div className={styles.chatHint}>Tip: e.g., "Make a platformer level with moving platforms and a dragon boss"</div>
+            <div className={styles.chatHint}>Tip: e.g., &quot;Make a platformer level with moving platforms and a dragon boss&quot;</div>
           </div>
         </div>
       </div>

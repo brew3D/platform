@@ -247,7 +247,7 @@ export default function HelpPage() {
           <div className={styles.contactCard}>
             <h2 className={styles.contactTitle}>Still Need Help?</h2>
             <p className={styles.contactSubtitle}>
-              Can't find what you're looking for? Our support team is here to help.
+              Can&apos;t find what you&apos;re looking for? Our support team is here to help.
             </p>
             <div className={styles.contactButtons}>
               <Link href="/contact" className={styles.contactButton}>
