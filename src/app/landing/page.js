@@ -665,7 +665,8 @@ export default function LandingPage() {
       <nav className={`${styles.navbar} ${scrolled ? styles.navbarScrolled : ''}`} ref={navbarRef}>
         <div className={styles.navContainer}>
           <div className={styles.logo} ref={logoRef}>
-            <span className={styles.logoText}>PiWea</span>
+            <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
+            <span className={styles.logoText}>Brew3D</span>
             <div className={styles.logoAccent}></div>
           </div>
           
@@ -1075,7 +1076,7 @@ export default function LandingPage() {
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle} ref={sectionTitleRef}>
-              What Makes <span className={styles.gradientText}>PiWea</span> Powerful
+              What Makes <span className={styles.gradientText}>Brew3D</span> Powerful
             </h2>
             <p className={styles.sectionSubtitle} ref={sectionSubtitleRef}>
               Built for the modern creator who values collaboration, efficiency, and innovation
@@ -1192,7 +1193,7 @@ export default function LandingPage() {
               <div className={styles.testimonial}>
                 <div className={styles.testimonialContent}>
                   <p className={styles.testimonialText}>
-                    &quot;PiWea feels like magic. Our team shipped faster than ever.&quot;
+                    &quot;Brew3D feels like magic. Our team shipped faster than ever.&quot;
                   </p>
                   <span className={styles.testimonialAuthor}>— Indie Studio Lead</span>
                 </div>
@@ -1236,7 +1237,7 @@ export default function LandingPage() {
                 <div className={styles.techIcon}></div>
                 <div className={styles.iconGlow}></div>
               </div>
-              <h3 className={styles.solutionTitle}>PiWea Solves All of These</h3>
+              <h3 className={styles.solutionTitle}>Brew3D Solves All of These</h3>
               <p className={styles.solutionSubtitle}>Real-time collaboration • AI assistance • Browser-based • Affordable pricing</p>
               
               <div className={styles.solutionPoints}>
@@ -1333,7 +1334,7 @@ export default function LandingPage() {
               <p className={styles.visionText}>
                 &quot;We believe creation should feel like flow, not friction.&quot;
               </p>
-              <span className={styles.visionAuthor}>— PiWea Team</span>
+              <span className={styles.visionAuthor}>— Brew3D Team</span>
             </div>
             <div className={styles.visionGlow}></div>
           </div>
@@ -1381,7 +1382,7 @@ export default function LandingPage() {
               
               {/* Social Growth Nudge */}
               <div className={styles.socialNudge}>
-                <p className={styles.nudgeText}>Share PiWea to move up the waitlist</p>
+                <p className={styles.nudgeText}>Share Brew3D to move up the waitlist</p>
                 <div className={styles.socialIcons}>
                   <a href="#" className={styles.socialIcon} aria-label="Share on LinkedIn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -1406,7 +1407,8 @@ export default function LandingPage() {
           <div className={styles.footerContent}>
             <div className={styles.footerBrand}>
               <div className={styles.logo}>
-                <span className={styles.logoText}>PiWea</span>
+                <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
+                <span className={styles.logoText}>Brew3D</span>
               </div>
               <p className={styles.footerDescription}>
                 The future of AI-powered 3D creation
@@ -1439,7 +1441,7 @@ export default function LandingPage() {
           </div>
           
           <div className={styles.footerBottom}>
-            <p>&copy; 2025 PiWea Studios. All rights reserved.</p>
+            <p>&copy; 2025 Brew3D Studios. All rights reserved.</p>
             <div className={styles.footerTagline}>
               <span>Made with ❤️ by creators, for creators.</span>
             </div>

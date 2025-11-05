@@ -40,7 +40,7 @@ export default function BlogPage() {
     },
     {
       id: 3,
-      title: 'Mastering Edge Manipulation in Simo',
+      title: 'Mastering Edge Manipulation in Brew3D',
       excerpt: 'A comprehensive guide to using edge handles for precise object manipulation and resizing in your 3D models.',
       category: 'tutorials',
       author: 'Michael Rodriguez',
@@ -62,7 +62,7 @@ export default function BlogPage() {
     },
     {
       id: 5,
-      title: 'New Collaboration Features in Simo Pro',
+      title: 'New Collaboration Features in Brew3D Pro',
       excerpt: 'Learn about the latest collaboration tools that make it easier than ever to work together on 3D projects.',
       category: 'features',
       author: 'David Kim',
@@ -128,8 +128,8 @@ export default function BlogPage() {
       <nav className={styles.navbar}>
         <div className={styles.navContainer}>
           <div className={styles.logo}>
-            <span className={styles.logoIcon}>🎨</span>
-            <span className={styles.logoText}>Simo</span>
+            <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
+            <span className={styles.logoText}>Brew3D</span>
           </div>
           <div className={styles.navLinks}>
             <Link href="/landing" className={styles.navLink}>Home</Link>
@@ -145,7 +145,7 @@ export default function BlogPage() {
         <div className={styles.container}>
           <div className={styles.heroContent}>
             <h1 className={styles.heroTitle}>
-              Simo
+              Brew3D
               <span className={styles.gradientText}> Blog</span>
             </h1>
             <p className={styles.heroSubtitle}>
@@ -270,8 +270,8 @@ export default function BlogPage() {
           <div className={styles.footerContent}>
             <div className={styles.footerBrand}>
               <div className={styles.logo}>
-                <span className={styles.logoIcon}>🎨</span>
-                <span className={styles.logoText}>Simo</span>
+                <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
+                <span className={styles.logoText}>Brew3D</span>
               </div>
               <p className={styles.footerDescription}>
                 The future of 3D modeling is here. Create, iterate, and share your ideas with AI.
@@ -300,7 +300,7 @@ export default function BlogPage() {
           </div>
           <div className={styles.footerBottom}>
             <p className={styles.footerCopyright}>
-              © 2024 Simo. All rights reserved.
+              © 2024 Brew3D. All rights reserved.
             </p>
           </div>
         </div>

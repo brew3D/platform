@@ -11,8 +11,8 @@ export default function AboutPage() {
       <nav className={styles.navbar}>
         <div className={styles.navContainer}>
           <div className={styles.logo}>
-            <span className={styles.logoIcon}>🎨</span>
-            <span className={styles.logoText}>Simo</span>
+            <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
+            <span className={styles.logoText}>Brew3D</span>
           </div>
           <div className={styles.navLinks}>
             <Link href="/landing" className={styles.navLink}>Home</Link>
@@ -29,7 +29,7 @@ export default function AboutPage() {
           <div className={styles.heroContent}>
             <h1 className={styles.heroTitle}>
               About
-              <span className={styles.gradientText}> Simo</span>
+              <span className={styles.gradientText}> Brew3D</span>
             </h1>
             <p className={styles.heroSubtitle}>
               We&apos;re revolutionizing 3D modeling by making it accessible to everyone through the power of AI.
@@ -45,14 +45,14 @@ export default function AboutPage() {
             <div className={styles.missionContent}>
               <h2 className={styles.sectionTitle}>Our Mission</h2>
               <p className={styles.missionText}>
-                At Simo, we believe that 3D modeling shouldn&apos;t be limited to professionals with years of training. 
+                At Brew3D, we believe that 3D modeling shouldn&apos;t be limited to professionals with years of training. 
                 Our mission is to democratize 3D creation by combining cutting-edge AI technology with intuitive 
                 design tools that anyone can use.
               </p>
               <p className={styles.missionText}>
                 We&apos;re building the future where ideas can be transformed into 3D reality in minutes, not months. 
                 Whether you&apos;re a designer, educator, entrepreneur, or just someone with a creative vision, 
-                Simo empowers you to bring your ideas to life.
+                Brew3D empowers you to bring your ideas to life.
               </p>
             </div>
             <div className={styles.missionVisual}>
@@ -100,7 +100,7 @@ export default function AboutPage() {
                 <div className={styles.timelineContent}>
                   <h3 className={styles.timelineTitle}>Public Launch</h3>
                   <p className={styles.timelineText}>
-                    Launched Simo to the public with advanced edge manipulation tools and 
+                    Launched Brew3D to the public with advanced edge manipulation tools and 
                     real-time collaboration features. Over 10,000 creators joined in the first month.
                   </p>
                 </div>
@@ -259,8 +259,8 @@ export default function AboutPage() {
           <div className={styles.footerContent}>
             <div className={styles.footerBrand}>
               <div className={styles.logo}>
-                <span className={styles.logoIcon}>🎨</span>
-                <span className={styles.logoText}>Simo</span>
+                <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
+                <span className={styles.logoText}>Brew3D</span>
               </div>
               <p className={styles.footerDescription}>
                 The future of 3D modeling is here. Create, iterate, and share your ideas with AI.
@@ -289,7 +289,7 @@ export default function AboutPage() {
           </div>
           <div className={styles.footerBottom}>
             <p className={styles.footerCopyright}>
-              © 2024 Simo. All rights reserved.
+              © 2024 Brew3D. All rights reserved.
             </p>
           </div>
         </div>

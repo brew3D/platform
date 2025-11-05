@@ -8,7 +8,7 @@ export default function Chatbot() {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hi! I'm your AI assistant. How can I help you today?",
+      text: "Hi! I'm MUG, your AI assistant. How can I help you today?",
       isBot: true,
       timestamp: new Date()
     }
@@ -66,7 +66,7 @@ export default function Chatbot() {
     }
     
     if (message.includes("hello") || message.includes("hi")) {
-      return "Hello! I'm your AI assistant. I can help you with questions about projects, teams, billing, the 3D editor, and more. What can I help you with today?";
+      return "Hello! I'm MUG, your AI assistant. I can help you with questions about projects, teams, billing, the 3D editor, and more. What can I help you with today?";
     }
     
     // Default response
@@ -123,7 +123,7 @@ export default function Chatbot() {
           <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
           <path d="M8 9h8M8 13h6" stroke="currentColor" strokeWidth="2"/>
         </svg>
-        <span>AI Assistant</span>
+        <span>MUG</span>
         {!isOpen && <span className={styles.notificationDot}></span>}
       </button>
 
@@ -134,7 +134,7 @@ export default function Chatbot() {
             <div className={styles.botInfo}>
               <div className={styles.botAvatar}>🤖</div>
               <div>
-                <h3>AI Assistant</h3>
+                <h3>MUG</h3>
                 <p>Online</p>
               </div>
             </div>

@@ -49,7 +49,7 @@ export const POST = withApiAuth(async (request, { params }) => {
       event: 'webhook.test',
       data: {
         webhookId: webhook.webhookId,
-        message: 'This is a test webhook from Simo Platform',
+        message: 'This is a test webhook from Brew3D Platform',
         timestamp: new Date().toISOString(),
         test: true
       }

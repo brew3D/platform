@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import styles from "./maps.module.css";
 
 function storageKey(projectId) {
-  return `simo:project:${projectId}:maps`;
+  return `brew3d:project:${projectId}:maps`;
 }
 
 function readMaps(projectId) {

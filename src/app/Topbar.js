@@ -35,7 +35,7 @@ function Topbar({ onExport, templateName, isProject = false, character = null, i
       <header className={styles.topbar}>
         <div className={styles.brand}>
           <Link href="/landing" className={styles.brandLink}>
-            PiWea
+            Brew3D
           </Link>
       {character && (
         <div className={styles.characterInfo}>

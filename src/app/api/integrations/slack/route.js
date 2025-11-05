@@ -83,22 +83,22 @@ async function handleSlackEvent(event) {
 async function handleSlackCommand(command, text, userId, channelId) {
   try {
     switch (command) {
-      case '/simo-posts':
+      case '/brew3d-posts':
         return await handlePostsCommand(text, channelId);
       
-      case '/simo-events':
+      case '/brew3d-events':
         return await handleEventsCommand(text, channelId);
       
-      case '/simo-search':
+      case '/brew3d-search':
         return await handleSearchCommand(text, channelId);
       
-      case '/simo-help':
+      case '/brew3d-help':
         return await handleHelpCommand(channelId);
       
       default:
         return NextResponse.json({
           response_type: 'ephemeral',
-          text: 'Unknown command. Use `/simo-help` for available commands.'
+          text: 'Unknown command. Use `/brew3d-help` for available commands.'
         });
     }
   } catch (error) {
@@ -221,7 +221,7 @@ async function handleSearchCommand(text, channelId) {
     if (!text || text.trim().length < 2) {
       return NextResponse.json({
         response_type: 'ephemeral',
-        text: 'Please provide a search term. Usage: `/simo-search your search term`'
+        text: 'Please provide a search term. Usage: `/brew3d-search your search term`'
       });
     }
 
@@ -330,14 +330,14 @@ async function handleHelpCommand(channelId) {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: '🤖 Simo Platform Slack Commands'
+        text: '🤖 Brew3D Platform Slack Commands'
       }
     },
     {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: '*Available Commands:*\n\n• `/simo-posts` - Show recent community posts\n• `/simo-events` - Show upcoming events\n• `/simo-search <query>` - Search posts, users, and tags\n• `/simo-help` - Show this help message'
+        text: '*Available Commands:*\n\n• `/brew3d-posts` - Show recent community posts\n• `/brew3d-events` - Show upcoming events\n• `/brew3d-search <query>` - Search posts, users, and tags\n• `/brew3d-help` - Show this help message'
       }
     },
     {

@@ -7,9 +7,9 @@ export async function GET(request) {
     const format = searchParams.get('format') || 'json';
 
     const apiInfo = {
-      name: 'Simo Platform API',
+      name: 'Brew3D Platform API',
       version: '1.0.0',
-      description: 'Public REST API for the Simo community platform',
+      description: 'Public REST API for the Brew3D community platform',
       status: 'active',
       endpoints: {
         authentication: {

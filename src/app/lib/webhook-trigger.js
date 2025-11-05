@@ -82,7 +82,7 @@ async function sendWebhook(webhook, payload) {
   try {
     const headers = {
       'Content-Type': 'application/json',
-      'User-Agent': 'Simo-Platform-Webhook/1.0',
+      'User-Agent': 'Brew3D-Platform-Webhook/1.0',
       'X-Webhook-Event': payload.event,
       'X-Webhook-ID': webhook.webhookId,
       ...webhook.headers

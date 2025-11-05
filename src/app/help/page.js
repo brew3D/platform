@@ -20,9 +20,9 @@ export default function HelpPage() {
   const articles = [
     {
       id: 1,
-      title: 'Getting Started with Simo',
+      title: 'Getting Started with Brew3D',
       category: 'getting-started',
-      excerpt: 'Learn the basics of creating your first 3D model with Simo\'s AI-powered tools.',
+      excerpt: 'Learn the basics of creating your first 3D model with Brew3D\'s AI-powered tools.',
       readTime: '5 min read',
       difficulty: 'Beginner'
     },
@@ -38,7 +38,7 @@ export default function HelpPage() {
       id: 3,
       title: 'AI Prompt Best Practices',
       category: 'features',
-      excerpt: 'Get the most out of Simo\'s AI by crafting effective prompts for your 3D models.',
+      excerpt: 'Get the most out of Brew3D\'s AI by crafting effective prompts for your 3D models.',
       readTime: '6 min read',
       difficulty: 'Beginner'
     },
@@ -62,7 +62,7 @@ export default function HelpPage() {
       id: 6,
       title: 'Understanding Billing and Subscriptions',
       category: 'billing',
-      excerpt: 'Everything you need to know about Simo\'s pricing plans and billing cycles.',
+      excerpt: 'Everything you need to know about Brew3D\'s pricing plans and billing cycles.',
       readTime: '3 min read',
       difficulty: 'Beginner'
     },
@@ -91,7 +91,7 @@ export default function HelpPage() {
     },
     {
       question: 'What file formats can I export?',
-      answer: 'Simo supports OBJ, FBX, STL, GLTF, and custom JSON formats. Pro users get access to additional formats and higher resolution exports.'
+      answer: 'Brew3D supports OBJ, FBX, STL, GLTF, and custom JSON formats. Pro users get access to additional formats and higher resolution exports.'
     },
     {
       question: 'How does the AI prompt feature work?',
@@ -133,8 +133,8 @@ export default function HelpPage() {
       <nav className={styles.navbar}>
         <div className={styles.navContainer}>
           <div className={styles.logo}>
-            <span className={styles.logoIcon}>🎨</span>
-            <span className={styles.logoText}>Simo</span>
+            <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
+            <span className={styles.logoText}>Brew3D</span>
           </div>
           <div className={styles.navLinks}>
             <Link href="/landing" className={styles.navLink}>Home</Link>
@@ -154,7 +154,7 @@ export default function HelpPage() {
               <span className={styles.gradientText}> Center</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              Find answers, tutorials, and guides to help you master 3D modeling with Simo.
+              Find answers, tutorials, and guides to help you master 3D modeling with Brew3D.
             </p>
             
             {/* Search Bar */}
@@ -254,7 +254,7 @@ export default function HelpPage() {
                 Contact Support
               </Link>
               <Link href="/editor" className={styles.tryButton}>
-                Try Simo Now
+                Try Brew3D Now
               </Link>
             </div>
           </div>
@@ -267,8 +267,8 @@ export default function HelpPage() {
           <div className={styles.footerContent}>
             <div className={styles.footerBrand}>
               <div className={styles.logo}>
-                <span className={styles.logoIcon}>🎨</span>
-                <span className={styles.logoText}>Simo</span>
+                <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
+                <span className={styles.logoText}>Brew3D</span>
               </div>
               <p className={styles.footerDescription}>
                 The future of 3D modeling is here. Create, iterate, and share your ideas with AI.
@@ -297,7 +297,7 @@ export default function HelpPage() {
           </div>
           <div className={styles.footerBottom}>
             <p className={styles.footerCopyright}>
-              © 2024 Simo. All rights reserved.
+              © 2024 Brew3D. All rights reserved.
             </p>
           </div>
         </div>

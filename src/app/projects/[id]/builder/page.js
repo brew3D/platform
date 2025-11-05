@@ -53,7 +53,7 @@ export default function ProjectBuilderPage() {
     setAgents(initialAgents);
 
     // Add welcome message
-    addChatMessage('ai', `Welcome to Project ${id} Builder! I'm your AI assistant. What would you like me to build for you?`, 'system');
+    addChatMessage('ai', `Welcome to Project ${id} Builder! I'm MUG, your AI assistant. What would you like me to build for you?`, 'system');
   }, [id]);
 
   // Voice recognition setup
@@ -250,7 +250,7 @@ export default function ProjectBuilderPage() {
         {/* Chat Section - 35% width */}
         <div className={styles.chatSection}>
           <div className={styles.chatHeader}>
-            <h3>AI Assistant</h3>
+            <h3>MUG</h3>
             <div className={styles.chatControls}>
               <button 
                 className={styles.voiceBtn}

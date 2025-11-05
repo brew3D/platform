@@ -159,7 +159,7 @@ export default function ProjectFlowPage() {
 
   // Load maps from localStorage and listen to updates
   useEffect(() => {
-    const key = `simo:project:${id}:maps`;
+    const key = `brew3d:project:${id}:maps`;
     const load = () => {
       try { const raw = localStorage.getItem(key); setAvailableMaps(raw ? JSON.parse(raw) : []); } catch { setAvailableMaps([]); }
     };

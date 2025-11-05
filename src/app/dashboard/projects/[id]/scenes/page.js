@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import styles from "./scenes.module.css";
 
 function storageKey(projectId) {
-  return `simo:project:${projectId}:scenes`;
+  return `brew3d:project:${projectId}:scenes`;
 }
 
 function readScenes(projectId) {

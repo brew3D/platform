@@ -43,8 +43,8 @@ export default function ContactPage() {
       <nav className={styles.navbar}>
         <div className={styles.navContainer}>
           <div className={styles.logo}>
-            <span className={styles.logoIcon}>🎨</span>
-            <span className={styles.logoText}>Simo</span>
+            <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
+            <span className={styles.logoText}>Brew3D</span>
           </div>
           <div className={styles.navLinks}>
             <Link href="/landing" className={styles.navLink}>Home</Link>
@@ -173,8 +173,8 @@ export default function ContactPage() {
                 <div className={styles.infoIcon}>📧</div>
                 <div className={styles.infoContent}>
                   <h3 className={styles.infoLabel}>Email</h3>
-                  <p className={styles.infoText}>hello@simo.ai</p>
-                  <p className={styles.infoText}>support@simo.ai</p>
+                  <p className={styles.infoText}>hello@brew3d.ai</p>
+                  <p className={styles.infoText}>support@brew3d.ai</p>
                 </div>
               </div>
 
@@ -263,8 +263,8 @@ export default function ContactPage() {
           <div className={styles.footerContent}>
             <div className={styles.footerBrand}>
               <div className={styles.logo}>
-                <span className={styles.logoIcon}>🎨</span>
-                <span className={styles.logoText}>Simo</span>
+                <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
+                <span className={styles.logoText}>Brew3D</span>
               </div>
               <p className={styles.footerDescription}>
                 The future of 3D modeling is here. Create, iterate, and share your ideas with AI.
@@ -293,7 +293,7 @@ export default function ContactPage() {
           </div>
           <div className={styles.footerBottom}>
             <p className={styles.footerCopyright}>
-              © 2024 Simo. All rights reserved.
+              © 2024 Brew3D. All rights reserved.
             </p>
           </div>
         </div>

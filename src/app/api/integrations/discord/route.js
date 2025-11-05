@@ -394,8 +394,8 @@ async function handleSearchCommand(options, channelId) {
 // Handle help command
 async function handleHelpCommand(channelId) {
   const embed = {
-    title: '🤖 Simo Platform Discord Bot',
-    description: 'Connect your Discord server with the Simo community platform!',
+    title: '🤖 Brew3D Platform Discord Bot',
+    description: 'Connect your Discord server with the Brew3D community platform!',
     color: 0x8a2be2,
     fields: [
       {
@@ -415,7 +415,7 @@ async function handleHelpCommand(channelId) {
       }
     ],
     footer: {
-      text: 'Simo Platform • Community Integration'
+      text: 'Brew3D Platform • Community Integration'
     }
   };
 

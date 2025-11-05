@@ -87,7 +87,7 @@ export default function OnboardingPage() {
   const steps = [
     {
       id: 'welcome',
-      title: 'Welcome to Simo Platform!',
+      title: 'Welcome to Brew3D Platform!',
       component: WelcomeStep,
       description: 'Let\'s get you started with your new account'
     },
@@ -129,7 +129,7 @@ export default function OnboardingPage() {
   return (
     <div className={styles.onboardingPage}>
       <div className={styles.header}>
-        <h1>Welcome to Simo Platform!</h1>
+        <h1>Welcome to Brew3D Platform!</h1>
         <p>Let&apos;s get you set up in just a few steps</p>
       </div>
 

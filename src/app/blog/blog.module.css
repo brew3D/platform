@@ -36,8 +36,10 @@
   font-weight: bold;
 }
 
-.logoIcon {
-  font-size: 2rem;
+.logoImage {
+  height: 2.5rem;
+  width: auto;
+  object-fit: contain;
 }
 
 .logoText {

@@ -90,7 +90,7 @@ export async function PUT(request) {
       fontFamily: fontFamily || 'Inter, system-ui, sans-serif',
       customCSS: customCSS || '',
       customHTML: customHTML || '',
-      siteName: siteName || 'Simo Platform',
+      siteName: siteName || 'Brew3D Platform',
       siteDescription: siteDescription || 'Community platform with authentication, roles, posts, chat, docs, and admin tools.',
       socialLinks: socialLinks || {
         twitter: '',
@@ -99,7 +99,7 @@ export async function PUT(request) {
         discord: '',
         slack: ''
       },
-      footerText: footerText || '© 2024 Simo Platform. All rights reserved.',
+      footerText: footerText || '© 2024 Brew3D Platform. All rights reserved.',
       theme: theme || 'light',
       updatedAt: now,
       updatedBy: auth.userId
@@ -135,7 +135,7 @@ function getDefaultBrandingSettings() {
     fontFamily: 'Inter, system-ui, sans-serif',
     customCSS: '',
     customHTML: '',
-    siteName: 'Simo Platform',
+    siteName: 'Brew3D Platform',
     siteDescription: 'Community platform with authentication, roles, posts, chat, docs, and admin tools.',
     socialLinks: {
       twitter: '',
@@ -144,7 +144,7 @@ function getDefaultBrandingSettings() {
       discord: '',
       slack: ''
     },
-    footerText: '© 2024 Simo Platform. All rights reserved.',
+    footerText: '© 2024 Brew3D Platform. All rights reserved.',
     theme: 'light',
     updatedAt: getCurrentTimestamp(),
     updatedBy: 'system'
