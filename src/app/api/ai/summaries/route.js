@@ -15,10 +15,15 @@ const client = new DynamoDBClient({
 
 const docClient = DynamoDBDocumentClient.from(client);
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization of OpenAI client
+function getOpenAIClient() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 // POST /api/ai/summaries - Generate AI summaries
 export async function POST(request) {
@@ -171,6 +176,7 @@ async function generatePostSummary(content, context, options) {
     - topics: Array of main topics discussed
     - actionItems: Array of any actionable items mentioned`;
 
+    const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -221,6 +227,7 @@ async function generateConversationSummary(content, context, options) {
     - actionItems: Array of follow-up actions
     - sentiment: Overall sentiment of the conversation`;
 
+    const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -271,6 +278,7 @@ async function generateEventSummary(content, context, options) {
     - targetAudience: Who should attend
     - valueProposition: Why attend this event`;
 
+    const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -321,6 +329,7 @@ async function generateSearchSummary(content, context, options) {
     - recommendations: Array of recommendations based on results
     - relatedTopics: Array of related topics to explore`;
 
+    const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -371,6 +380,7 @@ async function generateTrendingSummary(content, context, options) {
     - predictions: Array of predictions for future trends
     - engagement: Analysis of engagement patterns`;
 
+    const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [

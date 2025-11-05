@@ -15,10 +15,15 @@ const client = new DynamoDBClient({
 
 const docClient = DynamoDBDocumentClient.from(client);
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization of OpenAI client
+function getOpenAIClient() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 // Supported languages
 export const SUPPORTED_LANGUAGES = {
@@ -200,6 +205,7 @@ async function translateContent(content, sourceLanguage, targetLanguage, content
       "alternatives": ["alternative translation 1", "alternative translation 2"]
     }`;
 
+    const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -239,6 +245,7 @@ async function detectLanguage(content) {
     
     Text: "${content}"`;
 
+    const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [

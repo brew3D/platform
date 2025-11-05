@@ -15,10 +15,15 @@ const client = new DynamoDBClient({
 
 const docClient = DynamoDBDocumentClient.from(client);
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization of OpenAI client
+function getOpenAIClient() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 // POST /api/ai/search-assistant - AI-powered search assistance
 export async function POST(request) {
@@ -107,6 +112,7 @@ async function generateSearchAssistance(query, searchResults, context, searchTyp
     - confidence: Confidence level (0-1) in the assistance provided
     - nextSteps: Array of suggested next steps`;
 
+    const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -220,6 +226,7 @@ async function generateSearchSuggestions(query, type) {
     - filters: Array of suggested filters to apply
     - categories: Array of relevant categories to search in`;
 
+    const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
