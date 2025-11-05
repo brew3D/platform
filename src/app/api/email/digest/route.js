@@ -14,16 +14,21 @@ const client = new DynamoDBClient({
 
 const docClient = DynamoDBDocumentClient.from(client);
 
-// Email transporter configuration
-const transporter = nodemailer.createTransporter({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Lazy initialization of email transporter
+function getTransporter() {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    throw new Error('SMTP configuration is not complete');
+  }
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+}
 
 // POST /api/email/digest - Send weekly digest emails
 export async function POST(request) {
@@ -418,6 +423,7 @@ async function sendDigestEmail(user, digestContent) {
       text: textContent
     };
 
+    const transporter = getTransporter();
     await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
