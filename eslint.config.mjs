@@ -20,6 +20,13 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    rules: {
+      "react-hooks/exhaustive-deps": "warn",
+      "@next/next/no-img-element": "warn",
+      "import/no-anonymous-default-export": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;

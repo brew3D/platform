@@ -146,7 +146,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Children's Privacy</h2>
+            <h2 className={styles.sectionTitle}>Children&apos;s Privacy</h2>
             <div className={styles.sectionContent}>
               <p>Our services are not intended for children under 13. We do not knowingly collect personal information from children under 13. If you believe we have collected information from a child under 13, please contact us immediately.</p>
             </div>
