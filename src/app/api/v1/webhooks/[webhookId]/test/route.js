@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp } from '../../../../../../lib/dynamodb-schema';
+import { TABLE_NAMES, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
 import { withApiAuth } from '../../../_middleware/auth';
 import crypto from 'crypto';
 

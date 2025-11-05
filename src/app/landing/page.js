@@ -798,24 +798,84 @@ export default function LandingPage() {
           <div className={styles.particle}></div>
           <div className={styles.particle}></div>
         </div>
+
+        <div className={styles.fiberBackground} aria-hidden="true">
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+          <span className={`${styles.fiber}`}></span>
+        </div>
         
         <div className={styles.promptContainer}>
           <div className={styles.promptContent}>
             <h1 className={styles.promptTitle}>
-              What do you want to <span className={styles.gradientText}>build</span>?
+              <span className={styles.gradientText}>Weave</span> something together?
+              <p className={styles.promptSubtext}>
+                Just ask <span className={styles.gradientText}>Pea</span>
+              </p>
             </h1>
             <div className={styles.promptInputContainer}>
-              <input
-                type="text"
-                placeholder="build me [a game]"
-                className={`${styles.promptInput} ${isPromptFocused ? styles.promptInputFocused : ''}`}
-                value={promptValue}
-                onChange={(e) => setPromptValue(e.target.value)}
-                onFocus={() => setIsPromptFocused(true)}
-                onBlur={() => setIsPromptFocused(false)}
-                ref={promptInputRef}
-              />
-              <div className={styles.promptGlow}></div>
+              <div className={styles.promptInputInner}>
+                <input
+                  type="text"
+                  placeholder="Weave your imagination into reality"
+                  className={`${styles.promptInput} ${isPromptFocused ? styles.promptInputFocused : ''}`}
+                  value={promptValue}
+                  onChange={(e) => setPromptValue(e.target.value)}
+                  onFocus={() => setIsPromptFocused(true)}
+                  onBlur={() => setIsPromptFocused(false)}
+                  ref={promptInputRef}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const target = document.querySelector('#playground');
+                      if (target) target.scrollIntoView({ behavior: 'smooth' });
+                      setChatMessages(prev => (promptValue.trim()
+                        ? [{ role: 'user', text: promptValue.trim() }, ...prev]
+                        : prev));
+                    }
+                  }}
+                />
+                <button
+                  className={styles.generateButton}
+                  aria-label="Generate with Pea"
+                  onClick={() => {
+                    const target = document.querySelector('#playground');
+                    if (target) target.scrollIntoView({ behavior: 'smooth' });
+                    setChatMessages(prev => (promptValue.trim()
+                      ? [{ role: 'user', text: promptValue.trim() }, ...prev]
+                      : prev));
+                  }}
+                >
+                  Generate
+                </button>
+                <div className={styles.promptGlow}></div>
+              </div>
             </div>
             <div className={styles.promptButtons}>
               <a href="#playground" className={styles.promptButtonSecondary}>
@@ -826,141 +886,6 @@ export default function LandingPage() {
                 Get Started
                 <span className={styles.buttonIcon}>→</span>
               </a>
-            </div>
-            <p className={styles.promptSubtext}>
-              Describe what you want to build — Pea will take it from there.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Hero Section */}
-      <section className={styles.hero}>
-        {/* Particle Effects */}
-        <div className={styles.particles}>
-          <div className={styles.particle}></div>
-          <div className={styles.particle}></div>
-          <div className={styles.particle}></div>
-          <div className={styles.particle}></div>
-          <div className={styles.particle}></div>
-          <div className={styles.particle}></div>
-          <div className={styles.particle}></div>
-          <div className={styles.particle}></div>
-        </div>
-        
-        <div className={styles.heroContainer}>
-          <div className={styles.heroContent}>
-            <h1 className={styles.heroTitle}>
-              Build 3D Worlds. <span className={styles.gradientText}>Powered by AI.</span>
-              <br />
-              <span className={styles.aiText}>Without Breaking Your Computer.</span>
-            </h1>
-            <p className={styles.heroSubtitle}>
-              Collaborate in real-time, render in the cloud, and let AI guide your every move. PiWea makes professional 3D creation effortless.
-            </p>
-            <p className={styles.heroSupporting}>
-              Empowering every creator to turn imagination into interactive worlds — powered by AI.
-            </p>
-            <div className={styles.heroButtons}>
-              <Link href="#playground" className={styles.primaryButton}>
-                Try the Demo
-                <span className={styles.buttonIcon}>→</span>
-              </Link>
-              <a href="#features" className={styles.secondaryButton}>
-                See AI in Action
-                <span className={styles.buttonIcon}>▶</span>
-              </a>
-            </div>
-            <div className={styles.trustRibbon}>
-              <span className={styles.trustText}>Trusted by 10,000+ creators and studios worldwide</span>
-              <div className={styles.trustGlow}></div>
-            </div>
-            <div className={styles.heroStats}>
-              <div className={styles.stat}>
-                <span className={styles.statNumber}>{animatedStats.users.toLocaleString()}K+</span>
-                <span className={styles.statLabel}>Active Users</span>
-              </div>
-              <div className={styles.stat}>
-                <span className={styles.statNumber}>{animatedStats.scenes.toLocaleString()}K+</span>
-                <span className={styles.statLabel}>Scenes Created</span>
-              </div>
-              <div className={styles.stat}>
-                <span className={styles.statNumber}>{animatedStats.uptime}%</span>
-                <span className={styles.statLabel}>Uptime</span>
-              </div>
-            </div>
-          </div>
-          <div className={styles.heroVisual}>
-            {/* Floating 3D Models */}
-            <div className={styles.floatingModels}>
-              <div className={`${styles.model3d} ${styles.cube1}`}>
-                <div className={styles.cube3d}>
-                  <div className={styles.cubeFace}></div>
-                  <div className={styles.cubeFace}></div>
-                  <div className={styles.cubeFace}></div>
-                  <div className={styles.cubeFace}></div>
-                  <div className={styles.cubeFace}></div>
-                  <div className={styles.cubeFace}></div>
-                </div>
-              </div>
-              
-              <div className={`${styles.model3d} ${styles.sphere1}`}>
-                <div className={styles.sphere3d}></div>
-              </div>
-              
-              <div className={`${styles.model3d} ${styles.cylinder1}`}>
-                <div className={styles.cylinder3d}></div>
-              </div>
-              
-              <div className={`${styles.model3d} ${styles.torus1}`}>
-                <div className={styles.torus3d}></div>
-              </div>
-              
-              <div className={`${styles.model3d} ${styles.pyramid1}`}>
-                <div className={styles.pyramid3d}></div>
-              </div>
-            </div>
-            
-            {/* Main Editor Preview */}
-            <div className={styles.editorPreview}>
-              <div className={styles.editorHeader}>
-                <div className={styles.editorDots}>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-                <span className={styles.editorTitle}>PiWea Editor</span>
-                <div className={styles.aiIndicator}>
-                  <span className={styles.aiPulse}></span>
-                  <span>AI Active</span>
-                </div>
-              </div>
-              <div className={styles.editorContent}>
-                <div className={styles.scene3d}>
-                  <div className={styles.mainCube}>
-                    <div className={styles.cube3d}>
-                      <div className={styles.cubeFace}></div>
-                      <div className={styles.cubeFace}></div>
-                      <div className={styles.cubeFace}></div>
-                      <div className={styles.cubeFace}></div>
-                      <div className={styles.cubeFace}></div>
-                      <div className={styles.cubeFace}></div>
-                    </div>
-                  </div>
-                  <div className={styles.sceneLights}>
-                    <div className={styles.light1}></div>
-                    <div className={styles.light2}></div>
-                    <div className={styles.light3}></div>
-                  </div>
-                </div>
-                <div className={styles.collaborationIndicator}>
-                  <div className={styles.userAvatar}></div>
-                  <div className={styles.userAvatar}></div>
-                  <div className={styles.userAvatar}></div>
-                  <div className={styles.liveIndicator}>LIVE</div>
-                </div>
-                <div className={styles.aiCursor}></div>
-              </div>
             </div>
           </div>
         </div>
@@ -1103,7 +1028,7 @@ export default function LandingPage() {
                   </button>
                   {showCredits && (
                     <div className={styles.creditsTooltip}>
-                      <span>"Mario obj" by MatiasH290 is licensed under </span>
+                      <span>&quot;Mario obj&quot; by MatiasH290 is licensed under </span>
                       <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
                       <span>. Source: </span>
                       <a href="https://skfb.ly/6X8o8" target="_blank" rel="noopener noreferrer">skfb.ly/6X8o8</a>
@@ -1267,7 +1192,7 @@ export default function LandingPage() {
               <div className={styles.testimonial}>
                 <div className={styles.testimonialContent}>
                   <p className={styles.testimonialText}>
-                    "PiWea feels like magic. Our team shipped faster than ever."
+                    &quot;PiWea feels like magic. Our team shipped faster than ever.&quot;
                   </p>
                   <span className={styles.testimonialAuthor}>— Indie Studio Lead</span>
                 </div>
@@ -1275,7 +1200,7 @@ export default function LandingPage() {
               <div className={styles.testimonial}>
                 <div className={styles.testimonialContent}>
                   <p className={styles.testimonialText}>
-                    "Finally, 3D collaboration that actually works."
+                    &quot;Finally, 3D collaboration that actually works.&quot;
                   </p>
                   <span className={styles.testimonialAuthor}>— Creative Director</span>
                 </div>
@@ -1283,7 +1208,7 @@ export default function LandingPage() {
               <div className={styles.testimonial}>
                 <div className={styles.testimonialContent}>
                   <p className={styles.testimonialText}>
-                    "The AI assistance is incredible. It's like having a senior artist on the team."
+                    &quot;The AI assistance is incredible. It&apos;s like having a senior artist on the team.&quot;
                   </p>
                   <span className={styles.testimonialAuthor}>— 3D Artist</span>
                 </div>
@@ -1356,7 +1281,7 @@ export default function LandingPage() {
                   </div>
                   <div className={styles.solutionPointContent}>
                     <h4>Expensive Licensing</h4>
-                    <p>Thousands per year for professional tools. Small studios and freelancers can't afford the high costs, while free alternatives lack professional features.</p>
+                    <p>Thousands per year for professional tools. Small studios and freelancers can&apos;t afford the high costs, while free alternatives lack professional features.</p>
                   </div>
                 </div>
                 
@@ -1372,7 +1297,7 @@ export default function LandingPage() {
                   </div>
                   <div className={styles.solutionPointContent}>
                     <h4>Hardware Limitations</h4>
-                    <p>Heavy reliance on local GPU/CPU power. Large scenes crash on average machines, and there's no cloud acceleration for complex operations.</p>
+                    <p>Heavy reliance on local GPU/CPU power. Large scenes crash on average machines, and there&apos;s no cloud acceleration for complex operations.</p>
                   </div>
                 </div>
               </div>
@@ -1406,7 +1331,7 @@ export default function LandingPage() {
           <div className={styles.visionQuote}>
             <div className={styles.visionContent}>
               <p className={styles.visionText}>
-                "We believe creation should feel like flow, not friction."
+                &quot;We believe creation should feel like flow, not friction.&quot;
               </p>
               <span className={styles.visionAuthor}>— PiWea Team</span>
             </div>
@@ -1422,7 +1347,7 @@ export default function LandingPage() {
           <div className={styles.ctaContent}>
             <h2 className={styles.ctaTitle}>Ready to Transform Your 3D Workflow?</h2>
             <p className={styles.ctaSubtitle}>
-              Join thousands of creators who've already made the switch to collaborative 3D modeling
+              Join thousands of creators who&apos;ve already made the switch to collaborative 3D modeling
             </p>
             <div className={styles.emailSignup}>
               <div className={styles.emailInputContainer}>
@@ -1447,7 +1372,7 @@ export default function LandingPage() {
               </div>
               {emailSubmitted && (
                 <div className={styles.successMessage}>
-                  <span className={styles.successText}>You're in! Check your inbox.</span>
+                  <span className={styles.successText}>You&apos;re in! Check your inbox.</span>
                 </div>
               )}
               <p className={styles.emailDisclaimer}>

@@ -44,7 +44,7 @@
   }
 }
 
-h1 {
+.content h1 {
   font-size: 2.5rem;
   font-weight: 900;
   background: linear-gradient(135deg, #8a2be2, #667eea);
@@ -240,7 +240,7 @@ h1 {
     padding: 2rem;
   }
   
-  h1 {
+  .content h1 {
     font-size: 2rem;
   }
   
@@ -270,7 +270,7 @@ h1 {
     padding: 1.5rem;
   }
   
-  h1 {
+  .content h1 {
     font-size: 1.8rem;
   }
   

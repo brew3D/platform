@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp } from '../../../lib/dynamodb-schema';
+import { TABLE_NAMES, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
 import { requireAuth } from '@/app/lib/auth';
 
 const client = new DynamoDBClient({
@@ -181,7 +181,7 @@ export async function PUT(request, { params }) {
     }
 
     // Update plugin configuration
-    const updateExpression = 'SET lastUpdatedAt = :lastUpdatedAt';
+    let updateExpression = 'SET lastUpdatedAt = :lastUpdatedAt';
     const expressionAttributeValues = {
       ':lastUpdatedAt': getCurrentTimestamp()
     };
