@@ -22,9 +22,27 @@ export function getSupabaseClient() {
   return cachedClient;
 }
 
+let cachedAdminClient = null;
+
 export function getSupabaseAdmin() {
-  // For admin operations, you might want to use service role key
-  // For now, using the same client
-  return getSupabaseClient();
+  // Use service role key for server-side operations (bypasses RLS)
+  if (cachedAdminClient) return cachedAdminClient;
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON;
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    console.warn('Service role key not found, falling back to anon key. RLS policies may block operations.');
+    return getSupabaseClient();
+  }
+
+  cachedAdminClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+
+  return cachedAdminClient;
 }
 

@@ -1,25 +1,16 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES, generateId, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
+import { getSupabaseClient } from '@/app/lib/supabase';
+import { generateId, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
 import { requireAuth } from '@/app/lib/auth';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
+const supabase = getSupabaseClient();
 
 // GET /api/events - Get all events with filtering and pagination
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '20', 10);
-    const lastKey = searchParams.get('lastKey');
+    const offset = parseInt(searchParams.get('offset') || '0', 10);
     const category = searchParams.get('category');
     const type = searchParams.get('type');
     const status = searchParams.get('status') || 'published';
@@ -28,65 +19,43 @@ export async function GET(request) {
     const organizerId = searchParams.get('organizerId');
     const isPublic = searchParams.get('isPublic') !== 'false';
 
-    const params = {
-      TableName: TABLE_NAMES.EVENTS,
-      Limit: limit,
-      FilterExpression: '#status = :status',
-      ExpressionAttributeNames: {
-        '#status': 'status'
-      },
-      ExpressionAttributeValues: {
-        ':status': status
-      }
-    };
+    let query = supabase
+      .from('events')
+      .select('*')
+      .eq('status', status)
+      .limit(limit)
+      .offset(offset)
+      .order('created_at', { ascending: false });
 
-    // Add pagination
-    if (lastKey) {
-      try {
-        params.ExclusiveStartKey = JSON.parse(Buffer.from(lastKey, 'base64').toString('utf8'));
-      } catch (e) {
-        console.error('Invalid lastKey:', e);
-      }
-    }
-
-    // Add filters
-    const filters = [];
     if (category) {
-      filters.push('category = :category');
-      params.ExpressionAttributeValues[':category'] = category;
+      query = query.eq('category', category);
     }
     if (type) {
-      filters.push('#type = :type');
-      params.ExpressionAttributeNames['#type'] = 'type';
-      params.ExpressionAttributeValues[':type'] = type;
+      query = query.eq('type', type);
     }
     if (organizerId) {
-      filters.push('organizerId = :organizerId');
-      params.ExpressionAttributeValues[':organizerId'] = organizerId;
+      query = query.eq('organizer_id', organizerId);
     }
     if (isPublic) {
-      filters.push('isPublic = :isPublic');
-      params.ExpressionAttributeValues[':isPublic'] = true;
+      query = query.eq('is_public', true);
     }
     if (startDate) {
-      filters.push('eventDate >= :startDate');
-      params.ExpressionAttributeValues[':startDate'] = startDate;
+      query = query.gte('event_date', startDate);
     }
     if (endDate) {
-      filters.push('eventDate <= :endDate');
-      params.ExpressionAttributeValues[':endDate'] = endDate;
+      query = query.lte('event_date', endDate);
     }
 
-    if (filters.length > 0) {
-      params.FilterExpression += ' AND ' + filters.join(' AND ');
-    }
-
-    const result = await docClient.send(new ScanCommand(params));
+    const { data: events, error } = await query;
     
+    if (error) {
+      throw error;
+    }
+
     // Get RSVP counts for each event
     const eventsWithRSVPs = await Promise.all(
-      (result.Items || []).map(async (event) => {
-        const rsvpCount = await getEventRSVPCount(event.eventId);
+      (events || []).map(async (event) => {
+        const rsvpCount = await getEventRSVPCount(event.event_id);
         return {
           ...event,
           currentAttendees: rsvpCount.attending,
@@ -95,14 +64,9 @@ export async function GET(request) {
       })
     );
 
-    const encodedLastKey = result.LastEvaluatedKey 
-      ? Buffer.from(JSON.stringify(result.LastEvaluatedKey)).toString('base64') 
-      : null;
-
     return NextResponse.json({ 
       success: true,
       events: eventsWithRSVPs,
-      lastKey: encodedLastKey,
       count: eventsWithRSVPs.length
     });
   } catch (error) {
@@ -172,56 +136,45 @@ export async function POST(request) {
     const now_timestamp = getCurrentTimestamp();
 
     const event = {
-      eventId,
+      event_id: eventId,
       title: title.trim(),
       description: description.trim(),
-      organizerId: auth.userId,
-      eventDate: startTime.split('T')[0], // YYYY-MM-DD format for GSI
-      startTime,
-      endTime,
-      location: {
-        name: location?.name || '',
-        address: location?.address || '',
-        city: location?.city || '',
-        state: location?.state || '',
-        country: location?.country || '',
-        postalCode: location?.postalCode || '',
-        coordinates: location?.coordinates || {},
-        onlineLink: location?.onlineLink || '',
-        meetingId: location?.meetingId || '',
-        meetingPassword: location?.meetingPassword || ''
-      },
+      organizer_id: auth.userId,
+      event_date: startTime.split('T')[0], // YYYY-MM-DD format
+      start_time: startTime,
+      end_time: endTime,
+      location: location || {},
       category,
       type,
-      maxAttendees: parseInt(maxAttendees, 10),
-      currentAttendees: 0,
+      max_attendees: parseInt(maxAttendees, 10),
+      current_attendees: 0,
       price: parseInt(price, 10),
       currency,
       tags: Array.isArray(tags) ? tags : [],
       requirements: Array.isArray(requirements) ? requirements : [],
       resources: Array.isArray(resources) ? resources : [],
       status: 'published',
-      isPublic: Boolean(isPublic),
-      allowWaitlist: Boolean(allowWaitlist),
-      registrationDeadline: registrationDeadline || endTime,
-      reminderSettings: {
-        emailReminders: reminderSettings.emailReminders !== false,
-        pushNotifications: reminderSettings.pushNotifications !== false,
-        reminderTimes: reminderSettings.reminderTimes || [24, 2, 1],
-        customMessage: reminderSettings.customMessage || ''
-      },
-      createdAt: now_timestamp,
-      updatedAt: now_timestamp
+      is_public: Boolean(isPublic),
+      allow_waitlist: Boolean(allowWaitlist),
+      registration_deadline: registrationDeadline || endTime,
+      reminder_settings: reminderSettings || {},
+      created_at: now_timestamp,
+      updated_at: now_timestamp
     };
 
-    await docClient.send(new PutCommand({ 
-      TableName: TABLE_NAMES.EVENTS, 
-      Item: event 
-    }));
+    const { data: newEvent, error: insertError } = await supabase
+      .from('events')
+      .insert(event)
+      .select()
+      .single();
+
+    if (insertError) {
+      throw insertError;
+    }
 
     return NextResponse.json({ 
       success: true, 
-      event 
+      event: newEvent 
     });
   } catch (error) {
     console.error('Create event error:', error);
@@ -235,16 +188,14 @@ export async function POST(request) {
 // Helper function to get RSVP count for an event
 async function getEventRSVPCount(eventId) {
   try {
-    const params = {
-      TableName: TABLE_NAMES.EVENT_RSVPS,
-      KeyConditionExpression: 'eventId = :eventId',
-      ExpressionAttributeValues: {
-        ':eventId': eventId
-      }
-    };
+    const { data: rsvps, error } = await supabase
+      .from('event_rsvps')
+      .select('status')
+      .eq('event_id', eventId);
 
-    const result = await docClient.send(new QueryCommand(params));
-    const rsvps = result.Items || [];
+    if (error) {
+      throw error;
+    }
 
     const counts = {
       attending: 0,
@@ -253,8 +204,11 @@ async function getEventRSVPCount(eventId) {
       waitlist: 0
     };
 
-    rsvps.forEach(rsvp => {
-      counts[rsvp.status] = (counts[rsvp.status] || 0) + 1;
+    (rsvps || []).forEach(rsvp => {
+      const status = rsvp.status;
+      if (counts.hasOwnProperty(status)) {
+        counts[status] = (counts[status] || 0) + 1;
+      }
     });
 
     return counts;

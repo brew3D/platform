@@ -1,30 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import DashboardSidebar from "../../components/DashboardSidebar";
-import DashboardTopbar from "../../components/DashboardTopbar";
 import { useAuth } from "../../contexts/AuthContext";
 import styles from "./tutorials.module.css";
 
 export default function TutorialsPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div className={styles.tutorialsPage}>
-      <DashboardSidebar 
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        activeItem="tutorials"
-      />
-
-      <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-        <DashboardTopbar 
-          user={user}
-          onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-
-        <div className={styles.content}>
+      <div className={styles.content}>
           <header className={styles.header}>
             <h1 className={styles.title}>Tutorials – Learn & Master NUVRA</h1>
             <p className={styles.subtitle}>From basics to advanced workflows</p>
@@ -54,7 +39,7 @@ export default function TutorialsPage() {
                   </div>
                   <div className={styles.videoInfo}>
                     <div className={styles.videoTitle}>Tutorial #{i + 1} – Getting Started</div>
-                    <div className={styles.videoMeta}>10:0{i} • by Creator</div>
+                    <div className={styles.videoMeta}>{`10:0${i + 1} • by Creator`}</div>
                   </div>
                   <div className={styles.videoHover}>
                     <div className={styles.videoDesc}>Learn the essentials to start building with NUVRA.</div>
@@ -64,7 +49,6 @@ export default function TutorialsPage() {
               ))}
             </div>
           </section>
-        </div>
       </div>
     </div>
   );

@@ -1,18 +1,9 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
+import { getSupabaseClient } from '@/app/lib/supabase';
+import { getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
 import { requireAuth } from '@/app/lib/auth';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
+const supabase = getSupabaseClient();
 
 // GET /api/events/[eventId] - Get a specific event
 export async function GET(request, { params }) {
@@ -26,12 +17,13 @@ export async function GET(request, { params }) {
       }, { status: 400 });
     }
 
-    const result = await docClient.send(new GetCommand({ 
-      TableName: TABLE_NAMES.EVENTS, 
-      Key: { eventId } 
-    }));
+    const { data: event, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('event_id', eventId)
+      .single();
 
-    if (!result.Item) {
+    if (error || !event) {
       return NextResponse.json({ 
         success: false, 
         error: 'Event not found' 
@@ -40,8 +32,8 @@ export async function GET(request, { params }) {
 
     // Get RSVP details
     const rsvpCount = await getEventRSVPCount(eventId);
-    const event = {
-      ...result.Item,
+    const eventWithCounts = {
+      ...event,
       currentAttendees: rsvpCount.attending,
       waitlistCount: rsvpCount.waitlist,
       rsvpCounts: rsvpCount
@@ -49,7 +41,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({ 
       success: true, 
-      event 
+      event: eventWithCounts 
     });
   } catch (error) {
     console.error('Get event error:', error);
@@ -77,12 +69,13 @@ export async function PUT(request, { params }) {
     }
 
     // Get current event to check permissions
-    const currentEvent = await docClient.send(new GetCommand({ 
-      TableName: TABLE_NAMES.EVENTS, 
-      Key: { eventId } 
-    }));
+    const { data: currentEvent, error: fetchError } = await supabase
+      .from('events')
+      .select('*')
+      .eq('event_id', eventId)
+      .single();
 
-    if (!currentEvent.Item) {
+    if (fetchError || !currentEvent) {
       return NextResponse.json({ 
         success: false, 
         error: 'Event not found' 
@@ -90,7 +83,7 @@ export async function PUT(request, { params }) {
     }
 
     // Check if user is organizer or admin/moderator
-    const isOrganizer = currentEvent.Item.organizerId === auth.userId;
+    const isOrganizer = currentEvent.organizer_id === auth.userId;
     const isModerator = ['admin', 'moderator'].includes(auth.role || 'member');
 
     if (!isOrganizer && !isModerator) {
@@ -101,55 +94,43 @@ export async function PUT(request, { params }) {
     }
 
     const now = getCurrentTimestamp();
-    const updates = [];
-    const names = {};
-    const values = { ':updatedAt': now };
+    const updateData = {
+      updated_at: now
+    };
 
-    // Build update expression dynamically
+    // Build update data dynamically
     const allowedFields = [
-      'title', 'description', 'startTime', 'endTime', 'location', 
-      'category', 'type', 'maxAttendees', 'price', 'currency', 
-      'tags', 'requirements', 'resources', 'status', 'isPublic', 
-      'allowWaitlist', 'registrationDeadline', 'reminderSettings'
+      'title', 'description', 'start_time', 'end_time', 'location', 
+      'category', 'type', 'max_attendees', 'price', 'currency', 
+      'tags', 'requirements', 'resources', 'status', 'is_public', 
+      'allow_waitlist', 'registration_deadline', 'reminder_settings'
     ];
 
     allowedFields.forEach(field => {
       if (body[field] !== undefined) {
-        updates.push(`#${field} = :${field}`);
-        names[`#${field}`] = field;
-        values[`:${field}`] = body[field];
+        updateData[field] = body[field];
       }
     });
 
-    // Update eventDate if startTime is being updated
-    if (body.startTime) {
-      updates.push('#eventDate = :eventDate');
-      names['#eventDate'] = 'eventDate';
-      values[':eventDate'] = body.startTime.split('T')[0];
+    // Update event_date if start_time is being updated
+    if (body.start_time) {
+      updateData.event_date = body.start_time.split('T')[0];
     }
 
-    updates.push('#updatedAt = :updatedAt');
-    names['#updatedAt'] = 'updatedAt';
+    const { data: updatedEvent, error: updateError } = await supabase
+      .from('events')
+      .update(updateData)
+      .eq('event_id', eventId)
+      .select()
+      .single();
 
-    if (updates.length === 1) { // Only updatedAt
-      return NextResponse.json({ 
-        success: false, 
-        error: 'No valid fields to update' 
-      }, { status: 400 });
+    if (updateError) {
+      throw updateError;
     }
-
-    const result = await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.EVENTS,
-      Key: { eventId },
-      UpdateExpression: 'SET ' + updates.join(', '),
-      ExpressionAttributeNames: names,
-      ExpressionAttributeValues: values,
-      ReturnValues: 'ALL_NEW'
-    }));
 
     return NextResponse.json({ 
       success: true, 
-      event: result.Attributes 
+      event: updatedEvent 
     });
   } catch (error) {
     console.error('Update event error:', error);
@@ -176,12 +157,13 @@ export async function DELETE(request, { params }) {
     }
 
     // Get current event to check permissions
-    const currentEvent = await docClient.send(new GetCommand({ 
-      TableName: TABLE_NAMES.EVENTS, 
-      Key: { eventId } 
-    }));
+    const { data: currentEvent, error: fetchError } = await supabase
+      .from('events')
+      .select('*')
+      .eq('event_id', eventId)
+      .single();
 
-    if (!currentEvent.Item) {
+    if (fetchError || !currentEvent) {
       return NextResponse.json({ 
         success: false, 
         error: 'Event not found' 
@@ -189,7 +171,7 @@ export async function DELETE(request, { params }) {
     }
 
     // Check if user is organizer or admin
-    const isOrganizer = currentEvent.Item.organizerId === auth.userId;
+    const isOrganizer = currentEvent.organizer_id === auth.userId;
     const isAdmin = auth.role === 'admin';
 
     if (!isOrganizer && !isAdmin) {
@@ -199,14 +181,21 @@ export async function DELETE(request, { params }) {
       }, { status: 403 });
     }
 
-    // Delete the event
-    await docClient.send(new DeleteCommand({
-      TableName: TABLE_NAMES.EVENTS,
-      Key: { eventId }
-    }));
+    // Delete all RSVPs for this event first (cascade delete)
+    await supabase
+      .from('event_rsvps')
+      .delete()
+      .eq('event_id', eventId);
 
-    // TODO: Also delete all RSVPs for this event
-    // This would require a scan and batch delete operation
+    // Delete the event
+    const { error: deleteError } = await supabase
+      .from('events')
+      .delete()
+      .eq('event_id', eventId);
+
+    if (deleteError) {
+      throw deleteError;
+    }
 
     return NextResponse.json({ 
       success: true, 
@@ -224,18 +213,14 @@ export async function DELETE(request, { params }) {
 // Helper function to get RSVP count for an event
 async function getEventRSVPCount(eventId) {
   try {
-    const { QueryCommand } = await import('@aws-sdk/lib-dynamodb');
-    
-    const params = {
-      TableName: TABLE_NAMES.EVENT_RSVPS,
-      KeyConditionExpression: 'eventId = :eventId',
-      ExpressionAttributeValues: {
-        ':eventId': eventId
-      }
-    };
+    const { data: rsvps, error } = await supabase
+      .from('event_rsvps')
+      .select('status')
+      .eq('event_id', eventId);
 
-    const result = await docClient.send(new QueryCommand(params));
-    const rsvps = result.Items || [];
+    if (error) {
+      throw error;
+    }
 
     const counts = {
       attending: 0,
@@ -244,8 +229,11 @@ async function getEventRSVPCount(eventId) {
       waitlist: 0
     };
 
-    rsvps.forEach(rsvp => {
-      counts[rsvp.status] = (counts[rsvp.status] || 0) + 1;
+    (rsvps || []).forEach(rsvp => {
+      const status = rsvp.status;
+      if (counts.hasOwnProperty(status)) {
+        counts[status] = (counts[status] || 0) + 1;
+      }
     });
 
     return counts;

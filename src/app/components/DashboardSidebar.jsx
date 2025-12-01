@@ -258,7 +258,7 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
                   }
                 }
               } catch (e) {}
-              router.push('/landing');
+              router.push('/');
             }}
           >
             <div className={styles.navIcon}>

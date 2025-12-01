@@ -1,18 +1,111 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useTheme } from "../contexts/ThemeContext";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import styles from "./DashboardTopbar.module.css";
+import { useTheme } from "../contexts/ThemeContext";
+import styles from "./DashboardNavbar.module.css";
 
-export default function DashboardTopbar({ user, onSidebarToggle }) {
+const navItems = [
+  {
+    id: 'projects',
+    label: 'Projects',
+    href: '/dashboard',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" stroke="currentColor" strokeWidth="2"/>
+        <path d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'templates',
+    label: 'Templates',
+    href: '/dashboard/templates',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'team',
+    label: 'Team',
+    href: '/dashboard/team',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" strokeWidth="2"/>
+        <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'revenue',
+    label: 'Revenue',
+    href: '/dashboard/revenue',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'assets',
+    label: 'Assets',
+    href: '/dashboard/assets',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2l9 5-9 5-9-5 9-5z" stroke="currentColor" strokeWidth="2"/>
+        <path d="M21 12l-9 5-9-5" stroke="currentColor" strokeWidth="2"/>
+        <path d="M21 17l-9 5-9-5" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'tutorials',
+    label: 'Tutorials',
+    href: '/dashboard/tutorials',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" strokeWidth="2"/>
+        <path d="M6 3h12a2 2 0 012 2v12H6a2 2 0 00-2 2V5a2 2 0 012-2z" stroke="currentColor" strokeWidth="2"/>
+        <path d="M8 7h8M8 10h8M8 13h5" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'community',
+    label: 'Community',
+    href: '/dashboard/community',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'chat',
+    label: 'Chat',
+    href: '/dashboard/chat',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
+        <path d="M8 9h8M8 13h6" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+  },
+];
+
+export default function DashboardNavbar({ user }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { logout } = useAuth();
+  const { toggleTheme, isDark } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { theme, toggleTheme, isDark } = useTheme();
 
   const notifications = [
     { id: 1, message: "New team member joined your project", time: "2m ago", unread: true },
@@ -43,9 +136,57 @@ export default function DashboardTopbar({ user, onSidebarToggle }) {
     router.push('/');
   };
 
+  const getActiveItem = () => {
+    if (pathname?.startsWith('/dashboard/projects')) return 'projects';
+    if (pathname?.startsWith('/dashboard/templates')) return 'templates';
+    if (pathname?.startsWith('/dashboard/team')) return 'team';
+    if (pathname?.startsWith('/dashboard/revenue')) return 'revenue';
+    if (pathname?.startsWith('/dashboard/assets')) return 'assets';
+    if (pathname?.startsWith('/dashboard/tutorials')) return 'tutorials';
+    if (pathname?.startsWith('/dashboard/community')) return 'community';
+    if (pathname?.startsWith('/dashboard/chat')) return 'chat';
+    return 'projects';
+  };
+
+  const activeItem = getActiveItem();
+
   return (
-    <header className={styles.topbar}>
-      <div className={styles.leftSection}>
+    <header className={styles.navbar}>
+      {/* Logo */}
+      <div className={styles.logoSection}>
+        <Link href="/dashboard" className={styles.logoLink}>
+          <div className={styles.logoIcon}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2"/>
+              <path d="M2 17l10 5 10-5" stroke="currentColor" strokeWidth="2"/>
+              <path d="M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+          </div>
+          <span className={styles.logoText}>Brew3D</span>
+        </Link>
+      </div>
+
+      {/* Navigation Items */}
+      <nav className={styles.navSection}>
+        {navItems.map((item) => {
+          const isActive = activeItem === item.id;
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+            >
+              <div className={styles.navIcon}>{item.icon}</div>
+              <span className={styles.navLabel}>{item.label}</span>
+              {isActive && <div className={styles.activeIndicator}></div>}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Right Section */}
+      <div className={styles.rightSection}>
+        {/* Search */}
         <div className={styles.searchContainer}>
           <div className={styles.searchIcon}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -55,15 +196,13 @@ export default function DashboardTopbar({ user, onSidebarToggle }) {
           </div>
           <input
             type="text"
-            placeholder="Search projects, templates, assets..."
+            placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={styles.searchInput}
           />
         </div>
-      </div>
 
-      <div className={styles.rightSection}>
         {/* Theme Toggle */}
         <button 
           className={styles.themeToggle}
@@ -145,7 +284,7 @@ export default function DashboardTopbar({ user, onSidebarToggle }) {
             </div>
             <div className={styles.profileInfo}>
               <span className={styles.profileName}>{user?.name || 'User'}</span>
-              <span className={styles.profileRole}>Game Developer</span>
+              <span className={styles.profileRole}>Developer</span>
             </div>
             <svg 
               className={`${styles.dropdownArrow} ${showProfileDropdown ? styles.rotated : ''}`} 
@@ -212,3 +351,4 @@ export default function DashboardTopbar({ user, onSidebarToggle }) {
     </header>
   );
 }
+

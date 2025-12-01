@@ -1,32 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import DashboardSidebar from "../../components/DashboardSidebar";
-import DashboardTopbar from "../../components/DashboardTopbar";
 import { useAuth } from "../../contexts/AuthContext";
 import styles from "./community.module.css";
 
 export default function CommunityPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const tabs = ['Posts','Tutorials','Creator Videos'];
   const [activeTab, setActiveTab] = useState('Posts');
 
   return (
     <div className={styles.communityPage}>
-      <DashboardSidebar 
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        activeItem="community"
-      />
-
-      <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-        <DashboardTopbar 
-          user={user}
-          onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-
-        <div className={styles.content}>
+      <div className={styles.content}>
           <header className={styles.header}>
             <h1 className={styles.title}>Community – Connect & Share</h1>
             <p className={styles.subtitle}>Posts, tutorials, and creator videos</p>
@@ -65,7 +50,6 @@ export default function CommunityPage() {
               <div className={styles.placeholder}>YouTube playlists from verified creators.</div>
             )}
           </section>
-        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   FaUpload, 
@@ -20,8 +21,13 @@ import {
 import styles from './project-settings.module.css';
 
 export default function ProjectSettingsPage() {
+  const params = useParams();
+  const router = useRouter();
+  const projectId = params?.id;
+  
   // Removed sidebar state as we're not using DashboardSidebar anymore
   const [activeSection, setActiveSection] = useState('basics');
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     // Project Basics
     title: '',
@@ -68,9 +74,81 @@ export default function ProjectSettingsPage() {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null); // 'saved' | 'saving' | 'error'
   const fileInputRef = useRef(null);
   const coverImageRef = useRef(null);
   const screenshotsRef = useRef(null);
+
+  // Fetch project data on mount
+  useEffect(() => {
+    if (!projectId) return;
+    
+    const fetchProject = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/projects/${projectId}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch project');
+        }
+        
+        const project = await response.json();
+        
+        // Map project data to formData
+        const settings = project.settings || {};
+        setFormData({
+          // Project Basics
+          title: project.name || '',
+          url: project.url || project.projectId || '',
+          description: project.description || '',
+          
+          // Classification
+          projectType: settings.projectType || 'games',
+          kindOfProject: settings.kindOfProject || 'downloadable',
+          releaseStatus: settings.releaseStatus || project.status || 'released',
+          
+          // Pricing
+          pricingType: settings.pricingType || 'free',
+          suggestedDonation: settings.suggestedDonation || 2.00,
+          
+          // Details
+          fullDescription: settings.fullDescription || project.description || '',
+          genre: settings.genre || '',
+          tags: settings.tags || [],
+          aiDisclosure: settings.aiDisclosure || 'no',
+          
+          // App Store Links
+          steamLink: settings.steamLink || '',
+          appleStoreLink: settings.appleStoreLink || '',
+          googlePlayLink: settings.googlePlayLink || '',
+          amazonLink: settings.amazonLink || '',
+          windowsStoreLink: settings.windowsStoreLink || '',
+          
+          // Custom Noun
+          customNoun: settings.customNoun || '',
+          
+          // Community
+          communityEnabled: settings.communityEnabled || false,
+          communityType: settings.communityType || 'comments',
+          
+          // Visibility
+          visibility: settings.visibility || project.status || 'draft',
+          
+          // Media
+          coverImage: null, // File objects can't be stored, will need to handle separately
+          trailerLink: settings.trailerLink || '',
+          screenshots: [] // File objects can't be stored, will need to handle separately
+        });
+      } catch (error) {
+        console.error('Error fetching project:', error);
+        setErrors({ general: 'Failed to load project data' });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProject();
+  }, [projectId]);
 
   const sections = [
     { id: 'basics', title: 'Project Basics', icon: FaInfoCircle },
@@ -152,19 +230,85 @@ export default function ProjectSettingsPage() {
       return;
     }
     
+    if (!projectId) {
+      setErrors({ general: 'Project ID is missing' });
+      return;
+    }
+    
     setIsSubmitting(true);
+    setSaveStatus('saving');
     
     try {
-      // Here you would typically send the data to your API
-      console.log('Submitting project:', { ...formData, isDraft });
+      // Prepare update data
+      // Map visibility to valid status values
+      // Database CHECK constraint only allows: 'active', 'archived', 'deleted'
+      // Visibility options ('draft', 'restricted', 'public') should be stored in settings
+      // Status should always be one of the valid values
+      const visibility = isDraft ? 'draft' : formData.visibility;
+      const status = 'active'; // Always use 'active' for now, visibility is stored in settings
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const updateData = {
+        name: formData.title,
+        description: formData.description || formData.fullDescription,
+        status: status, // Must be 'active', 'archived', or 'deleted'
+        settings: {
+          projectType: formData.projectType,
+          kindOfProject: formData.kindOfProject,
+          releaseStatus: formData.releaseStatus,
+          pricingType: formData.pricingType,
+          suggestedDonation: formData.suggestedDonation,
+          fullDescription: formData.fullDescription,
+          genre: formData.genre,
+          tags: formData.tags,
+          aiDisclosure: formData.aiDisclosure,
+          steamLink: formData.steamLink,
+          appleStoreLink: formData.appleStoreLink,
+          googlePlayLink: formData.googlePlayLink,
+          amazonLink: formData.amazonLink,
+          windowsStoreLink: formData.windowsStoreLink,
+          customNoun: formData.customNoun,
+          communityEnabled: formData.communityEnabled,
+          communityType: formData.communityType,
+          visibility: visibility, // Use computed visibility (handles draft case)
+          trailerLink: formData.trailerLink
+        }
+      };
       
-      // Redirect to project page or dashboard
-      // router.push('/dashboard');
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = errorData.details || errorData.error || errorData.message || 'Failed to save project';
+        console.error('API Error:', errorData);
+        throw new Error(errorMessage);
+      }
+      
+      const result = await response.json();
+      setSaveStatus('saved');
+      
+      // Clear save status after 3 seconds
+      setTimeout(() => setSaveStatus(null), 3000);
+      
+      // If publishing (not draft), optionally redirect
+      if (!isDraft && formData.visibility === 'public') {
+        // Could redirect to project page or show success message
+      }
     } catch (error) {
       console.error('Error submitting project:', error);
+      setSaveStatus('error');
+      setErrors({ general: error.message || 'Failed to save project' });
+      
+      // Clear error status after 5 seconds
+      setTimeout(() => {
+        setSaveStatus(null);
+        setErrors({});
+      }, 5000);
     } finally {
       setIsSubmitting(false);
     }
@@ -174,6 +318,19 @@ export default function ProjectSettingsPage() {
     setActiveSection(sectionId);
     // No need to scroll since we're only showing one section at a time
   };
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.content}>
+          <div className={styles.loadingContainer}>
+            <div className={styles.spinner}></div>
+            <p>Loading project settings...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -186,15 +343,23 @@ export default function ProjectSettingsPage() {
           transition={{ duration: 0.5 }}
         >
           <div className={styles.headerLeft}>
-            <button className={styles.backButton}>
+            <button 
+              className={styles.backButton}
+              onClick={() => router.push('/dashboard')}
+            >
               <FaArrowLeft />
               Back to Projects
             </button>
             <div className={styles.headerContent}>
-              <h1 className={styles.title}>Create a new project</h1>
+              <h1 className={styles.title}>
+                {loading ? 'Loading...' : formData.title || 'Project Settings'}
+                {saveStatus === 'saved' && <span className={styles.saveStatus}> ✓ Saved</span>}
+                {saveStatus === 'saving' && <span className={styles.saveStatus}> Saving...</span>}
+                {saveStatus === 'error' && <span className={styles.saveStatusError}> ✗ Error</span>}
+              </h1>
               <p className={styles.subtitle}>
-                You don&apos;t have payment configured. If you set a minimum price above 0, 
-                no one will be able to download your project. <a href="#" className={styles.editLink}>Edit account</a>
+                {loading ? 'Loading project data...' : 'Configure your project settings and details'}
+                {errors.general && <span className={styles.errorText}> {errors.general}</span>}
               </p>
             </div>
           </div>

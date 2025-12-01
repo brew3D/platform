@@ -1,17 +1,7 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { getSupabaseClient } from '@/app/lib/supabase';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
-const MESSAGES_TABLE = process.env.DDB_MESSAGES_TABLE || 'ruchi-ai-messages';
+const supabase = getSupabaseClient();
 
 // GET /api/chats/history - Get chat history between two users
 export async function GET(request) {
@@ -28,24 +18,38 @@ export async function GET(request) {
     }
 
     // Find individual chat between the two users
-    const chatId = `chat_${Math.min(userId, recipientId)}_${Math.max(userId, recipientId)}`;
+    // In Supabase, we need to find a chat where both users are participants
+    const { data: chats, error: chatError } = await supabase
+      .from('chats')
+      .select('chat_id')
+      .eq('type', 'direct')
+      .contains('participants', [userId, recipientId])
+      .limit(1);
 
-    const params = {
-      TableName: MESSAGES_TABLE,
-      IndexName: 'chatId-timestamp-index',
-      KeyConditionExpression: 'chatId = :chatId',
-      ExpressionAttributeValues: {
-        ':chatId': chatId
-      },
-      ScanIndexForward: true, // Sort by timestamp ascending
-      Limit: 50 // Limit to last 50 messages
-    };
+    if (chatError || !chats || chats.length === 0) {
+      return NextResponse.json({ 
+        success: true, 
+        messages: [] 
+      });
+    }
 
-    const result = await docClient.send(new QueryCommand(params));
+    const chatId = chats[0].chat_id;
+
+    // Get messages for this chat
+    const { data: messages, error: messagesError } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('chat_id', chatId)
+      .order('timestamp', { ascending: true })
+      .limit(50);
+
+    if (messagesError) {
+      throw messagesError;
+    }
 
     return NextResponse.json({ 
       success: true, 
-      messages: result.Items || [] 
+      messages: messages || [] 
     });
   } catch (error) {
     console.error('Error fetching chat history:', error);

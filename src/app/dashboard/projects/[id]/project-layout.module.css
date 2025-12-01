@@ -1,0 +1,59 @@
+/* Project Page Layout with Sidebar */
+.projectPageLayout {
+  display: flex;
+  min-height: calc(100vh - 70px);
+  margin-top: 0;
+  background: var(--background);
+  width: 100%;
+  position: relative;
+  margin-left: 0;
+}
+
+.projectContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 0;
+  margin-left: 260px;
+  width: calc(100% - 260px);
+  max-width: none;
+  min-height: calc(100vh - 70px);
+}
+
+/* Remove unwanted top margins from all child pages */
+.projectContent > * {
+  margin-top: 0 !important;
+}
+
+.projectContent > div {
+  margin-top: 0 !important;
+}
+
+.projectContent .page,
+.projectContent .container {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.projectContent .content {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Responsive - match sidebar widths */
+@media (max-width: 1024px) {
+  .projectContent {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+  }
+}
+
+@media (max-width: 768px) {
+  .projectContent {
+    margin-left: 200px;
+    width: calc(100% - 200px);
+    padding: 0;
+  }
+}
+

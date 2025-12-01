@@ -1,17 +1,5 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
-
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
-const USERS_TABLE = process.env.DDB_USERS_TABLE || 'ruchi-ai-users';
+import { getSupabaseAdmin } from '@/app/lib/supabase';
 
 // GET /api/users/search - Search for users
 export async function GET(request) {
@@ -20,43 +8,37 @@ export async function GET(request) {
     const exclude = searchParams.get('exclude');
     const search = searchParams.get('search');
 
-    const params = {
-      TableName: USERS_TABLE,
-      Limit: 50
-    };
+    const supabase = getSupabaseAdmin();
+    
+    let query = supabase
+      .from('users')
+      .select('user_id, name, email, profile_picture, is_active')
+      .limit(50);
 
     // Add filter to exclude specific user
     if (exclude) {
-      params.FilterExpression = 'userId <> :exclude';
-      params.ExpressionAttributeValues = {
-        ':exclude': exclude
-      };
+      query = query.neq('user_id', exclude);
     }
 
     // Add search filter if provided
     if (search) {
-      const searchFilter = 'contains(email, :search) OR contains(name, :search)';
-      if (params.FilterExpression) {
-        params.FilterExpression += ` AND (${searchFilter})`;
-      } else {
-        params.FilterExpression = searchFilter;
-      }
-      
-      if (!params.ExpressionAttributeValues) {
-        params.ExpressionAttributeValues = {};
-      }
-      params.ExpressionAttributeValues[':search'] = search.toLowerCase();
+      const searchLower = search.toLowerCase();
+      query = query.or(`email.ilike.%${searchLower}%,name.ilike.%${searchLower}%`);
     }
 
-    const result = await docClient.send(new ScanCommand(params));
+    const { data, error } = await query;
+
+    if (error) {
+      throw error;
+    }
 
     // Format user data for chat
-    const users = (result.Items || []).map(user => ({
-      userId: user.userId,
+    const users = (data || []).map(user => ({
+      userId: user.user_id,
       name: user.name || user.email,
       email: user.email,
-      profilePicture: user.profilePicture || '',
-      online: user.isActive || false
+      profilePicture: user.profile_picture || '',
+      online: user.is_active || false
     }));
 
     return NextResponse.json({ 
@@ -67,7 +49,8 @@ export async function GET(request) {
     console.error('Error searching users:', error);
     return NextResponse.json({ 
       success: false, 
-      error: 'Failed to search users' 
+      error: 'Failed to search users',
+      details: error.message 
     }, { status: 500 });
   }
 }

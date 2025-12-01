@@ -1,17 +1,7 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { getSupabaseClient } from '@/app/lib/supabase';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
-const TABLE_NAME = process.env.DDB_CHATS_TABLE || 'ruchi-ai-chats';
+const supabase = getSupabaseClient();
 
 // GET /api/chats - Get all chats for a user
 export async function GET(request) {
@@ -23,31 +13,37 @@ export async function GET(request) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Query chats where the user is a participant using the GSI
-    const params = {
-      TableName: TABLE_NAME,
-      IndexName: 'userId-index',
-      KeyConditionExpression: 'userId = :userId',
-      ExpressionAttributeValues: {
-        ':userId': userId
-      }
-    };
+    // Query chats where the user is a participant
+    // Use filter to check if userId is in the participants array
+    // In PostgREST, we use @> operator: participants @> ARRAY[userId]
+    const { data: chats, error } = await supabase
+      .from('chats')
+      .select('*')
+      .contains('participants', [userId])
+      .order('last_message_at', { ascending: false, nullsFirst: false });
 
-    const result = await docClient.send(new QueryCommand(params));
-    
-    // Get unique chats by chatId
-    const chatMap = new Map();
-    (result.Items || []).forEach(chat => {
-      if (!chatMap.has(chat.chatId)) {
-        chatMap.set(chat.chatId, chat);
-      }
-    });
-    
-    const uniqueChats = Array.from(chatMap.values());
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
+
+    // Format chats for frontend (convert snake_case to camelCase)
+    const formattedChats = (chats || []).map(chat => ({
+      chatId: chat.chat_id,
+      userId: chat.user_id,
+      name: chat.name,
+      type: chat.type,
+      participants: chat.participants || [],
+      lastMessage: null, // Will be populated separately if needed
+      lastMessageTime: chat.last_message_at,
+      unreadCount: 0, // Will be calculated separately if needed
+      createdAt: chat.created_at,
+      updatedAt: chat.updated_at
+    }));
 
     return NextResponse.json({ 
       success: true, 
-      chats: uniqueChats 
+      chats: formattedChats 
     });
   } catch (error) {
     console.error('Error fetching chats:', error);
@@ -88,63 +84,28 @@ export async function POST(request) {
     const chatId = `chat_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const now = new Date().toISOString();
 
-    // Get user details for participants - use provided user data
-    const participantDetails = participants.map(userId => ({
-      userId,
-      name: participantNames[userId] || (userId === createdBy ? 'You' : 'Team Member'),
-      joinedAt: now,
-      online: false
-    }));
-
-    // Create entries for each participant (this is the correct way with composite key)
-    for (const userId of participants) {
-      const userChatEntry = {
-        chatId,
-        userId, // This is required for the composite key
-        type,
-        name: type === 'group' ? name : null,
-        participants: participants,
-        participantDetails,
-        createdBy,
-        createdAt: now,
-        updatedAt: now,
-        lastMessage: null,
-        lastMessageTime: null,
-        unreadCount: 0,
-        settings: {
-          allowInvites: true,
-          allowFileUploads: true,
-          allowVoiceMessages: true
-        }
-      };
-
-      const params = {
-        TableName: TABLE_NAME,
-        Item: userChatEntry
-      };
-
-      await docClient.send(new PutCommand(params));
-    }
-
-    // Return the chat object for the creator
-    const chat = {
-      chatId,
+    // Create entries for each participant
+    const chatEntries = participants.map(userId => ({
+      chat_id: chatId,
+      user_id: userId,
       type,
       name: type === 'group' ? name : null,
       participants: participants,
-      participantDetails,
-      createdBy,
-      createdAt: now,
-      updatedAt: now,
-      lastMessage: null,
-      lastMessageTime: null,
-      unreadCount: 0,
-      settings: {
-        allowInvites: true,
-        allowFileUploads: true,
-        allowVoiceMessages: true
-      }
-    };
+      created_at: now,
+      updated_at: now
+    }));
+
+    const { data: newChats, error: insertError } = await supabase
+      .from('chats')
+      .insert(chatEntries)
+      .select();
+
+    if (insertError) {
+      throw insertError;
+    }
+
+    // Return the chat object for the creator
+    const chat = newChats.find(c => c.user_id === createdBy) || newChats[0];
 
     return NextResponse.json({ 
       success: true, 

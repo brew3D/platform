@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import DashboardSidebar from "../../components/DashboardSidebar";
-import DashboardTopbar from "../../components/DashboardTopbar";
 import CreatorSignupCards from "../../components/CreatorSignupCards";
 import RevenueDashboard from "../../components/RevenueDashboard";
 import FollowersSection from "../../components/FollowersSection";
@@ -38,7 +36,6 @@ const mockFollowers = [
 
 export default function RevenuePage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [creatorType, setCreatorType] = useState(null); // 'template', 'asset', 'game', null
   const [revenueData, setRevenueData] = useState(mockRevenueData);
   const [followers, setFollowers] = useState(mockFollowers);
@@ -69,19 +66,7 @@ export default function RevenuePage() {
 
   return (
     <div className={styles.revenuePage}>
-      <DashboardSidebar 
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        activeItem="revenue"
-      />
-      
-      <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-        <DashboardTopbar 
-          user={user}
-          onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-        
-        <div className={styles.content}>
+      <div className={styles.content}>
           {/* Header */}
           <header className={styles.header}>
             <div className={styles.headerContent}>
@@ -167,7 +152,6 @@ export default function RevenuePage() {
               onCloseModal={() => setShowPayoutModal(false)}
             />
           </section>
-        </div>
       </div>
     </div>
   );

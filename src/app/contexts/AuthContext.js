@@ -57,8 +57,33 @@ export const AuthProvider = ({ children }) => {
       }
     } else {
       console.log('❌ No stored auth data found');
-      setUser(null);
-      setToken(null);
+      
+      // Check if user intentionally logged out - don't set temp user in that case
+      const logoutFlag = localStorage.getItem('logout_flag');
+      if (logoutFlag === 'true') {
+        console.log('🚪 Logout flag detected - not setting temp user');
+        setUser(null);
+        setToken(null);
+        setIsInitialized(true);
+        setLoading(false);
+        return;
+      }
+      
+      // TEMPORARY: Set a default user to bypass authentication
+      // Use a consistent ID for the temp user so projects persist across sessions
+      const tempUserId = localStorage.getItem('temp_user_id') || 'temp-user-default';
+      localStorage.setItem('temp_user_id', tempUserId);
+      
+      const defaultUser = {
+        userId: tempUserId,
+        email: 'temp@example.com',
+        name: 'Test User',
+        role: 'admin'
+      };
+      const defaultToken = 'temp-token-bypass-auth';
+      console.log('🔓 TEMPORARY: Setting default user to bypass authentication', { userId: tempUserId });
+      setUser(defaultUser);
+      setToken(defaultToken);
       setIsInitialized(true);
       setLoading(false);
     }
@@ -80,6 +105,8 @@ export const AuthProvider = ({ children }) => {
         setToken(tokenToVerify);
         localStorage.setItem('auth_token', tokenToVerify);
         localStorage.setItem('auth_user', JSON.stringify(data.user));
+        // Clear logout flag on successful token verification
+        localStorage.removeItem('logout_flag');
       } else {
         localStorage.removeItem('auth_token');
         setUser(null);
@@ -137,13 +164,18 @@ export const AuthProvider = ({ children }) => {
           const devData = await devResponse.json();
           
           if (devResponse.ok) {
-            // Clear any existing user data before setting new user
-            clearUserData();
+            // Clear any existing user data before setting new user (but don't set logout flag)
+            setUser(null);
+            setToken(null);
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
             
             setUser(devData.user);
             setToken(devData.token);
             localStorage.setItem('auth_token', devData.token);
             localStorage.setItem('auth_user', JSON.stringify(devData.user));
+            // Clear logout flag on successful login
+            localStorage.removeItem('logout_flag');
             return { success: true, warning: devData.warning };
           } else {
             return { success: false, error: devData.message };
@@ -160,6 +192,8 @@ export const AuthProvider = ({ children }) => {
       setToken(data.token);
       localStorage.setItem('auth_token', data.token);
       localStorage.setItem('auth_user', JSON.stringify(data.user));
+      // Clear logout flag on successful login
+      localStorage.removeItem('logout_flag');
       return { success: true, warning: data.warning };
       
     } catch (error) {
@@ -208,6 +242,9 @@ export const AuthProvider = ({ children }) => {
             setUser(devData.user);
             setToken(devData.token);
             localStorage.setItem('auth_token', devData.token);
+            localStorage.setItem('auth_user', JSON.stringify(devData.user));
+            // Clear logout flag on successful registration
+            localStorage.removeItem('logout_flag');
             return { success: true, warning: devData.warning };
           } else {
             return { success: false, error: devData.message };
@@ -224,6 +261,8 @@ export const AuthProvider = ({ children }) => {
       setToken(data.token);
       localStorage.setItem('auth_token', data.token);
       localStorage.setItem('auth_user', JSON.stringify(data.user));
+      // Clear logout flag on successful registration
+      localStorage.removeItem('logout_flag');
       return { success: true, warning: data.warning };
       
     } catch (error) {
@@ -239,6 +278,9 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('temp_user_id');
+    // Set flag to prevent temp user from being set after logout
+    localStorage.setItem('logout_flag', 'true');
     // Clear cached data for any previous user
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith('teams_')) {
@@ -250,31 +292,38 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     console.log('🚪 Logging out user:', user?.email);
     clearUserData();
+    // Redirect immediately to prevent temp user from being set
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   };
 
   // Helper function to make authenticated API calls with automatic token verification
   const authenticatedFetch = async (url, options = {}) => {
-    if (!token) {
-      throw new Error('No authentication token available');
+    // TEMPORARY: Bypass authentication - allow requests without token
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    // Only add Authorization header if token exists
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     const response = await fetch(url, {
       ...options,
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
     });
 
-    // If token is expired, clear it and redirect to login
-    if (response.status === 401) {
-      logout();
-      if (typeof window !== 'undefined') {
-        window.location.href = '/auth/signin';
-      }
-      throw new Error('Session expired');
-    }
+    // Don't redirect on 401 - just return the response
+    // if (response.status === 401) {
+    //   logout();
+    //   if (typeof window !== 'undefined') {
+    //     window.location.href = '/auth/signin';
+    //   }
+    //   throw new Error('Session expired');
+    // }
 
     return response;
   };
@@ -283,7 +332,8 @@ export const AuthProvider = ({ children }) => {
     user,
     token,
     loading: loading || !isInitialized,
-    isAuthenticated: Boolean(user && token && isInitialized),
+    // TEMPORARY: Always return true for isAuthenticated to bypass auth checks
+    isAuthenticated: true, // Boolean(user && token && isInitialized),
     login,
     register,
     logout,

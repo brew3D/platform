@@ -1,18 +1,24 @@
 import { NextResponse } from 'next/server';
-import { GetCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
-import { getDynamoDocClient } from '@/app/lib/dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
+import { getSupabaseClient } from '@/app/lib/supabase';
+import { getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
 import { requireAuth } from '@/app/lib/auth';
-import { getUserById } from '@/app/lib/dynamodb-operations';
 
-const docClient = getDynamoDocClient();
+const supabase = getSupabaseClient();
 
 export async function GET(request, { params }) {
   try {
-    const { postId } = params;
-    const res = await docClient.send(new GetCommand({ TableName: TABLE_NAMES.COMMUNITY_POSTS, Key: { postId } }));
-    if (!res.Item) return NextResponse.json({ message: 'Not found' }, { status: 404 });
-    return NextResponse.json(res.Item);
+    const { postId } = await params;
+    const { data: post, error } = await supabase
+      .from('community_posts')
+      .select('*')
+      .eq('post_id', postId)
+      .single();
+
+    if (error || !post) {
+      return NextResponse.json({ message: 'Not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(post);
   } catch (e) {
     console.error('Get post error:', e);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
@@ -23,33 +29,54 @@ export async function PUT(request, { params }) {
   try {
     const auth = requireAuth(request);
     if (auth.error) return NextResponse.json({ message: auth.error.message }, { status: auth.error.status });
-    const { postId } = params;
+    
+    const { postId } = await params;
     const { content, tags, isPinned } = await request.json();
-    // ensure only owners or moderators/admin can update pinned or content
-    const current = await docClient.send(new GetCommand({ TableName: TABLE_NAMES.COMMUNITY_POSTS, Key: { postId } }));
-    const post = current.Item;
-    if (!post) return NextResponse.json({ message: 'Not found' }, { status: 404 });
-    const isOwner = post.userId === auth.userId;
+    
+    // Get current post
+    const { data: currentPost, error: fetchError } = await supabase
+      .from('community_posts')
+      .select('*')
+      .eq('post_id', postId)
+      .single();
+
+    if (fetchError || !currentPost) {
+      return NextResponse.json({ message: 'Not found' }, { status: 404 });
+    }
+
+    const isOwner = currentPost.user_id === auth.userId;
     const isMod = ['admin', 'moderator'].includes(auth.role || 'member');
-    if (!isOwner && !isMod) return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    if (!isOwner && !isMod) {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
+
     const now = getCurrentTimestamp();
-    const updates = [];
-    const names = {};
-    const values = { ':updatedAt': now };
-    if (typeof content === 'string') { updates.push('#content = :content'); names['#content'] = 'content'; values[':content'] = content; }
-    if (Array.isArray(tags)) { updates.push('#tags = :tags'); names['#tags'] = 'tags'; values[':tags'] = tags; }
-    if (typeof isPinned === 'boolean') { updates.push('#isPinned = :isPinned'); names['#isPinned'] = 'isPinned'; values[':isPinned'] = isPinned; }
-    updates.push('#updatedAt = :updatedAt'); names['#updatedAt'] = 'updatedAt';
-    if (!updates.length) return NextResponse.json({ message: 'No changes' }, { status: 400 });
-    const res = await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.COMMUNITY_POSTS,
-      Key: { postId },
-      UpdateExpression: 'SET ' + updates.join(', '),
-      ExpressionAttributeNames: names,
-      ExpressionAttributeValues: values,
-      ReturnValues: 'ALL_NEW'
-    }));
-    return NextResponse.json({ post: res.Attributes });
+    const updateData = {
+      updated_at: now
+    };
+
+    if (typeof content === 'string') {
+      updateData.content = content;
+    }
+    if (Array.isArray(tags)) {
+      updateData.tags = tags;
+    }
+    if (typeof isPinned === 'boolean') {
+      updateData.is_pinned = isPinned;
+    }
+
+    const { data: updatedPost, error: updateError } = await supabase
+      .from('community_posts')
+      .update(updateData)
+      .eq('post_id', postId)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return NextResponse.json({ post: updatedPost });
   } catch (e) {
     console.error('Update post error:', e);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
@@ -60,19 +87,38 @@ export async function DELETE(request, { params }) {
   try {
     const auth = requireAuth(request);
     if (auth.error) return NextResponse.json({ message: auth.error.message }, { status: auth.error.status });
-    const { postId } = params;
-    const current = await docClient.send(new GetCommand({ TableName: TABLE_NAMES.COMMUNITY_POSTS, Key: { postId } }));
-    const post = current.Item;
-    if (!post) return NextResponse.json({ message: 'Not found' }, { status: 404 });
-    const isOwner = post.userId === auth.userId;
+    
+    const { postId } = await params;
+    
+    // Get current post
+    const { data: currentPost, error: fetchError } = await supabase
+      .from('community_posts')
+      .select('*')
+      .eq('post_id', postId)
+      .single();
+
+    if (fetchError || !currentPost) {
+      return NextResponse.json({ message: 'Not found' }, { status: 404 });
+    }
+
+    const isOwner = currentPost.user_id === auth.userId;
     const isMod = ['admin', 'moderator'].includes(auth.role || 'member');
-    if (!isOwner && !isMod) return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    await docClient.send(new DeleteCommand({ TableName: TABLE_NAMES.COMMUNITY_POSTS, Key: { postId } }));
+    if (!isOwner && !isMod) {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
+
+    const { error: deleteError } = await supabase
+      .from('community_posts')
+      .delete()
+      .eq('post_id', postId);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
     return NextResponse.json({ success: true });
   } catch (e) {
     console.error('Delete post error:', e);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
-
-

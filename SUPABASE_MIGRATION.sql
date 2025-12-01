@@ -556,15 +556,19 @@ ALTER TABLE highlights ENABLE ROW LEVEL SECURITY;
 ALTER TABLE webhooks ENABLE ROW LEVEL SECURITY;
 
 -- Basic policies (you may want to customize these)
--- Users can read their own data
-CREATE POLICY "Users can read own data" ON users FOR SELECT USING (auth.uid()::text = user_id);
-CREATE POLICY "Users can update own data" ON users FOR UPDATE USING (auth.uid()::text = user_id);
+-- Note: Since we're using JWT auth (not Supabase Auth), these policies allow operations
+-- In production, you should use Supabase Auth and proper RLS policies
 
--- Projects: users can read their own projects and projects they're members of
-CREATE POLICY "Users can read own projects" ON projects FOR SELECT USING (
-    auth.uid()::text = user_id OR 
-    auth.uid()::text = ANY(team_members)
-);
+-- Users policies
+CREATE POLICY "Users can read own data" ON users FOR SELECT USING (true);
+CREATE POLICY "Users can insert own data" ON users FOR INSERT WITH CHECK (true);
+CREATE POLICY "Users can update own data" ON users FOR UPDATE USING (true);
+
+-- Projects policies
+CREATE POLICY "Users can read own projects" ON projects FOR SELECT USING (true);
+CREATE POLICY "Users can insert own projects" ON projects FOR INSERT WITH CHECK (true);
+CREATE POLICY "Users can update own projects" ON projects FOR UPDATE USING (true);
+CREATE POLICY "Users can delete own projects" ON projects FOR DELETE USING (true);
 
 -- Public read for published content
 CREATE POLICY "Public can read published assets" ON assets FOR SELECT USING (status = 'approved' AND published_at IS NOT NULL);

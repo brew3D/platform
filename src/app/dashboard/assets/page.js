@@ -1,14 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import DashboardSidebar from "../../components/DashboardSidebar";
-import DashboardTopbar from "../../components/DashboardTopbar";
 import { useAuth } from "../../contexts/AuthContext";
 import styles from "./assets.module.css";
 
 export default function AssetsPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Asset library state
   const [packs, setPacks] = useState([]);
@@ -101,19 +98,7 @@ export default function AssetsPage() {
 
   return (
     <div className={styles.assetsPage}>
-      <DashboardSidebar 
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        activeItem="assets"
-      />
-
-      <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-        <DashboardTopbar 
-          user={user}
-          onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-
-        <div className={styles.content}>
+      <div className={styles.content}>
           <header className={styles.header}>
             <div className={styles.headerTop}>
               {viewMode === 'assets' && (
@@ -208,7 +193,6 @@ export default function AssetsPage() {
               </div>
             )}
           </section>
-        </div>
       </div>
     </div>
   );

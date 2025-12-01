@@ -1,17 +1,8 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { getSupabaseClient } from '@/app/lib/supabase';
+import { getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
-const TABLE_NAME = process.env.DDB_TEAMS_TABLE || 'ruchi-ai-teams';
+const supabase = getSupabaseClient();
 
 // GET /api/teams - Get all teams for a user
 export async function GET(request) {
@@ -23,17 +14,17 @@ export async function GET(request) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Scan for teams where user is a member
-    const params = {
-      TableName: TABLE_NAME,
-      FilterExpression: 'contains(members, :userId)',
-      ExpressionAttributeValues: {
-        ':userId': userId
-      }
-    };
+    // Query teams where user is a member (using array contains)
+    const { data: teams, error } = await supabase
+      .from('teams')
+      .select('*')
+      .contains('members', [userId]);
 
-    const result = await docClient.send(new ScanCommand(params));
-    return NextResponse.json({ teams: result.Items || [] });
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.json({ teams: teams || [] });
   } catch (error) {
     console.error('Error fetching teams:', error);
     return NextResponse.json({ teams: [] });
@@ -51,43 +42,35 @@ export async function POST(request) {
     }
 
     const teamId = `team_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const now = new Date().toISOString();
+    const now = getCurrentTimestamp();
 
     const team = {
-      teamId,
+      team_id: teamId,
       name,
       description: description || '',
-      ownerId,
-      ownerName: ownerName || 'Unknown',
+      owner_id: ownerId,
       members: [ownerId, ...members],
-      memberDetails: [
-        { userId: ownerId, name: ownerName || 'Unknown', role: 'owner', joinedAt: now, online: false },
-        ...members.map(memberId => ({
-          userId: memberId,
-          name: 'Unknown',
-          role: 'member',
-          joinedAt: now,
-          online: false
-        }))
-      ],
-      createdAt: now,
-      updatedAt: now,
       settings: {
         allowInvites: true,
         allowComments: true,
         allowAssetUploads: true,
         allowBillingAccess: false
-      }
+      },
+      created_at: now,
+      updated_at: now
     };
 
-    const params = {
-      TableName: TABLE_NAME,
-      Item: team
-    };
+    const { data: newTeam, error } = await supabase
+      .from('teams')
+      .insert(team)
+      .select()
+      .single();
 
-    await docClient.send(new PutCommand(params));
+    if (error) {
+      throw error;
+    }
 
-    return NextResponse.json({ team });
+    return NextResponse.json({ team: newTeam });
   } catch (error) {
     console.error('Error creating team:', error);
     return NextResponse.json({ error: 'Failed to create team' }, { status: 500 });
@@ -104,35 +87,23 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
     }
 
-    const updateExpression = [];
-    const expressionAttributeNames = {};
-    const expressionAttributeValues = {};
-
-    Object.keys(updates).forEach((key, index) => {
-      const attrName = `#attr${index}`;
-      const attrValue = `:val${index}`;
-      
-      updateExpression.push(`${attrName} = ${attrValue}`);
-      expressionAttributeNames[attrName] = key;
-      expressionAttributeValues[attrValue] = updates[key];
-    });
-
-    updateExpression.push('#updatedAt = :updatedAt');
-    expressionAttributeNames['#updatedAt'] = 'updatedAt';
-    expressionAttributeValues[':updatedAt'] = new Date().toISOString();
-
-    const params = {
-      TableName: TABLE_NAME,
-      Key: { teamId },
-      UpdateExpression: `SET ${updateExpression.join(', ')}`,
-      ExpressionAttributeNames: expressionAttributeNames,
-      ExpressionAttributeValues: expressionAttributeValues,
-      ReturnValues: 'ALL_NEW'
+    const updateData = {
+      ...updates,
+      updated_at: getCurrentTimestamp()
     };
 
-    const result = await docClient.send(new UpdateCommand(params));
+    const { data: updatedTeam, error } = await supabase
+      .from('teams')
+      .update(updateData)
+      .eq('team_id', teamId)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
     
-    return NextResponse.json({ team: result.Attributes });
+    return NextResponse.json({ team: updatedTeam });
   } catch (error) {
     console.error('Error updating team:', error);
     return NextResponse.json({ error: 'Failed to update team' }, { status: 500 });
@@ -149,12 +120,14 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
     }
 
-    const params = {
-      TableName: TABLE_NAME,
-      Key: { teamId }
-    };
+    const { error } = await supabase
+      .from('teams')
+      .delete()
+      .eq('team_id', teamId);
 
-    await docClient.send(new DeleteCommand(params));
+    if (error) {
+      throw error;
+    }
     
     return NextResponse.json({ success: true });
   } catch (error) {

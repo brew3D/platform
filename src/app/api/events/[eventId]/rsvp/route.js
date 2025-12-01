@@ -275,12 +275,4 @@ async function updateEventAttendeeCount(eventId) {
   // This is now handled automatically by the database trigger
   // No need to manually update
   return;
-      UpdateExpression: 'SET currentAttendees = :currentAttendees',
-      ExpressionAttributeValues: {
-        ':currentAttendees': rsvpCounts.attending
-      }
-    }));
-  } catch (error) {
-    console.error('Error updating attendee count:', error);
-  }
 }

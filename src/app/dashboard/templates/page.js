@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import DashboardSidebar from "../../components/DashboardSidebar";
-import DashboardTopbar from "../../components/DashboardTopbar";
 import TemplateGalleryHeader from "../../components/TemplateGalleryHeader";
 import TemplateGrid from "../../components/TemplateGrid";
 import { useAuth } from "../../contexts/AuthContext";
@@ -211,7 +209,6 @@ export default function TemplatesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTier, setSelectedTier] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const router = useRouter();
 
   const categories = ['all', '2D Platformer', 'RPG', 'Puzzle', 'Arcade', 'FPS', 'Strategy', 'Racing', 'Simulation', 'VR', 'Web3', 'AI', 'Metaverse'];
@@ -239,19 +236,7 @@ export default function TemplatesPage() {
 
   return (
     <div className={styles.templatesPage}>
-      <DashboardSidebar 
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        activeItem="templates"
-      />
-      
-      <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-        <DashboardTopbar 
-          user={user}
-          onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-        
-        <div className={styles.content}>
+      <div className={styles.content}>
           <TemplateGalleryHeader 
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -268,7 +253,6 @@ export default function TemplatesPage() {
             searchQuery={searchQuery}
             onCreateProject={handleCreateProject}
           />
-        </div>
       </div>
     </div>
   );

@@ -1,17 +1,7 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { getSupabaseClient } from '@/app/lib/supabase';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
-const MESSAGES_TABLE = process.env.DDB_MESSAGES_TABLE || 'ruchi-ai-messages';
+const supabase = getSupabaseClient();
 
 // GET /api/chats/[chatId]/messages - Get messages for a specific chat
 export async function GET(request, { params }) {
@@ -25,22 +15,20 @@ export async function GET(request, { params }) {
       }, { status: 400 });
     }
 
-    const queryParams = {
-      TableName: MESSAGES_TABLE,
-      IndexName: 'chatId-timestamp-index',
-      KeyConditionExpression: 'chatId = :chatId',
-      ExpressionAttributeValues: {
-        ':chatId': chatId
-      },
-      ScanIndexForward: true, // Sort by timestamp ascending
-      Limit: 100 // Limit to last 100 messages
-    };
+    const { data: messages, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('chat_id', chatId)
+      .order('timestamp', { ascending: true })
+      .limit(100);
 
-    const result = await docClient.send(new QueryCommand(queryParams));
+    if (error) {
+      throw error;
+    }
 
     return NextResponse.json({ 
       success: true, 
-      messages: result.Items || [] 
+      messages: messages || [] 
     });
   } catch (error) {
     console.error('Error fetching messages:', error);

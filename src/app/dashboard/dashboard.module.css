@@ -1,6 +1,7 @@
 /* Dashboard Layout - Purple & White Theme */
 .dashboard {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
@@ -11,13 +12,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 280px;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 100vh;
-}
-
-.sidebarCollapsed {
-  margin-left: 80px;
+  margin-left: 0;
+  min-height: calc(100vh - 70px);
+  margin-top: 70px;
 }
 
 .content {

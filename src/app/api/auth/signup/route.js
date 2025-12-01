@@ -88,16 +88,27 @@ export async function POST(request) {
       );
     }
     
-    // Check if it's a DynamoDB table error
-    if (error.name === 'ResourceNotFoundException') {
+    // Check if it's a Supabase RLS policy error
+    if (error.message?.includes('row-level security policy') || error.code === '42501') {
       return NextResponse.json(
-        { message: 'Database table not found. Please ensure your DynamoDB tables are set up.' },
+        { 
+          message: 'Database security policy error. Please run the RLS fix SQL in your Supabase dashboard. See SUPABASE_RLS_FIX.sql',
+          error: error.message 
+        },
+        { status: 500 }
+      );
+    }
+    
+    // Check if it's a Supabase table error
+    if (error.message?.includes('relation') || error.code === '42P01') {
+      return NextResponse.json(
+        { message: 'Database table not found. Please ensure you have run the Supabase migration SQL.' },
         { status: 500 }
       );
     }
     
     return NextResponse.json(
-      { message: `Internal server error: ${error.message}` },
+      { message: `Internal server error: ${error.message}`, error: error.message },
       { status: 500 }
     );
   }

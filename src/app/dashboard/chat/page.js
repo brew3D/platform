@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import DashboardSidebar from "../../components/DashboardSidebar";
-import DashboardTopbar from "../../components/DashboardTopbar";
 import { useAuth } from "../../contexts/AuthContext";
 import { FaPlus, FaSearch, FaUsers, FaUser, FaPaperPlane, FaEllipsisV, FaPalette, FaCog } from 'react-icons/fa';
 import styles from './chat.module.css';
@@ -347,10 +345,7 @@ export default function ChatPage() {
 
   return (
     <div className={styles.chatPage} style={{ '--theme-primary': themes[currentTheme].primary, '--theme-secondary': themes[currentTheme].secondary, '--theme-background': themes[currentTheme].background, '--theme-surface': themes[currentTheme].surface, '--theme-text': themes[currentTheme].text, '--theme-text-secondary': themes[currentTheme].textSecondary }}>
-      <DashboardSidebar />
-      <div className={styles.mainContent}>
-        <DashboardTopbar />
-        <div className={styles.chatContainer}>
+      <div className={styles.chatContainer}>
           {/* Sidebar */}
           <div className={styles.sidebar}>
             <div className={styles.sidebarHeader}>
@@ -544,7 +539,6 @@ export default function ChatPage() {
               </div>
             )}
           </div>
-        </div>
       </div>
 
       {/* New Chat Modal */}

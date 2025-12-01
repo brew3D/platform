@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import DashboardSidebar from "../../components/DashboardSidebar";
-import DashboardTopbar from "../../components/DashboardTopbar";
 import { useAuth } from "../../contexts/AuthContext";
 import ChatPopup from "../../components/ChatPopup";
 import { FaComments } from 'react-icons/fa';
@@ -14,7 +12,6 @@ const roleOptions = ['owner', 'admin', 'editor', 'viewer'];
 export default function TeamPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Debug user state
   console.log('TeamPage - User state:', user, 'isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
@@ -305,7 +302,7 @@ export default function TeamPage() {
       if (data.team) {
         setSelectedTeam(data.team);
         loadTeamMembers(selectedTeam.teamId);
-    setInviteEmail('');
+        setInviteEmail('');
       }
     } catch (error) {
       console.error('Error adding member:', error);
@@ -402,19 +399,7 @@ export default function TeamPage() {
 
   return (
     <div className={styles.teamPage}>
-      <DashboardSidebar 
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        activeItem="team"
-      />
-
-      <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-        <DashboardTopbar 
-          user={user}
-          onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-
-        <div className={styles.content}>
+      <div className={styles.content}>
           {/* Header */}
           <header className={styles.header}>
             <div className={styles.headerText}>
@@ -844,7 +829,6 @@ export default function TeamPage() {
               </div>
             </div>
           )}
-        </div>
       </div>
 
       {/* Chat Popup */}

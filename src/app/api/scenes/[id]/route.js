@@ -1,19 +1,27 @@
 import { NextResponse } from "next/server";
-import { GetCommand, UpdateCommand, DeleteCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
-import { getDynamoDocClient, getScenesTableName } from "@/app/lib/dynamodb";
+import { getSupabaseClient } from "@/app/lib/supabase";
 import { getScene, putScene, deleteScene } from "@/app/lib/demoScenes";
+
+const supabase = getSupabaseClient();
 
 export async function GET(_request, ctx) {
   try {
     const { id } = await ctx.params;
     try {
-      const doc = getDynamoDocClient();
-      const TableName = getScenesTableName();
-      const res = await doc.send(new GetCommand({ TableName, Key: { id } }));
-      if (!res.Item) {
-        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      const { data: scene, error } = await supabase
+        .from('scenes')
+        .select('*')
+        .eq('scene_id', id)
+        .single();
+
+      if (error || !scene) {
+        // Fallback to in-memory
+        const sc = getScene(id);
+        if (!sc) return NextResponse.json({ error: "Not found" }, { status: 404 });
+        return NextResponse.json({ scene: sc });
       }
-      return NextResponse.json({ scene: res.Item });
+
+      return NextResponse.json({ scene });
     } catch (ddbErr) {
       const sc = getScene(id);
       if (!sc) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -31,22 +39,27 @@ export async function PUT(request, ctx) {
     const body = await request.json();
     const now = new Date().toISOString();
     try {
-      const doc = getDynamoDocClient();
-      const TableName = getScenesTableName();
-      const res = await doc.send(new UpdateCommand({
-        TableName,
-        Key: { id },
-        UpdateExpression: "SET #n = :n, objects = :o, groups = :g, updated_at = :u",
-        ExpressionAttributeNames: { "#n": "name" },
-        ExpressionAttributeValues: {
-          ":n": body.name || "Untitled Scene",
-          ":o": body.objects || [],
-          ":g": body.groups || [],
-          ":u": now,
+      const updateData = {
+        name: body.name || "Untitled Scene",
+        scene_data: {
+          objects: body.objects || [],
+          groups: body.groups || []
         },
-        ReturnValues: "ALL_NEW",
-      }));
-      return NextResponse.json({ scene: res.Attributes });
+        updated_at: now
+      };
+
+      const { data: updatedScene, error } = await supabase
+        .from('scenes')
+        .update(updateData)
+        .eq('scene_id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return NextResponse.json({ scene: updatedScene });
     } catch (ddbErr) {
       // Fallback: upsert into memory
       const existing = getScene(id) || { id, user_id: "demo_user", name: body.name || "Untitled Scene", created_at: now };
@@ -62,11 +75,17 @@ export async function PUT(request, ctx) {
 
 export async function DELETE(_request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     try {
-      const doc = getDynamoDocClient();
-      const TableName = getScenesTableName();
-      await doc.send(new DeleteCommand({ TableName, Key: { id } }));
+      const { error } = await supabase
+        .from('scenes')
+        .delete()
+        .eq('scene_id', id);
+
+      if (error) {
+        throw error;
+      }
+
       return NextResponse.json({ ok: true });
     } catch (ddbErr) {
       deleteScene(id);
@@ -77,5 +96,3 @@ export async function DELETE(_request, { params }) {
     return NextResponse.json({ error: "Failed to delete scene" }, { status: 500 });
   }
 }
-
-

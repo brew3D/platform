@@ -1,51 +1,101 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
-
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
-const TABLE_NAME = process.env.DDB_PROJECTS_TABLE || 'ruchi-ai-projects';
+import { requireAuth } from '@/app/lib/auth';
+import { getProjectById, updateProject } from '@/app/lib/supabase-operations';
 
 export async function GET(request, { params }) {
   try {
+    const auth = requireAuth(request);
     const { id } = await params;
     
     if (!id) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
 
-    const command = new GetCommand({
-      TableName: TABLE_NAME,
-      Key: {
-        projectId: id
-      }
-    });
-
-    const result = await docClient.send(command);
+    const project = await getProjectById(id);
     
-    if (!result.Item) {
+    if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
+    // Check if user has access (owner or team member)
+    // TEMPORARY: Allow temp users to access any project
+    const isTempUser = auth.userId && auth.userId.startsWith('temp-user');
+    const hasAccess = project.userId === auth.userId || 
+                      (project.teamMembers && project.teamMembers.includes(auth.userId)) ||
+                      isTempUser;
+    
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
     // Format the response with additional computed fields
-    const project = {
-      ...result.Item,
-      teamName: result.Item.teamName || 'Personal',
-      status: result.Item.status || 'Active',
-      createdAt: result.Item.createdAt || result.Item.created_at,
-      lastModified: result.Item.updatedAt || result.Item.updated_at || result.Item.createdAt || result.Item.created_at
+    const formattedProject = {
+      ...project,
+      teamName: project.teamName || 'Personal',
+      status: project.status || 'active',
+      createdAt: project.createdAt || project.created_at,
+      lastModified: project.updatedAt || project.updated_at || project.createdAt || project.created_at
     };
 
-    return NextResponse.json(project);
+    return NextResponse.json(formattedProject);
   } catch (error) {
     console.error('Error fetching project:', error);
-    return NextResponse.json({ error: 'Failed to fetch project' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch project', details: error.message }, { status: 500 });
+  }
+}
+
+// PUT /api/projects/[id] - Update project
+export async function PUT(request, { params }) {
+  try {
+    const auth = requireAuth(request);
+    const { id } = await params;
+    
+    if (!id) {
+      return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
+    }
+
+    // Get existing project to check access
+    const existingProject = await getProjectById(id);
+    
+    if (!existingProject) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
+
+    // Check if user has access (owner or team member)
+    const isTempUser = auth.userId && auth.userId.startsWith('temp-user');
+    const hasAccess = existingProject.userId === auth.userId || 
+                      (existingProject.teamMembers && existingProject.teamMembers.includes(auth.userId)) ||
+                      isTempUser;
+    
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    const updateData = await request.json();
+    
+    console.log('Update data received:', JSON.stringify(updateData, null, 2));
+    
+    // Update project
+    const { project } = await updateProject(id, updateData);
+
+    return NextResponse.json({ 
+      success: true, 
+      project 
+    });
+  } catch (error) {
+    console.error('Error updating project:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      stack: error.stack
+    });
+    return NextResponse.json({ 
+      error: 'Failed to update project', 
+      details: error.message,
+      code: error.code,
+      hint: error.hint
+    }, { status: 500 });
   }
 }

@@ -3,6 +3,20 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Canvas } from "@react-three/fiber";
+
+// Suppress React DevTools semver warning (known issue with React 19 and DevTools extension)
+if (typeof window !== 'undefined') {
+  const originalError = console.error;
+  console.error = (...args) => {
+    const errorMessage = args[0];
+    if (typeof errorMessage === 'string' && errorMessage.includes('Invalid argument not valid semver')) {
+      // Suppress React DevTools semver warning - this is a DevTools extension compatibility issue with React 19, not a code bug
+      // The app functionality is not affected by this warning
+      return;
+    }
+    originalError.apply(console, args);
+  };
+}
 import {
   OrbitControls,
   Grid,

@@ -1,13 +1,25 @@
 // Supabase CRUD Operations
 // This file replaces dynamodb-operations.js with Supabase equivalents
-import { getSupabaseClient } from "./supabase.js";
+import { getSupabaseAdmin } from "./supabase.js";
 import { 
   generateId, 
   getCurrentTimestamp,
   validateRequiredFields 
 } from "./dynamodb-schema.js";
 
-const supabase = getSupabaseClient();
+// Initialize Supabase admin client lazily (uses service role key, bypasses RLS)
+let supabaseInstance = null;
+const getSupabase = () => {
+  if (!supabaseInstance) {
+    try {
+      supabaseInstance = getSupabaseAdmin();
+    } catch (error) {
+      console.error('Failed to initialize Supabase admin client:', error);
+      throw new Error('Supabase is not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON) environment variables.');
+    }
+  }
+  return supabaseInstance;
+};
 
 // Helper to convert DynamoDB-style data to Supabase format
 const toSupabaseFormat = (data) => {
@@ -75,7 +87,7 @@ export const createUser = async (userData) => {
   };
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('users')
       .insert(user)
       .select()
@@ -96,7 +108,7 @@ export const createUser = async (userData) => {
 
 export const getUserById = async (userId) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('users')
       .select('*')
       .eq('user_id', userId)
@@ -111,7 +123,7 @@ export const getUserById = async (userId) => {
 
 export const getUserByEmail = async (email) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('users')
       .select('*')
       .eq('email', email)
@@ -133,7 +145,7 @@ export const updateUser = async (userId, updateData) => {
   };
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('users')
       .update(updatePayload)
       .eq('user_id', userId)
@@ -153,9 +165,15 @@ export const createProject = async (projectData) => {
   const projectId = generateId('project');
   const timestamp = getCurrentTimestamp();
   
+  // Handle test projects for temporary users
+  const isTestProject = projectData.isTest || projectData.userId === 'temp-user-default' || projectData.userId?.startsWith('temp-user');
+  const projectName = isTestProject && !projectData.name.startsWith('[TEST]') 
+    ? `[TEST] ${projectData.name}` 
+    : projectData.name;
+  
   const project = {
     project_id: projectId,
-    name: projectData.name,
+    name: projectName,
     description: projectData.description || '',
     user_id: projectData.userId,
     team_members: projectData.teamMembers || [],
@@ -172,7 +190,8 @@ export const createProject = async (projectData) => {
         autoSave: true,
         suggestions: true,
         codeCompletion: true
-      }
+      },
+      isTest: isTestProject
     },
     status: 'active',
     created_at: timestamp,
@@ -181,22 +200,26 @@ export const createProject = async (projectData) => {
   };
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('projects')
       .insert(project)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
     return { success: true, project: fromSupabaseFormat(data) };
   } catch (error) {
+    console.error('createProject error:', error);
     throw error;
   }
 };
 
 export const getProjectById = async (projectId) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('projects')
       .select('*')
       .eq('project_id', projectId)
@@ -211,7 +234,7 @@ export const getProjectById = async (projectId) => {
 
 export const getUserProjects = async (userId) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('projects')
       .select('*')
       .eq('user_id', userId)
@@ -227,29 +250,47 @@ export const getUserProjects = async (userId) => {
 export const updateProject = async (projectId, updateData) => {
   const timestamp = getCurrentTimestamp();
   
+  // Handle nested objects like settings - don't convert keys inside JSONB fields
   const updatePayload = {
-    ...toSupabaseFormat(updateData),
     updated_at: timestamp
   };
+  
+  // Convert top-level fields
+  for (const [key, value] of Object.entries(updateData)) {
+    if (key === 'settings' && typeof value === 'object') {
+      // Keep settings as-is (it's a JSONB field)
+      updatePayload.settings = value;
+    } else {
+      // Convert camelCase to snake_case for other fields
+      const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      updatePayload[snakeKey] = value;
+    }
+  }
+
+  console.log('Update payload:', JSON.stringify(updatePayload, null, 2));
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('projects')
       .update(updatePayload)
       .eq('project_id', projectId)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase update error:', error);
+      throw error;
+    }
     return { success: true, project: fromSupabaseFormat(data) };
   } catch (error) {
+    console.error('updateProject error:', error);
     throw error;
   }
 };
 
 export const deleteProject = async (projectId) => {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from('projects')
       .delete()
       .eq('project_id', projectId);
@@ -288,7 +329,7 @@ export const createScene = async (sceneData) => {
   };
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('scenes')
       .insert(scene)
       .select()
@@ -303,7 +344,7 @@ export const createScene = async (sceneData) => {
 
 export const getProjectScenes = async (projectId) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('scenes')
       .select('*')
       .eq('project_id', projectId)
@@ -342,7 +383,7 @@ export const createMap = async (mapData) => {
   };
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('maps')
       .insert(map)
       .select()
@@ -357,7 +398,7 @@ export const createMap = async (mapData) => {
 
 export const getProjectMaps = async (projectId) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('maps')
       .select('*')
       .eq('project_id', projectId)
@@ -397,7 +438,7 @@ export const createCharacter = async (characterData) => {
   };
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('characters')
       .insert(character)
       .select()
@@ -412,7 +453,7 @@ export const createCharacter = async (characterData) => {
 
 export const getProjectCharacters = async (projectId) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('characters')
       .select('*')
       .eq('project_id', projectId)
@@ -453,7 +494,7 @@ export const createAsset = async (assetData) => {
   };
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('assets')
       .insert(asset)
       .select()
@@ -468,7 +509,7 @@ export const createAsset = async (assetData) => {
 
 export const getAssetsByCategory = async (category, limit = 20) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('assets')
       .select('*')
       .eq('category', category)
@@ -494,7 +535,7 @@ export const batchGetItems = async (tableName, keys) => {
                       tableName === 'characters' ? 'character_id' :
                       tableName === 'assets' ? 'asset_id' : 'id';
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(tableName)
       .select('*')
       .in(primaryKey, keys.map(k => k[primaryKey] || k));
@@ -508,7 +549,7 @@ export const batchGetItems = async (tableName, keys) => {
 
 export const scanTable = async (tableName, limit = 100) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(tableName)
       .select('*')
       .limit(limit);

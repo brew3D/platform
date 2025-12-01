@@ -4,8 +4,7 @@ import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useProjects } from "../contexts/ProjectsContext";
 import { useRouter } from "next/navigation";
-import DashboardSidebar from "../components/DashboardSidebar";
-import DashboardTopbar from "../components/DashboardTopbar";
+import DashboardNavbar from "../components/DashboardNavbar";
 import HeroSection from "../components/HeroSection";
 import TemplateGallery from "../components/TemplateGallery";
 import ProjectsSection from "../components/ProjectsSection";
@@ -17,7 +16,6 @@ export default function DashboardPage() {
   const { projects, loading: projectsLoading } = useProjects();
   const router = useRouter();
   const [activeProject, setActiveProject] = useState(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showNewProject, setShowNewProject] = useState(false);
 
   const handleScrollToProjects = () => {
@@ -29,21 +27,8 @@ export default function DashboardPage() {
 
 
   return (
-    <div className={styles.dashboard}>
-      <DashboardSidebar 
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        activeProject={activeProject}
-        onProjectSelect={setActiveProject}
-      />
-      
-      <div className={`${styles.mainContent} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-        <DashboardTopbar 
-          user={user}
-          onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-        
-        <div className={styles.content}>
+    <>
+      <div className={styles.content}>
           <HeroSection 
             activeProject={activeProject}
             onCreateProject={() => setShowNewProject(true)}
@@ -70,8 +55,6 @@ export default function DashboardPage() {
             />
           </div>
         </div>
-      </div>
-
 
       <NewProjectModal 
         open={showNewProject}
@@ -115,6 +98,6 @@ export default function DashboardPage() {
           }
         }}
       />
-    </div>
+    </>
   );
 }
