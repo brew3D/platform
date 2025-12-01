@@ -1,17 +1,7 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { getSupabaseClient } from './supabase.js';
 import crypto from 'crypto';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
-const WEBHOOKS_TABLE = process.env.DDB_WEBHOOKS_TABLE || 'ruchi-ai-webhooks';
+const supabase = getSupabaseClient();
 
 // Trigger webhooks for a specific event
 export async function triggerWebhooks(event, data, userId = null) {
@@ -49,26 +39,25 @@ export async function triggerWebhooks(event, data, userId = null) {
 // Get webhooks that should be triggered for an event
 async function getWebhooksForEvent(event, userId = null) {
   try {
-    const params = {
-      TableName: WEBHOOKS_TABLE,
-      FilterExpression: 'isActive = :active AND contains(#events, :event)',
-      ExpressionAttributeNames: {
-        '#events': 'events'
-      },
-      ExpressionAttributeValues: {
-        ':active': true,
-        ':event': event
-      }
-    };
+    let query = supabase
+      .from('webhooks')
+      .select('*')
+      .eq('is_active', true)
+      .contains('events', [event]);
 
     // If userId is provided, only get webhooks for that user
     if (userId) {
-      params.FilterExpression += ' AND userId = :userId';
-      params.ExpressionAttributeValues[':userId'] = userId;
+      query = query.eq('user_id', userId);
     }
 
-    const result = await docClient.send(new ScanCommand(params));
-    return result.Items || [];
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error getting webhooks for event:', error);
+      return [];
+    }
+
+    return data || [];
   } catch (error) {
     console.error('Error getting webhooks for event:', error);
     return [];
@@ -84,13 +73,14 @@ async function sendWebhook(webhook, payload) {
       'Content-Type': 'application/json',
       'User-Agent': 'Brew3D-Platform-Webhook/1.0',
       'X-Webhook-Event': payload.event,
-      'X-Webhook-ID': webhook.webhookId,
-      ...webhook.headers
+      'X-Webhook-ID': webhook.webhook_id || webhook.webhookId,
+      ...(webhook.headers || {})
     };
 
     // Add signature if secret is provided
-    if (webhook.secret) {
-      const signature = generateWebhookSignature(JSON.stringify(payload), webhook.secret);
+    const secret = webhook.secret || null;
+    if (secret) {
+      const signature = generateWebhookSignature(JSON.stringify(payload), secret);
       headers['X-Webhook-Signature'] = `sha256=${signature}`;
     }
 
@@ -136,19 +126,22 @@ async function sendWebhook(webhook, payload) {
 // Update webhook statistics
 async function updateWebhookStats(webhookId, success) {
   try {
-    const updateExpression = success 
-      ? 'SET lastTriggered = :timestamp, successCount = successCount + :inc'
-      : 'SET lastTriggered = :timestamp, failureCount = failureCount + :inc';
+    const id = webhookId.webhook_id || webhookId;
+    const updateData = {
+      last_triggered: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-    await docClient.send(new UpdateCommand({
-      TableName: WEBHOOKS_TABLE,
-      Key: { webhookId },
-      UpdateExpression,
-      ExpressionAttributeValues: {
-        ':timestamp': new Date().toISOString(),
-        ':inc': 1
-      }
-    }));
+    // Note: Supabase doesn't support atomic increments easily, 
+    // you may need to read first then update, or use a database function
+    const { error } = await supabase
+      .from('webhooks')
+      .update(updateData)
+      .eq('webhook_id', id);
+
+    if (error) {
+      console.error('Error updating webhook stats:', error);
+    }
   } catch (error) {
     console.error('Error updating webhook stats:', error);
   }

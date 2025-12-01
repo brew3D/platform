@@ -22,7 +22,7 @@ export default function PrivacyPage() {
           <div className={styles.headerContent}>
             <div className={styles.logo}>
               <Link href="/" className={styles.logoLink}>
-                <span className={styles.logoText}>PiWea</span>
+                <span className={styles.logoText}>Brew3D</span>
               </Link>
             </div>
             <nav className={styles.nav}>
@@ -180,7 +180,7 @@ export default function PrivacyPage() {
           <div className={styles.footerContent}>
             <div className={styles.footerBrand}>
               <div className={styles.logo}>
-                <span className={styles.logoText}>PiWea</span>
+                <span className={styles.logoText}>Brew3D</span>
               </div>
               <p className={styles.footerDescription}>
                 The future of AI-powered 3D creation
@@ -212,7 +212,7 @@ export default function PrivacyPage() {
           </div>
           
           <div className={styles.footerBottom}>
-            <p>&copy; 2025 PiWea. All rights reserved.</p>
+            <p>&copy; 2025 Brew3D. All rights reserved.</p>
             <div className={styles.footerLegal}>
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>

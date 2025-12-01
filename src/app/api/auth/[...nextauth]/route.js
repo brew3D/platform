@@ -1,17 +1,8 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { getSupabaseClient } from '@/app/lib/supabase';
 
-const dynamoClient = new DynamoDBClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(dynamoClient);
+const supabase = getSupabaseClient();
 
 const handler = NextAuth({
   providers: [
@@ -25,39 +16,58 @@ const handler = NextAuth({
       if (account.provider === 'google') {
         try {
           // Check if user exists
-          const existingUser = await docClient.send(new QueryCommand({
-            TableName: process.env.DYNAMODB_TABLE_NAME || 'ruchi-ai-users',
-            IndexName: 'email-index',
-            KeyConditionExpression: 'email = :email',
-            ExpressionAttributeValues: {
-              ':email': user.email,
-            },
-          }));
+          const { data: existingUser } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', user.email)
+            .single();
 
-          if (!existingUser.Items || existingUser.Items.length === 0) {
+          if (!existingUser) {
             // Create new user
-            const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const userId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
             
             const newUser = {
-              userId,
+              user_id: userId,
               name: user.name,
               email: user.email,
-              profilePicture: user.image,
-              provider: 'google',
-              providerId: account.providerAccountId,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              isVerified: true,
+              profile_picture: user.image || '',
+              password_hash: '', // OAuth users don't need password
+              role: 'member',
+              security: {
+                twoFactorEnabled: false,
+                totpSecret: null,
+                recoveryCodes: []
+              },
               preferences: {
                 theme: 'dark',
-                notifications: true,
+                notifications: {
+                  email: true,
+                  platform: true,
+                  projectUpdates: false
+                },
+                language: 'en',
+                timezone: 'UTC',
+                defaultProjectSettings: {}
               },
+              subscription: {
+                plan: 'free',
+                status: 'active',
+                expiresAt: null,
+                features: ['basic-editor', 'basic-assets']
+              },
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              last_login_at: new Date().toISOString(),
+              is_active: true
             };
 
-            await docClient.send(new PutCommand({
-              TableName: process.env.DYNAMODB_TABLE_NAME || 'ruchi-ai-users',
-              Item: newUser,
-            }));
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert(newUser);
+
+            if (insertError) {
+              console.error('Error creating user:', insertError);
+            }
           }
 
           return true;

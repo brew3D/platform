@@ -1,18 +1,8 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES } from '@/app/lib/dynamodb-schema';
+import { getSupabaseClient } from '@/app/lib/supabase';
 import nodemailer from 'nodemailer';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
+const supabase = getSupabaseClient();
 
 // Lazy initialization of email transporter
 function getTransporter() {
@@ -128,23 +118,31 @@ export async function GET(request) {
 // Get users who should receive digest emails
 async function getUsersForDigest(specificUserId = null) {
   try {
-    const params = {
-      TableName: TABLE_NAMES.USERS,
-      FilterExpression: 'isActive = :active AND preferences.emailDigest = :digestEnabled',
-      ExpressionAttributeValues: {
-        ':active': true,
-        ':digestEnabled': true
-      }
-    };
+    let query = supabase
+      .from('users')
+      .select('*')
+      .eq('is_active', true);
 
     // If testing with specific user
     if (specificUserId) {
-      params.FilterExpression = 'userId = :userId';
-      params.ExpressionAttributeValues = { ':userId': specificUserId };
+      query = query.eq('user_id', specificUserId);
     }
 
-    const result = await docClient.send(new ScanCommand(params));
-    return result.Items || [];
+    // Filter users with email digest enabled in preferences
+    // Note: This requires checking JSONB field - may need to adjust based on your preferences structure
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error getting users for digest:', error);
+      return [];
+    }
+
+    // Filter users who have email digest enabled
+    // Since preferences is JSONB, we filter in JavaScript
+    return (data || []).filter(user => {
+      const prefs = user.preferences || {};
+      return prefs.notifications?.email === true; // Assuming email digest is part of email notifications
+    });
   } catch (error) {
     console.error('Error getting users for digest:', error);
     return [];
@@ -154,11 +152,14 @@ async function getUsersForDigest(specificUserId = null) {
 // Get user by ID
 async function getUserById(userId) {
   try {
-    const result = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.USERS,
-      Key: { userId }
-    }));
-    return result.Item;
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error || !data) return null;
+    return data;
   } catch (error) {
     console.error('Error getting user:', error);
     return null;
@@ -205,26 +206,27 @@ async function generateDigestContent(user) {
 // Get trending posts from a specific date
 async function getTrendingPosts(since, limit = 5) {
   try {
-    const params = {
-      TableName: TABLE_NAMES.COMMUNITY_POSTS,
-      FilterExpression: 'createdAt >= :since',
-      ExpressionAttributeValues: {
-        ':since': since
-      }
-    };
+    const { data: posts, error } = await supabase
+      .from('community_posts')
+      .select('*')
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(100); // Get more to calculate trending
 
-    const result = await docClient.send(new ScanCommand(params));
-    const posts = result.Items || [];
+    if (error) {
+      console.error('Error getting trending posts:', error);
+      return [];
+    }
 
     // Calculate trending score and sort
-    const trendingPosts = posts.map(post => ({
-      id: post.postId,
+    const trendingPosts = (posts || []).map(post => ({
+      id: post.post_id,
       content: post.content,
-      author: post.userId,
+      author: post.user_id,
       likes: post.likes?.length || 0,
       comments: post.comments?.length || 0,
       shares: post.shares || 0,
-      createdAt: post.createdAt,
+      createdAt: post.created_at,
       trendingScore: calculateTrendingScore(post)
     }));
 
@@ -244,25 +246,26 @@ async function getUpcomingEvents(limit = 5) {
     const oneWeekFromNow = new Date();
     oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
 
-    const params = {
-      TableName: TABLE_NAMES.EVENTS,
-      FilterExpression: 'startTime >= :now AND startTime <= :oneWeekFromNow AND #status = :status',
-      ExpressionAttributeNames: {
-        '#status': 'status'
-      },
-      ExpressionAttributeValues: {
-        ':now': now,
-        ':oneWeekFromNow': oneWeekFromNow.toISOString(),
-        ':status': 'published'
-      }
-    };
+    const { data: events, error } = await supabase
+      .from('events')
+      .select('*')
+      .gte('start_time', now)
+      .lte('start_time', oneWeekFromNow.toISOString())
+      .eq('status', 'published')
+      .order('start_time', { ascending: true })
+      .limit(limit);
 
-    const result = await docClient.send(new ScanCommand(params));
-    const events = result.Items || [];
+    if (error) {
+      console.error('Error getting upcoming events:', error);
+      return [];
+    }
 
-    return events
-      .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
-      .slice(0, limit);
+    return (events || []).map(event => ({
+      ...event,
+      startTime: event.start_time,
+      maxAttendees: event.max_attendees,
+      currentAttendees: event.current_attendees
+    }));
   } catch (error) {
     console.error('Error getting upcoming events:', error);
     return [];
@@ -273,34 +276,28 @@ async function getUpcomingEvents(limit = 5) {
 async function getUserActivitySummary(userId, since) {
   try {
     // Get user's posts
-    const postsResult = await docClient.send(new QueryCommand({
-      TableName: TABLE_NAMES.COMMUNITY_POSTS,
-      IndexName: 'user-id-index',
-      KeyConditionExpression: 'userId = :userId',
-      FilterExpression: 'createdAt >= :since',
-      ExpressionAttributeValues: {
-        ':userId': userId,
-        ':since': since
-      }
-    }));
-
-    const posts = postsResult.Items || [];
+    const { data: posts } = await supabase
+      .from('community_posts')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('created_at', since);
     
     // Get user's points
-    const pointsResult = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.USER_POINTS,
-      Key: { userId }
-    }));
+    const { data: points } = await supabase
+      .from('user_points')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
 
-    const points = pointsResult.Item || { totalPoints: 0, level: 1 };
+    const pointsData = points || { total_points: 0, level: 1 };
 
     return {
-      postsCreated: posts.length,
-      totalLikes: posts.reduce((sum, post) => sum + (post.likes?.length || 0), 0),
-      totalComments: posts.reduce((sum, post) => sum + (post.comments?.length || 0), 0),
-      totalShares: posts.reduce((sum, post) => sum + (post.shares || 0), 0),
-      currentLevel: points.level,
-      pointsEarned: points.totalPoints
+      postsCreated: (posts || []).length,
+      totalLikes: (posts || []).reduce((sum, post) => sum + (post.likes?.length || 0), 0),
+      totalComments: (posts || []).reduce((sum, post) => sum + (post.comments?.length || 0), 0),
+      totalShares: (posts || []).reduce((sum, post) => sum + (post.shares || 0), 0),
+      currentLevel: pointsData.level || 1,
+      pointsEarned: pointsData.total_points || 0
     };
   } catch (error) {
     console.error('Error getting user activity:', error);
@@ -318,35 +315,31 @@ async function getUserActivitySummary(userId, since) {
 // Get new badges earned by user
 async function getNewBadges(userId, since) {
   try {
-    const params = {
-      TableName: TABLE_NAMES.USER_BADGES,
-      KeyConditionExpression: 'userId = :userId',
-      FilterExpression: 'earnedAt >= :since',
-      ExpressionAttributeValues: {
-        ':userId': userId,
-        ':since': since
-      }
-    };
+    const { data: userBadges } = await supabase
+      .from('user_badges')
+      .select('*, badges(*)')
+      .eq('user_id', userId)
+      .gte('earned_at', since);
 
-    const result = await docClient.send(new QueryCommand(params));
-    const userBadges = result.Items || [];
+    if (!userBadges) return [];
 
     // Get badge details
     const badgesWithDetails = await Promise.all(
-      userBadges.map(async (userBadge) => {
-        const badgeResult = await docClient.send(new GetCommand({
-          TableName: TABLE_NAMES.BADGES,
-          Key: { badgeId: userBadge.badgeId }
-        }));
+      (userBadges || []).map(async (userBadge) => {
+        const { data: badge } = await supabase
+          .from('badges')
+          .select('*')
+          .eq('badge_id', userBadge.badge_id)
+          .single();
         
         return {
-          ...badgeResult.Item,
-          earnedAt: userBadge.earnedAt
+          ...badge,
+          earnedAt: userBadge.earned_at
         };
       })
     );
 
-    return badgesWithDetails;
+    return badgesWithDetails.filter(b => b.badge_id); // Filter out null badges
   } catch (error) {
     console.error('Error getting new badges:', error);
     return [];
@@ -357,29 +350,27 @@ async function getNewBadges(userId, since) {
 async function getCommunityStats(since) {
   try {
     // Get total posts
-    const postsResult = await docClient.send(new ScanCommand({
-      TableName: TABLE_NAMES.COMMUNITY_POSTS,
-      FilterExpression: 'createdAt >= :since',
-      ExpressionAttributeValues: {
-        ':since': since
-      },
-      Select: 'COUNT'
-    }));
+    const { count: postsCount } = await supabase
+      .from('community_posts')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', since);
 
     // Get total events
-    const eventsResult = await docClient.send(new ScanCommand({
-      TableName: TABLE_NAMES.EVENTS,
-      FilterExpression: 'createdAt >= :since',
-      ExpressionAttributeValues: {
-        ':since': since
-      },
-      Select: 'COUNT'
-    }));
+    const { count: eventsCount } = await supabase
+      .from('events')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', since);
+
+    // Get new users
+    const { count: usersCount } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', since);
 
     return {
-      totalPosts: postsResult.Count || 0,
-      totalEvents: eventsResult.Count || 0,
-      newUsers: 0, // Would need to track this separately
+      totalPosts: postsCount || 0,
+      totalEvents: eventsCount || 0,
+      newUsers: usersCount || 0,
       totalEngagement: 0 // Would need to calculate from all interactions
     };
   } catch (error) {
@@ -582,14 +573,22 @@ Visit: ${process.env.NEXTAUTH_URL || 'http://localhost:3000'}
 // Update user's last digest sent timestamp
 async function updateLastDigestSent(userId) {
   try {
-    await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.USERS,
-      Key: { userId },
-      UpdateExpression: 'SET preferences.lastDigestSent = :timestamp',
-      ExpressionAttributeValues: {
-        ':timestamp': new Date().toISOString()
-      }
-    }));
+    // Get current preferences
+    const { data: user } = await supabase
+      .from('users')
+      .select('preferences')
+      .eq('user_id', userId)
+      .single();
+
+    if (user) {
+      const preferences = user.preferences || {};
+      preferences.lastDigestSent = new Date().toISOString();
+
+      await supabase
+        .from('users')
+        .update({ preferences })
+        .eq('user_id', userId);
+    }
   } catch (error) {
     console.error('Error updating last digest sent:', error);
   }

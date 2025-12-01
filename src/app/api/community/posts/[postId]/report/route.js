@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { getDynamoDocClient } from '@/app/lib/dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp, generateId } from '@/app/lib/dynamodb-schema';
+import { getSupabaseClient } from '@/app/lib/supabase';
+import { getCurrentTimestamp, generateId } from '@/app/lib/dynamodb-schema';
 import { requireAuth } from '@/app/lib/auth';
 
-const docClient = getDynamoDocClient();
+const supabase = getSupabaseClient();
 
 export async function POST(request, { params }) {
   try {
@@ -12,16 +11,32 @@ export async function POST(request, { params }) {
     if (auth.error) return NextResponse.json({ message: auth.error.message }, { status: auth.error.status });
     const { postId } = params;
     const { reason } = await request.json();
+    // Get current post
+    const { data: post, error: fetchError } = await supabase
+      .from('community_posts')
+      .select('reports')
+      .eq('post_id', postId)
+      .single();
+
+    if (fetchError) {
+      return NextResponse.json({ message: 'Post not found' }, { status: 404 });
+    }
+
     const report = { id: generateId('rpt'), userId: auth.userId, reason: reason || 'unspecified', createdAt: getCurrentTimestamp() };
-    const res = await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.COMMUNITY_POSTS,
-      Key: { postId },
-      UpdateExpression: 'SET #reports = list_append(if_not_exists(#reports, :empty), :new)',
-      ExpressionAttributeNames: { '#reports': 'reports' },
-      ExpressionAttributeValues: { ':new': [report], ':empty': [] },
-      ReturnValues: 'ALL_NEW'
-    }));
-    return NextResponse.json({ post: res.Attributes });
+    const updatedReports = [...(post.reports || []), report];
+
+    const { data: updatedPost, error: updateError } = await supabase
+      .from('community_posts')
+      .update({ reports: updatedReports, updated_at: getCurrentTimestamp() })
+      .eq('post_id', postId)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return NextResponse.json({ post: updatedPost });
   } catch (e) {
     console.error('Report post error:', e);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });

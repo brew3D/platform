@@ -1,19 +1,9 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES } from '../../../lib/dynamodb-schema';
 import { requireAuth } from '../../../lib/auth';
 import OpenAI from 'openai';
-
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
+// This file doesn't directly use database, but if needed:
+// import { getSupabaseClient } from '@/app/lib/supabase';
+// const supabase = getSupabaseClient();
 
 // Lazy initialization of OpenAI client
 function getOpenAIClient() {

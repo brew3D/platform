@@ -1,18 +1,9 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
+import { getSupabaseClient } from '@/app/lib/supabase';
+import { getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
 import { withApiAuth } from '../../_middleware/auth';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
+const supabase = getSupabaseClient();
 
 // GET /api/v1/webhooks/[webhookId] - Get webhook details
 export const GET = withApiAuth(async (request, { params }) => {
@@ -20,12 +11,13 @@ export const GET = withApiAuth(async (request, { params }) => {
     const { webhookId } = params;
     const userId = request.user?.userId || request.apiKey?.userId;
 
-    const result = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.WEBHOOKS,
-      Key: { webhookId }
-    }));
+    const { data: webhook, error } = await supabase
+      .from('webhooks')
+      .select('*')
+      .eq('webhook_id', webhookId)
+      .single();
 
-    if (!result.Item) {
+    if (error || !webhook) {
       return NextResponse.json({ 
         success: false, 
         error: 'Webhook not found' 
@@ -33,19 +25,17 @@ export const GET = withApiAuth(async (request, { params }) => {
     }
 
     // Check ownership
-    if (result.Item.userId !== userId) {
+    if (webhook.user_id !== userId) {
       return NextResponse.json({ 
         success: false, 
         error: 'Access denied' 
       }, { status: 403 });
     }
 
+    const { secret, ...webhookWithoutSecret } = webhook;
     return NextResponse.json({ 
       success: true, 
-      webhook: {
-        ...result.Item,
-        secret: undefined // Don't return the secret
-      }
+      webhook: webhookWithoutSecret
     });
   } catch (error) {
     console.error('Get webhook error:', error);
@@ -64,12 +54,13 @@ export const PUT = withApiAuth(async (request, { params }) => {
     const body = await request.json();
 
     // Get existing webhook
-    const existing = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.WEBHOOKS,
-      Key: { webhookId }
-    }));
+    const { data: existing, error: fetchError } = await supabase
+      .from('webhooks')
+      .select('*')
+      .eq('webhook_id', webhookId)
+      .single();
 
-    if (!existing.Item) {
+    if (fetchError || !existing) {
       return NextResponse.json({ 
         success: false, 
         error: 'Webhook not found' 
@@ -77,26 +68,23 @@ export const PUT = withApiAuth(async (request, { params }) => {
     }
 
     // Check ownership
-    if (existing.Item.userId !== userId) {
+    if (existing.user_id !== userId) {
       return NextResponse.json({ 
         success: false, 
         error: 'Access denied' 
       }, { status: 403 });
     }
 
-    const now = getCurrentTimestamp();
-    const updates = [];
-    const names = {};
-    const values = { ':updatedAt': now };
+    const updateData = {
+      updated_at: getCurrentTimestamp()
+    };
 
-    // Build update expression
+    // Build update data
     if (body.url !== undefined) {
       // Validate URL
       try {
         new URL(body.url);
-        updates.push('#url = :url');
-        names['#url'] = 'url';
-        values[':url'] = body.url;
+        updateData.url = body.url;
       } catch (urlError) {
         return NextResponse.json({ 
           success: false, 
@@ -106,54 +94,43 @@ export const PUT = withApiAuth(async (request, { params }) => {
     }
 
     if (body.events !== undefined) {
-      updates.push('#events = :events');
-      names['#events'] = 'events';
-      values[':events'] = body.events;
+      updateData.events = body.events;
     }
 
     if (body.isActive !== undefined) {
-      updates.push('#isActive = :isActive');
-      names['#isActive'] = 'isActive';
-      values[':isActive'] = body.isActive;
+      updateData.is_active = body.isActive;
     }
 
     if (body.description !== undefined) {
-      updates.push('#description = :description');
-      names['#description'] = 'description';
-      values[':description'] = body.description;
+      updateData.description = body.description;
     }
 
     if (body.headers !== undefined) {
-      updates.push('#headers = :headers');
-      names['#headers'] = 'headers';
-      values[':headers'] = body.headers;
+      updateData.headers = body.headers;
     }
 
-    updates.push('#updatedAt = :updatedAt');
-    names['#updatedAt'] = 'updatedAt';
-
-    if (updates.length === 1) { // Only updatedAt
+    if (Object.keys(updateData).length === 1) { // Only updated_at
       return NextResponse.json({ 
         success: false, 
         error: 'No valid fields to update' 
       }, { status: 400 });
     }
 
-    const result = await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.WEBHOOKS,
-      Key: { webhookId },
-      UpdateExpression: 'SET ' + updates.join(', '),
-      ExpressionAttributeNames: names,
-      ExpressionAttributeValues: values,
-      ReturnValues: 'ALL_NEW'
-    }));
+    const { data: updatedWebhook, error: updateError } = await supabase
+      .from('webhooks')
+      .update(updateData)
+      .eq('webhook_id', webhookId)
+      .select()
+      .single();
 
+    if (updateError) {
+      throw updateError;
+    }
+
+    const { secret, ...webhookWithoutSecret } = updatedWebhook;
     return NextResponse.json({ 
       success: true, 
-      webhook: {
-        ...result.Attributes,
-        secret: undefined // Don't return the secret
-      }
+      webhook: webhookWithoutSecret
     });
   } catch (error) {
     console.error('Update webhook error:', error);
@@ -171,12 +148,13 @@ export const DELETE = withApiAuth(async (request, { params }) => {
     const userId = request.user?.userId || request.apiKey?.userId;
 
     // Get existing webhook
-    const existing = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.WEBHOOKS,
-      Key: { webhookId }
-    }));
+    const { data: existing, error: fetchError } = await supabase
+      .from('webhooks')
+      .select('user_id')
+      .eq('webhook_id', webhookId)
+      .single();
 
-    if (!existing.Item) {
+    if (fetchError || !existing) {
       return NextResponse.json({ 
         success: false, 
         error: 'Webhook not found' 
@@ -184,17 +162,21 @@ export const DELETE = withApiAuth(async (request, { params }) => {
     }
 
     // Check ownership
-    if (existing.Item.userId !== userId) {
+    if (existing.user_id !== userId) {
       return NextResponse.json({ 
         success: false, 
         error: 'Access denied' 
       }, { status: 403 });
     }
 
-    await docClient.send(new DeleteCommand({
-      TableName: TABLE_NAMES.WEBHOOKS,
-      Key: { webhookId }
-    }));
+    const { error: deleteError } = await supabase
+      .from('webhooks')
+      .delete()
+      .eq('webhook_id', webhookId);
+
+    if (deleteError) {
+      throw deleteError;
+    }
 
     return NextResponse.json({ 
       success: true, 

@@ -97,7 +97,7 @@ export default function NewProjectModal({ open, onClose, onCreate, searchUsers }
           <div className={styles.teamSection}>
             <div className={styles.teamHeader}>
               <span>Team (optional)</span>
-              <a className={styles.inviteLink} href="/dashboard/team/invite">Invite to PiWea →</a>
+              <a className={styles.inviteLink} href="/dashboard/team/invite">Invite to Brew3D →</a>
             </div>
             <div className={styles.teamPicker}>
               <input 
@@ -107,7 +107,7 @@ export default function NewProjectModal({ open, onClose, onCreate, searchUsers }
               />
               {isSearching && <div className={styles.searching}>Searching...</div>}
               {teamQuery && teamResults.length === 0 && !isSearching && (
-                <div className={styles.noResults}>No users found. <a href="/dashboard/team/invite">Invite to PiWea</a></div>
+                <div className={styles.noResults}>No users found. <a href="/dashboard/team/invite">Invite to Brew3D</a></div>
               )}
               {teamResults.length > 0 && (
                 <div className={styles.results}>

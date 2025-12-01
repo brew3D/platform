@@ -169,7 +169,7 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
             </svg>
           </div>
           {!collapsed && (
-            <span className={styles.logoText}>PiWea</span>
+            <span className={styles.logoText}>Brew3D</span>
           )}
         </Link>
         {!collapsed && (

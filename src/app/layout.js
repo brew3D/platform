@@ -21,24 +21,24 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata = {
-  title: "PiWea — Build 3D Worlds with AI",
+  title: "Brew3D — Build 3D Worlds with AI",
   description: "Collaborate, render, and create 3D worlds together — right from your browser. AI-powered 3D creation platform for modern creators.",
   keywords: "3D modeling, AI, collaboration, cloud rendering, 3D creation, browser-based, real-time collaboration",
-  authors: [{ name: "PiWea Team" }],
-  creator: "PiWea",
-  publisher: "PiWea Studios",
+  authors: [{ name: "Brew3D Team" }],
+  creator: "Brew3D",
+  publisher: "Brew3D Studios",
   robots: "index, follow",
   openGraph: {
-    title: "PiWea — Build 3D Worlds with AI",
+    title: "Brew3D — Build 3D Worlds with AI",
     description: "Collaborate, render, and create 3D worlds together — right from your browser.",
     url: "https://nuvra.com",
-    siteName: "PiWea",
+    siteName: "Brew3D",
     images: [
       {
         url: "/meta/og-image.png",
         width: 1200,
         height: 630,
-        alt: "PiWea - AI-powered 3D creation platform",
+        alt: "Brew3D - AI-powered 3D creation platform",
       },
     ],
     locale: "en_US",
@@ -46,7 +46,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "PiWea — Build 3D Worlds with AI",
+    title: "Brew3D — Build 3D Worlds with AI",
     description: "Collaborate, render, and create 3D worlds together — right from your browser.",
     images: ["/meta/og-image.png"],
   },

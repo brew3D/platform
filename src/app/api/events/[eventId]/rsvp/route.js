@@ -1,18 +1,9 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
+import { getSupabaseClient } from '@/app/lib/supabase';
+import { getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
 import { requireAuth } from '@/app/lib/auth';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
+const supabase = getSupabaseClient();
 
 // GET /api/events/[eventId]/rsvp - Get RSVP status for current user
 export async function GET(request, { params }) {
@@ -30,12 +21,13 @@ export async function GET(request, { params }) {
     }
 
     // Check if event exists
-    const event = await docClient.send(new GetCommand({ 
-      TableName: TABLE_NAMES.EVENTS, 
-      Key: { eventId } 
-    }));
+    const { data: event, error: eventError } = await supabase
+      .from('events')
+      .select('*')
+      .eq('event_id', eventId)
+      .single();
 
-    if (!event.Item) {
+    if (eventError || !event) {
       return NextResponse.json({ 
         success: false, 
         error: 'Event not found' 
@@ -43,15 +35,17 @@ export async function GET(request, { params }) {
     }
 
     // Get user's RSVP
-    const rsvp = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.EVENT_RSVPS,
-      Key: { eventId, userId: auth.userId }
-    }));
+    const { data: rsvp } = await supabase
+      .from('event_rsvps')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('user_id', auth.userId)
+      .single();
 
     return NextResponse.json({ 
       success: true, 
-      rsvp: rsvp.Item || null,
-      event: event.Item
+      rsvp: rsvp || null,
+      event: event
     });
   } catch (error) {
     console.error('Get RSVP error:', error);
@@ -87,12 +81,13 @@ export async function POST(request, { params }) {
     }
 
     // Get event details
-    const event = await docClient.send(new GetCommand({ 
-      TableName: TABLE_NAMES.EVENTS, 
-      Key: { eventId } 
-    }));
+    const { data: event, error: eventError } = await supabase
+      .from('events')
+      .select('*')
+      .eq('event_id', eventId)
+      .single();
 
-    if (!event.Item) {
+    if (eventError || !event) {
       return NextResponse.json({ 
         success: false, 
         error: 'Event not found' 
@@ -101,9 +96,9 @@ export async function POST(request, { params }) {
 
     // Check if event is still accepting RSVPs
     const now = new Date();
-    const registrationDeadline = new Date(event.Item.registrationDeadline);
+    const registrationDeadline = event.registration_deadline ? new Date(event.registration_deadline) : null;
     
-    if (now > registrationDeadline) {
+    if (registrationDeadline && now > registrationDeadline) {
       return NextResponse.json({ 
         success: false, 
         error: 'Registration deadline has passed' 
@@ -111,13 +106,19 @@ export async function POST(request, { params }) {
     }
 
     // Check if event is full and handle waitlist
-    const currentRSVPs = await getEventRSVPCount(eventId);
-    const isEventFull = currentRSVPs.attending >= event.Item.maxAttendees;
+    const { data: rsvps } = await supabase
+      .from('event_rsvps')
+      .select('status')
+      .eq('event_id', eventId)
+      .eq('status', 'attending');
+    
+    const attendingCount = rsvps?.length || 0;
+    const isEventFull = event.max_attendees && attendingCount >= event.max_attendees;
     
     let finalStatus = status;
-    if (status === 'attending' && isEventFull && event.Item.allowWaitlist) {
+    if (status === 'attending' && isEventFull && event.allow_waitlist) {
       finalStatus = 'waitlist';
-    } else if (status === 'attending' && isEventFull && !event.Item.allowWaitlist) {
+    } else if (status === 'attending' && isEventFull && !event.allow_waitlist) {
       return NextResponse.json({ 
         success: false, 
         error: 'Event is full and waitlist is not available' 
@@ -126,52 +127,51 @@ export async function POST(request, { params }) {
 
     const now_timestamp = getCurrentTimestamp();
     const rsvpData = {
-      eventId,
-      userId: auth.userId,
+      event_id: eventId,
+      user_id: auth.userId,
       status: finalStatus,
-      rsvpDate: now_timestamp,
-      plusOnes: parseInt(plusOnes, 10) || 0,
-      dietaryRestrictions: dietaryRestrictions.trim(),
+      rsvp_date: now_timestamp,
+      plus_ones: parseInt(plusOnes, 10) || 0,
+      dietary_restrictions: dietaryRestrictions.trim(),
       notes: notes.trim(),
-      createdAt: now_timestamp,
-      updatedAt: now_timestamp
+      created_at: now_timestamp,
+      updated_at: now_timestamp
     };
 
     // Check if RSVP already exists
-    const existingRSVP = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.EVENT_RSVPS,
-      Key: { eventId, userId: auth.userId }
-    }));
+    const { data: existingRSVP } = await supabase
+      .from('event_rsvps')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('user_id', auth.userId)
+      .single();
 
-    if (existingRSVP.Item) {
+    if (existingRSVP) {
       // Update existing RSVP
-      await docClient.send(new UpdateCommand({
-        TableName: TABLE_NAMES.EVENT_RSVPS,
-        Key: { eventId, userId: auth.userId },
-        UpdateExpression: 'SET #status = :status, #rsvpDate = :rsvpDate, plusOnes = :plusOnes, dietaryRestrictions = :dietaryRestrictions, notes = :notes, updatedAt = :updatedAt',
-        ExpressionAttributeNames: {
-          '#status': 'status',
-          '#rsvpDate': 'rsvpDate'
-        },
-        ExpressionAttributeValues: {
-          ':status': finalStatus,
-          ':rsvpDate': now_timestamp,
-          ':plusOnes': rsvpData.plusOnes,
-          ':dietaryRestrictions': rsvpData.dietaryRestrictions,
-          ':notes': rsvpData.notes,
-          ':updatedAt': now_timestamp
-        }
-      }));
+      const { error: updateError } = await supabase
+        .from('event_rsvps')
+        .update({
+          status: finalStatus,
+          rsvp_date: now_timestamp,
+          plus_ones: rsvpData.plus_ones,
+          dietary_restrictions: rsvpData.dietary_restrictions,
+          notes: rsvpData.notes,
+          updated_at: now_timestamp
+        })
+        .eq('event_id', eventId)
+        .eq('user_id', auth.userId);
+
+      if (updateError) throw updateError;
     } else {
       // Create new RSVP
-      await docClient.send(new PutCommand({
-        TableName: TABLE_NAMES.EVENT_RSVPS,
-        Item: rsvpData
-      }));
+      const { error: insertError } = await supabase
+        .from('event_rsvps')
+        .insert(rsvpData);
+
+      if (insertError) throw insertError;
     }
 
-    // Update event attendee count
-    await updateEventAttendeeCount(eventId);
+    // Event attendee count is updated automatically by trigger
 
     return NextResponse.json({ 
       success: true, 
@@ -203,12 +203,14 @@ export async function DELETE(request, { params }) {
     }
 
     // Check if RSVP exists
-    const existingRSVP = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.EVENT_RSVPS,
-      Key: { eventId, userId: auth.userId }
-    }));
+    const { data: existingRSVP, error: fetchError } = await supabase
+      .from('event_rsvps')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('user_id', auth.userId)
+      .single();
 
-    if (!existingRSVP.Item) {
+    if (fetchError || !existingRSVP) {
       return NextResponse.json({ 
         success: false, 
         error: 'RSVP not found' 
@@ -216,13 +218,15 @@ export async function DELETE(request, { params }) {
     }
 
     // Delete RSVP
-    await docClient.send(new DeleteCommand({
-      TableName: TABLE_NAMES.EVENT_RSVPS,
-      Key: { eventId, userId: auth.userId }
-    }));
+    const { error: deleteError } = await supabase
+      .from('event_rsvps')
+      .delete()
+      .eq('event_id', eventId)
+      .eq('user_id', auth.userId);
 
-    // Update event attendee count
-    await updateEventAttendeeCount(eventId);
+    if (deleteError) throw deleteError;
+
+    // Event attendee count is updated automatically by trigger
 
     return NextResponse.json({ 
       success: true, 
@@ -240,16 +244,10 @@ export async function DELETE(request, { params }) {
 // Helper function to get RSVP count for an event
 async function getEventRSVPCount(eventId) {
   try {
-    const params = {
-      TableName: TABLE_NAMES.EVENT_RSVPS,
-      KeyConditionExpression: 'eventId = :eventId',
-      ExpressionAttributeValues: {
-        ':eventId': eventId
-      }
-    };
-
-    const result = await docClient.send(new QueryCommand(params));
-    const rsvps = result.Items || [];
+    const { data: rsvps } = await supabase
+      .from('event_rsvps')
+      .select('status')
+      .eq('event_id', eventId);
 
     const counts = {
       attending: 0,
@@ -258,8 +256,11 @@ async function getEventRSVPCount(eventId) {
       waitlist: 0
     };
 
-    rsvps.forEach(rsvp => {
-      counts[rsvp.status] = (counts[rsvp.status] || 0) + 1;
+    (rsvps || []).forEach(rsvp => {
+      const status = rsvp.status;
+      if (counts.hasOwnProperty(status)) {
+        counts[status] = (counts[status] || 0) + 1;
+      }
     });
 
     return counts;
@@ -269,14 +270,11 @@ async function getEventRSVPCount(eventId) {
   }
 }
 
-// Helper function to update event attendee count
+// Helper function to update event attendee count (now handled by trigger)
 async function updateEventAttendeeCount(eventId) {
-  try {
-    const rsvpCounts = await getEventRSVPCount(eventId);
-    
-    await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.EVENTS,
-      Key: { eventId },
+  // This is now handled automatically by the database trigger
+  // No need to manually update
+  return;
       UpdateExpression: 'SET currentAttendees = :currentAttendees',
       ExpressionAttributeValues: {
         ':currentAttendees': rsvpCounts.attending

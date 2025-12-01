@@ -68,7 +68,7 @@ export default function SigninPage() {
       <nav className={`${landingStyles.navbar} ${scrolled ? landingStyles.navbarScrolled : ''}`}>
         <div className={landingStyles.navContainer}>
           <div className={landingStyles.logo}>
-            <span className={landingStyles.logoText}>PiWea</span>
+            <span className={landingStyles.logoText}>Brew3D</span>
             <div className={landingStyles.logoAccent}></div>
           </div>
 
@@ -126,7 +126,7 @@ export default function SigninPage() {
       <div className={styles.authCard}>
         <div className={styles.authHeader}>
           <Link href="/" className={styles.logo}>
-            <span className={styles.logoText}>PiWea</span>
+            <span className={styles.logoText}>Brew3D</span>
           </Link>
           <h1 className={styles.title}>Welcome Back</h1>
           <p className={styles.subtitle}>Sign in to continue your 3D journey</p>
@@ -212,7 +212,7 @@ export default function SigninPage() {
           <div className={landingStyles.footerGrid}>
             <div>
               <div className={landingStyles.logo} style={{ marginBottom: '0.5rem' }}>
-                <span className={landingStyles.logoText}>PiWea</span>
+                <span className={landingStyles.logoText}>Brew3D</span>
                 <div className={landingStyles.logoAccent}></div>
               </div>
               <p className={landingStyles.footerText}>Build interactive 3D faster with AI.</p>
@@ -242,7 +242,7 @@ export default function SigninPage() {
             </div>
           </div>
           <div className={landingStyles.footerBottom}>
-            <span className={landingStyles.footerCopy}>© {new Date().getFullYear()} PiWea. All rights reserved.</span>
+            <span className={landingStyles.footerCopy}>© {new Date().getFullYear()} Brew3D. All rights reserved.</span>
           </div>
         </div>
       </footer>

@@ -1,24 +1,30 @@
 // DynamoDB CRUD Operations
-import { 
-  PutCommand, 
-  GetCommand, 
-  UpdateCommand, 
-  DeleteCommand, 
-  QueryCommand, 
-  ScanCommand,
-  BatchGetCommand,
-  BatchWriteCommand
-} from "@aws-sdk/lib-dynamodb";
-import { getDynamoDocClient } from "./dynamodb.js";
-import { 
-  TABLE_NAMES, 
-  GSI_NAMES, 
-  generateId, 
-  getCurrentTimestamp,
-  validateRequiredFields 
-} from "./dynamodb-schema.js";
+// This file now uses Supabase instead of DynamoDB
+// Re-exporting from supabase-operations for backward compatibility
+export {
+  createUser,
+  getUserById,
+  getUserByEmail,
+  updateUser,
+  createProject,
+  getProjectById,
+  getUserProjects,
+  updateProject,
+  deleteProject,
+  createScene,
+  getProjectScenes,
+  createMap,
+  getProjectMaps,
+  createCharacter,
+  getProjectCharacters,
+  createAsset,
+  getAssetsByCategory,
+  batchGetItems,
+  scanTable
+} from "./supabase-operations.js";
 
-const docClient = getDynamoDocClient();
+// Keep these exports for backward compatibility
+export { generateId, getCurrentTimestamp, validateRequiredFields } from "./dynamodb-schema.js";
 
 // ===== USER OPERATIONS =====
 

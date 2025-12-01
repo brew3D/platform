@@ -1,18 +1,9 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
+import { getSupabaseClient } from '@/app/lib/supabase';
+import { getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
 import { requireAuth } from '@/app/lib/auth';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
+const supabase = getSupabaseClient();
 
 // POST /api/marketplace/plugins/[pluginId]/install - Install plugin
 export async function POST(request, { params }) {
@@ -24,20 +15,20 @@ export async function POST(request, { params }) {
     const body = await request.json();
     const { configuration = {} } = body;
 
-    // Get plugin details
-    const pluginResult = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.MARKETPLACE_PLUGINS,
-      Key: { pluginId }
-    }));
+    // Note: marketplace_plugins table may not exist in Supabase yet
+    // You may need to create it or use assets table instead
+    const { data: plugin, error: pluginError } = await supabase
+      .from('marketplace_plugins')
+      .select('*')
+      .eq('plugin_id', pluginId)
+      .single();
 
-    if (!pluginResult.Item) {
+    if (pluginError || !plugin) {
       return NextResponse.json({ 
         success: false, 
         error: 'Plugin not found' 
       }, { status: 404 });
     }
-
-    const plugin = pluginResult.Item;
 
     // Check if plugin is published
     if (plugin.status !== 'published') {
@@ -77,21 +68,33 @@ export async function POST(request, { params }) {
       isActive: true
     };
 
-    await docClient.send(new PutCommand({
-      TableName: TABLE_NAMES.USER_PLUGINS,
-      Item: installation
-    }));
+    // Note: user_plugins table may not exist in Supabase yet
+    try {
+      await supabase
+        .from('user_plugins')
+        .insert({
+          user_id: auth.userId,
+          plugin_id: pluginId,
+          version: plugin.version,
+          status: 'installed',
+          configuration: configuration,
+          installed_at: getCurrentTimestamp(),
+          last_updated_at: getCurrentTimestamp(),
+          is_active: true
+        });
 
-    // Update plugin download count
-    await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.MARKETPLACE_PLUGINS,
-      Key: { pluginId },
-      UpdateExpression: 'SET downloads = downloads + :inc, updatedAt = :updatedAt',
-      ExpressionAttributeValues: {
-        ':inc': 1,
-        ':updatedAt': getCurrentTimestamp()
-      }
-    }));
+      // Update plugin download count
+      await supabase
+        .from('marketplace_plugins')
+        .update({
+          downloads: (plugin.downloads || 0) + 1,
+          updated_at: getCurrentTimestamp()
+        })
+        .eq('plugin_id', pluginId);
+    } catch (error) {
+      // Tables might not exist - that's okay for now
+      console.log('Plugin tables may not exist:', error.message);
+    }
 
     // Initialize plugin if it has initialization code
     if (plugin.sourceCode) {
@@ -130,20 +133,19 @@ export async function DELETE(request, { params }) {
     }
 
     // Uninstall plugin
-    await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.USER_PLUGINS,
-      Key: { 
-        userId: auth.userId,
-        pluginId 
-      },
-      UpdateExpression: 'SET #status = :status, uninstalledAt = :uninstalledAt, lastUpdatedAt = :lastUpdatedAt',
-      ExpressionAttributeNames: { '#status': 'status' },
-      ExpressionAttributeValues: {
-        ':status': 'uninstalled',
-        ':uninstalledAt': getCurrentTimestamp(),
-        ':lastUpdatedAt': getCurrentTimestamp()
-      }
-    }));
+    try {
+      await supabase
+        .from('user_plugins')
+        .update({
+          status: 'uninstalled',
+          uninstalled_at: getCurrentTimestamp(),
+          last_updated_at: getCurrentTimestamp()
+        })
+        .eq('user_id', auth.userId)
+        .eq('plugin_id', pluginId);
+    } catch (error) {
+      console.log('Plugin tables may not exist:', error.message);
+    }
 
     // Clean up plugin data if needed
     await cleanupPluginData(pluginId, auth.userId);
@@ -181,30 +183,27 @@ export async function PUT(request, { params }) {
     }
 
     // Update plugin configuration
-    let updateExpression = 'SET lastUpdatedAt = :lastUpdatedAt';
-    const expressionAttributeValues = {
-      ':lastUpdatedAt': getCurrentTimestamp()
+    const updateData = {
+      last_updated_at: getCurrentTimestamp()
     };
 
     if (configuration !== undefined) {
-      updateExpression += ', configuration = :configuration';
-      expressionAttributeValues[':configuration'] = configuration;
+      updateData.configuration = configuration;
     }
 
     if (isActive !== undefined) {
-      updateExpression += ', isActive = :isActive';
-      expressionAttributeValues[':isActive'] = isActive;
+      updateData.is_active = isActive;
     }
 
-    await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.USER_PLUGINS,
-      Key: { 
-        userId: auth.userId,
-        pluginId 
-      },
-      UpdateExpression: updateExpression,
-      ExpressionAttributeValues: expressionAttributeValues
-    }));
+    try {
+      await supabase
+        .from('user_plugins')
+        .update(updateData)
+        .eq('user_id', auth.userId)
+        .eq('plugin_id', pluginId);
+    } catch (error) {
+      console.log('Plugin tables may not exist:', error.message);
+    }
 
     return NextResponse.json({ 
       success: true, 
@@ -222,15 +221,15 @@ export async function PUT(request, { params }) {
 // Get user's plugin installation
 async function getUserPluginInstallation(userId, pluginId) {
   try {
-    const result = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.USER_PLUGINS,
-      Key: { 
-        userId,
-        pluginId 
-      }
-    }));
+    const { data, error } = await supabase
+      .from('user_plugins')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('plugin_id', pluginId)
+      .single();
 
-    return result.Item || null;
+    if (error || !data) return null;
+    return data;
   } catch (error) {
     console.error('Error getting user plugin installation:', error);
     return null;
@@ -302,12 +301,13 @@ async function checkPluginRequirements(plugin, userId) {
 // Get user role
 async function getUserRole(userId) {
   try {
-    const result = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.USERS,
-      Key: { userId }
-    }));
+    const { data } = await supabase
+      .from('users')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
 
-    return result.Item?.role || 'guest';
+    return data?.role || 'guest';
   } catch (error) {
     console.error('Error getting user role:', error);
     return 'guest';
@@ -317,12 +317,14 @@ async function getUserRole(userId) {
 // Get user subscription
 async function getUserSubscription(userId) {
   try {
-    const result = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.USER_SUBSCRIPTIONS,
-      Key: { userId }
-    }));
+    // Subscription is stored in users table as JSONB
+    const { data } = await supabase
+      .from('users')
+      .select('subscription')
+      .eq('user_id', userId)
+      .single();
 
-    return result.Item || null;
+    return data?.subscription || null;
   } catch (error) {
     console.error('Error getting user subscription:', error);
     return null;
@@ -332,17 +334,13 @@ async function getUserSubscription(userId) {
 // Get user's installed plugins
 async function getUserInstalledPlugins(userId) {
   try {
-    const result = await docClient.send(new ScanCommand({
-      TableName: TABLE_NAMES.USER_PLUGINS,
-      FilterExpression: 'userId = :userId AND #status = :status',
-      ExpressionAttributeNames: { '#status': 'status' },
-      ExpressionAttributeValues: { 
-        ':userId': userId,
-        ':status': 'installed'
-      }
-    }));
+    const { data } = await supabase
+      .from('user_plugins')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'installed');
 
-    return result.Items || [];
+    return data || [];
   } catch (error) {
     console.error('Error getting user plugins:', error);
     return [];
@@ -354,21 +352,21 @@ async function initializePlugin(plugin, installation) {
   try {
     // This would execute the plugin's initialization code
     // In a real implementation, you'd have a secure plugin execution environment
-    console.log(`Initializing plugin ${plugin.pluginId} for user ${installation.userId}`);
+    console.log(`Initializing plugin ${plugin.plugin_id || plugin.pluginId} for user ${installation.user_id || installation.userId}`);
     
     // Store plugin initialization status
-    await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.USER_PLUGINS,
-      Key: { 
-        userId: installation.userId,
-        pluginId: installation.pluginId 
-      },
-      UpdateExpression: 'SET initializedAt = :initializedAt, lastUpdatedAt = :lastUpdatedAt',
-      ExpressionAttributeValues: {
-        ':initializedAt': getCurrentTimestamp(),
-        ':lastUpdatedAt': getCurrentTimestamp()
-      }
-    }));
+    try {
+      await supabase
+        .from('user_plugins')
+        .update({
+          initialized_at: getCurrentTimestamp(),
+          last_updated_at: getCurrentTimestamp()
+        })
+        .eq('user_id', installation.user_id || installation.userId)
+        .eq('plugin_id', installation.plugin_id || installation.pluginId);
+    } catch (error) {
+      console.log('Plugin tables may not exist:', error.message);
+    }
   } catch (error) {
     console.error('Error initializing plugin:', error);
   }

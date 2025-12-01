@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
-import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { getDynamoDocClient } from '@/app/lib/dynamodb';
-import { TABLE_NAMES } from '@/app/lib/dynamodb-schema';
+import { getSupabaseClient } from '@/app/lib/supabase';
 import { requireAuth } from '@/app/lib/auth';
 
-const docClient = getDynamoDocClient();
+const supabase = getSupabaseClient();
 
 export async function POST(request, { params }) {
   try {
@@ -14,15 +12,18 @@ export async function POST(request, { params }) {
     if (!['admin', 'moderator'].includes(role)) return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     const { postId } = params;
     const { pinned } = await request.json();
-    const res = await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.COMMUNITY_POSTS,
-      Key: { postId },
-      UpdateExpression: 'SET #isPinned = :v',
-      ExpressionAttributeNames: { '#isPinned': 'isPinned' },
-      ExpressionAttributeValues: { ':v': !!pinned },
-      ReturnValues: 'ALL_NEW'
-    }));
-    return NextResponse.json({ post: res.Attributes });
+    const { data: updatedPost, error } = await supabase
+      .from('community_posts')
+      .update({ is_pinned: !!pinned })
+      .eq('post_id', postId)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.json({ post: updatedPost });
   } catch (e) {
     console.error('Pin post error:', e);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });

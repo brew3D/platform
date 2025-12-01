@@ -1,19 +1,10 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
+import { getSupabaseClient } from '@/app/lib/supabase';
+import { getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
 import { withApiAuth } from '../../../_middleware/auth';
 import crypto from 'crypto';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
+const supabase = getSupabaseClient();
 
 // POST /api/v1/webhooks/[webhookId]/test - Test webhook
 export const POST = withApiAuth(async (request, { params }) => {
@@ -22,12 +13,13 @@ export const POST = withApiAuth(async (request, { params }) => {
     const userId = request.user?.userId || request.apiKey?.userId;
 
     // Get webhook
-    const result = await docClient.send(new GetCommand({
-      TableName: TABLE_NAMES.WEBHOOKS,
-      Key: { webhookId }
-    }));
+    const { data: webhook, error: fetchError } = await supabase
+      .from('webhooks')
+      .select('*')
+      .eq('webhook_id', webhookId)
+      .single();
 
-    if (!result.Item) {
+    if (fetchError || !webhook) {
       return NextResponse.json({ 
         success: false, 
         error: 'Webhook not found' 
@@ -35,20 +27,18 @@ export const POST = withApiAuth(async (request, { params }) => {
     }
 
     // Check ownership
-    if (result.Item.userId !== userId) {
+    if (webhook.user_id !== userId) {
       return NextResponse.json({ 
         success: false, 
         error: 'Access denied' 
       }, { status: 403 });
     }
 
-    const webhook = result.Item;
-
     // Create test payload
     const testPayload = {
       event: 'webhook.test',
       data: {
-        webhookId: webhook.webhookId,
+        webhookId: webhook.webhook_id || webhook.webhookId,
         message: 'This is a test webhook from Brew3D Platform',
         timestamp: new Date().toISOString(),
         test: true
@@ -59,15 +49,13 @@ export const POST = withApiAuth(async (request, { params }) => {
     const testResult = await sendWebhook(webhook, testPayload);
 
     // Update webhook stats
-    await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.WEBHOOKS,
-      Key: { webhookId },
-      UpdateExpression: 'SET lastTriggered = :timestamp, successCount = successCount + :inc',
-      ExpressionAttributeValues: {
-        ':timestamp': getCurrentTimestamp(),
-        ':inc': testResult.success ? 1 : 0
-      }
-    }));
+    await supabase
+      .from('webhooks')
+      .update({
+        last_triggered: getCurrentTimestamp(),
+        updated_at: getCurrentTimestamp()
+      })
+      .eq('webhook_id', webhookId);
 
     return NextResponse.json({ 
       success: true, 
@@ -94,10 +82,10 @@ async function sendWebhook(webhook, payload) {
   try {
     const headers = {
       'Content-Type': 'application/json',
-      'User-Agent': 'Simo-Platform-Webhook/1.0',
+      'User-Agent': 'Brew3D-Platform-Webhook/1.0',
       'X-Webhook-Event': payload.event,
-      'X-Webhook-ID': webhook.webhookId,
-      ...webhook.headers
+      'X-Webhook-ID': webhook.webhook_id || webhook.webhookId,
+      ...(webhook.headers || {})
     };
 
     // Add signature if secret is provided

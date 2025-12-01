@@ -49,7 +49,7 @@ export default function LandingPage() {
     setTimeout(() => setShowNextOptions(true), 0);
   };
   const [chatMessages, setChatMessages] = useState([
-    { role: 'bot', text: 'Hi, I\'m Pea! Let\'s make Mario jump!' },
+    { role: 'bot', text: 'Hi, I\'m MUG! Let\'s make Mario jump!' },
     { role: 'user', text: 'MAKE ME A MARIO THAT JUMPS WITH SOUND' },
     { role: 'bot', text: 'Great! Click Start and I’ll guide you step-by-step.' }
   ]);
@@ -838,7 +838,7 @@ export default function LandingPage() {
             <h1 className={styles.promptTitle}>
               <span className={styles.gradientText}>Weave</span> something together?
               <p className={styles.promptSubtext}>
-                Just ask <span className={styles.gradientText}>Pea</span>
+                Just ask <span className={styles.gradientText}>MUG</span>
               </p>
             </h1>
             <div className={styles.promptInputContainer}>
@@ -864,7 +864,7 @@ export default function LandingPage() {
                 />
                 <button
                   className={styles.generateButton}
-                  aria-label="Generate with Pea"
+                  aria-label="Generate with MUG"
                   onClick={() => {
                     const target = document.querySelector('#playground');
                     if (target) target.scrollIntoView({ behavior: 'smooth' });
@@ -892,11 +892,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Interactive Playground (Pea Demo) */}
+      {/* Interactive Playground (MUG Demo) */}
       <section id="playground" className={styles.playgroundSection} ref={playgroundRef}>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Watch Pea Build Instantly</h2>
+            <h2 className={styles.sectionTitle}>Watch MUG Build Instantly</h2>
             <p className={styles.sectionSubtitle}>Add objects and orbit the scene. AI-style snapping hints included.</p>
             <div className={styles.playgroundTooltip}>
               <span className={styles.tooltipIcon}>✨</span>
@@ -933,17 +933,17 @@ export default function LandingPage() {
             <div className={styles.playgroundSidebar}>
               <div className={styles.chatbotPanel}>
                 <div className={styles.chatHeader}>
-                  <div className={styles.peaAvatar}>
-                    <div className={styles.peaIcon}>🤖</div>
-                    <div className={styles.peaGlow}></div>
+                  <div className={styles.mugAvatar}>
+                    <div className={styles.mugIcon}>☕</div>
+                    <div className={styles.mugGlow}></div>
                   </div>
-                  <div className={styles.botTitle}>Pea</div>
+                  <div className={styles.botTitle}>MUG</div>
                 </div>
                 <div className={styles.chatScroll}>
                   {chatMessages.map((m, idx) => (
                     <div key={idx} className={m.role === 'bot' ? styles.botMessage : styles.userMessage}>
                       <span className={m.role === 'bot' ? styles.botName : styles.userName}>
-                        {m.role === 'bot' ? 'Pea' : 'You'}
+                        {m.role === 'bot' ? 'MUG' : 'You'}
                       </span>
                       <div className={m.role === 'bot' ? styles.messageBubble : styles.messageBubbleUser}>{m.text}</div>
                     </div>

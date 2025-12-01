@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { UpdateCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
-import { getDynamoDocClient } from '@/app/lib/dynamodb';
-import { TABLE_NAMES, getCurrentTimestamp, generateId } from '@/app/lib/dynamodb-schema';
+import { getSupabaseClient } from '@/app/lib/supabase';
+import { getCurrentTimestamp, generateId } from '@/app/lib/dynamodb-schema';
 import { requireAuth } from '@/app/lib/auth';
 
-const docClient = getDynamoDocClient();
+const supabase = getSupabaseClient();
 
 export async function POST(request, { params }) {
   try {
@@ -13,16 +12,32 @@ export async function POST(request, { params }) {
     const { postId } = params;
     const { content } = await request.json();
     if (!content || !content.trim()) return NextResponse.json({ message: 'Content required' }, { status: 400 });
+    // Get current post
+    const { data: post, error: fetchError } = await supabase
+      .from('community_posts')
+      .select('comments')
+      .eq('post_id', postId)
+      .single();
+
+    if (fetchError) {
+      return NextResponse.json({ message: 'Post not found' }, { status: 404 });
+    }
+
     const comment = { id: generateId('cmt'), userId: auth.userId, content: content.trim(), createdAt: getCurrentTimestamp() };
-    const res = await docClient.send(new UpdateCommand({
-      TableName: TABLE_NAMES.COMMUNITY_POSTS,
-      Key: { postId },
-      UpdateExpression: 'SET #comments = list_append(if_not_exists(#comments, :empty), :new)',
-      ExpressionAttributeNames: { '#comments': 'comments' },
-      ExpressionAttributeValues: { ':new': [comment], ':empty': [] },
-      ReturnValues: 'ALL_NEW'
-    }));
-    return NextResponse.json({ post: res.Attributes });
+    const updatedComments = [...(post.comments || []), comment];
+
+    const { data: updatedPost, error: updateError } = await supabase
+      .from('community_posts')
+      .update({ comments: updatedComments, updated_at: getCurrentTimestamp() })
+      .eq('post_id', postId)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return NextResponse.json({ post: updatedPost });
   } catch (e) {
     console.error('Add comment error:', e);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });

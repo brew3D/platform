@@ -23,7 +23,7 @@ export default function SimpleLoader({ isLoading = true, delay = 0 }) {
     <div className={styles.loaderOverlay}>
       <div className={styles.loaderContainer}>
         <div className={styles.logo}>
-          <span className={styles.logoText}>PiWea</span>
+          <span className={styles.logoText}>Brew3D</span>
         </div>
         <div className={styles.spinner}></div>
         <div className={styles.loadingText}>Loading...</div>
