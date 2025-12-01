@@ -175,7 +175,7 @@ export default function ProjectMapsPage() {
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>🗺️</div>
             <h3>No maps yet</h3>
-            <p>Click "New Map" to create your first map</p>
+            <p>Click &quot;New Map&quot; to create your first map</p>
           </div>
         ) : (
           <div className={styles.grid}>
