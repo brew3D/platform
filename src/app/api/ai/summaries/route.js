@@ -2,19 +2,9 @@ import { NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/app/lib/supabase';
 import { getCurrentTimestamp } from '../../../lib/dynamodb-schema';
 import { requireAuth } from '../../../lib/auth';
-import OpenAI from 'openai';
+import { generateJSON } from '../../../lib/gemini';
 
 const supabase = getSupabaseClient();
-
-// Lazy initialization of OpenAI client
-function getOpenAIClient() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY is not configured');
-  }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-}
 
 // POST /api/ai/summaries - Generate AI summaries
 export async function POST(request) {
@@ -87,13 +77,11 @@ export async function POST(request) {
     };
 
     // Note: ai_summaries table may not exist in Supabase yet
-    // You may need to create it or use a different storage approach
     try {
       await supabase
         .from('ai_summaries')
         .insert(summaryRecord);
     } catch (error) {
-      // Table might not exist - that's okay for now
       console.log('AI summaries table may not exist:', error.message);
     }
 
@@ -134,7 +122,6 @@ export async function GET(request) {
     const { data: summaries, error } = await query;
     
     if (error) {
-      // Table might not exist
       return NextResponse.json({ 
         success: true, 
         summaries: [],
@@ -148,7 +135,7 @@ export async function GET(request) {
       pagination: {
         limit,
         offset,
-        total: result.Items?.length || 0
+        total: summaries?.length || 0
       }
     });
   } catch (error) {
@@ -163,6 +150,7 @@ export async function GET(request) {
 // Generate post summary
 async function generatePostSummary(content, context, options) {
   try {
+    const systemPrompt = 'You are an AI assistant that creates engaging summaries of community posts. Always respond with valid JSON only.';
     const prompt = `Summarize the following community post in a clear, concise way. 
     Include the main points, key insights, and any actionable items.
     Keep it under 150 words and make it engaging.
@@ -179,25 +167,7 @@ async function generatePostSummary(content, context, options) {
     - topics: Array of main topics discussed
     - actionItems: Array of any actionable items mentioned`;
 
-    const openai = getOpenAIClient();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an AI assistant that creates engaging summaries of community posts. Always respond with valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 500
-    });
-
-    const summaryText = response.choices[0].message.content;
-    return JSON.parse(summaryText);
+    return await generateJSON(prompt, systemPrompt, { model: 'gemini-pro', temperature: 0.3 });
   } catch (error) {
     console.error('Error generating post summary:', error);
     return {
@@ -214,6 +184,7 @@ async function generatePostSummary(content, context, options) {
 // Generate conversation summary
 async function generateConversationSummary(content, context, options) {
   try {
+    const systemPrompt = 'You are an AI assistant that summarizes conversation threads. Always respond with valid JSON only.';
     const prompt = `Summarize the following conversation thread. 
     Identify the main discussion points, decisions made, and any follow-up actions needed.
     Keep it under 200 words.
@@ -230,25 +201,7 @@ async function generateConversationSummary(content, context, options) {
     - actionItems: Array of follow-up actions
     - sentiment: Overall sentiment of the conversation`;
 
-    const openai = getOpenAIClient();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an AI assistant that summarizes conversation threads. Always respond with valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 600
-    });
-
-    const summaryText = response.choices[0].message.content;
-    return JSON.parse(summaryText);
+    return await generateJSON(prompt, systemPrompt, { model: 'gemini-pro', temperature: 0.3 });
   } catch (error) {
     console.error('Error generating conversation summary:', error);
     return {
@@ -265,6 +218,7 @@ async function generateConversationSummary(content, context, options) {
 // Generate event summary
 async function generateEventSummary(content, context, options) {
   try {
+    const systemPrompt = 'You are an AI assistant that creates compelling event summaries. Always respond with valid JSON only.';
     const prompt = `Summarize the following event information.
     Highlight key details, what attendees can expect, and any important requirements.
     Keep it under 150 words.
@@ -281,25 +235,7 @@ async function generateEventSummary(content, context, options) {
     - targetAudience: Who should attend
     - valueProposition: Why attend this event`;
 
-    const openai = getOpenAIClient();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an AI assistant that creates compelling event summaries. Always respond with valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 500
-    });
-
-    const summaryText = response.choices[0].message.content;
-    return JSON.parse(summaryText);
+    return await generateJSON(prompt, systemPrompt, { model: 'gemini-pro', temperature: 0.3 });
   } catch (error) {
     console.error('Error generating event summary:', error);
     return {
@@ -316,6 +252,7 @@ async function generateEventSummary(content, context, options) {
 // Generate search results summary
 async function generateSearchSummary(content, context, options) {
   try {
+    const systemPrompt = 'You are an AI assistant that summarizes search results. Always respond with valid JSON only.';
     const prompt = `Summarize the following search results.
     Identify common themes, key insights, and provide a helpful overview.
     Keep it under 200 words.
@@ -332,25 +269,7 @@ async function generateSearchSummary(content, context, options) {
     - recommendations: Array of recommendations based on results
     - relatedTopics: Array of related topics to explore`;
 
-    const openai = getOpenAIClient();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an AI assistant that summarizes search results. Always respond with valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 600
-    });
-
-    const summaryText = response.choices[0].message.content;
-    return JSON.parse(summaryText);
+    return await generateJSON(prompt, systemPrompt, { model: 'gemini-pro', temperature: 0.3 });
   } catch (error) {
     console.error('Error generating search summary:', error);
     return {
@@ -367,6 +286,7 @@ async function generateSearchSummary(content, context, options) {
 // Generate trending content summary
 async function generateTrendingSummary(content, context, options) {
   try {
+    const systemPrompt = 'You are an AI assistant that analyzes trending content. Always respond with valid JSON only.';
     const prompt = `Summarize the following trending content.
     Identify what's popular, why it's trending, and key insights.
     Keep it under 200 words.
@@ -383,25 +303,7 @@ async function generateTrendingSummary(content, context, options) {
     - predictions: Array of predictions for future trends
     - engagement: Analysis of engagement patterns`;
 
-    const openai = getOpenAIClient();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an AI assistant that analyzes trending content. Always respond with valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 600
-    });
-
-    const summaryText = response.choices[0].message.content;
-    return JSON.parse(summaryText);
+    return await generateJSON(prompt, systemPrompt, { model: 'gemini-pro', temperature: 0.3 });
   } catch (error) {
     console.error('Error generating trending summary:', error);
     return {

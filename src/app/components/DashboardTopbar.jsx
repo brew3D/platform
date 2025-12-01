@@ -39,8 +39,7 @@ export default function DashboardTopbar({ user, onSidebarToggle }) {
 
   const handleLogout = () => {
     setShowProfileDropdown(false);
-    logout();
-    router.push('/');
+    logout(); // logout() already handles redirect
   };
 
   return (

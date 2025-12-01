@@ -2,19 +2,9 @@ import { NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/app/lib/supabase';
 import { getCurrentTimestamp } from '@/app/lib/dynamodb-schema';
 import { requireAuth } from '@/app/lib/auth';
-import OpenAI from 'openai';
+import { generateJSON, generateText } from '@/app/lib/gemini';
 
 const supabase = getSupabaseClient();
-
-// Lazy initialization of OpenAI client
-function getOpenAIClient() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY is not configured');
-  }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-}
 
 // Supported languages
 export const SUPPORTED_LANGUAGES = {
@@ -98,14 +88,11 @@ export async function POST(request) {
     };
 
     // Note: translations table may not exist in Supabase yet
-    // You may need to create it or use a different storage approach
-    // For now, we'll skip storing if table doesn't exist
     try {
       await supabase
         .from('translations')
         .insert(translationRecord);
     } catch (error) {
-      // Table might not exist - that's okay for now
       console.log('Translations table may not exist:', error.message);
     }
 
@@ -113,10 +100,10 @@ export async function POST(request) {
       success: true, 
       translation: {
         text: translation.text,
-        sourceLanguage: detectedSourceLanguage,
-        targetLanguage,
         confidence: translation.confidence,
-        alternatives: translation.alternatives || []
+        alternatives: translation.alternatives,
+        sourceLanguage: detectedSourceLanguage,
+        targetLanguage
       },
       translationId: translationRecord.id
     });
@@ -129,51 +116,50 @@ export async function POST(request) {
   }
 }
 
-// GET /api/translation - Get translations and language info
+// GET /api/translation - Get translation history
 export async function GET(request) {
   try {
     const auth = requireAuth(request);
     if (auth.error) return NextResponse.json({ message: auth.error.message }, { status: auth.error.status });
 
     const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
+    const targetLanguage = searchParams.get('targetLanguage');
+    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const offset = parseInt(searchParams.get('offset') || '0', 10);
 
-    switch (action) {
-      case 'languages':
-        return NextResponse.json({ 
-          success: true, 
-          languages: SUPPORTED_LANGUAGES 
-        });
-      
-      case 'translations':
-        return await getTranslations(request);
-      
-      case 'detect':
-        const content = searchParams.get('content');
-        if (!content) {
-          return NextResponse.json({ 
-            success: false, 
-            error: 'Content is required for detection' 
-          }, { status: 400 });
-        }
-        
-        const detectedLanguage = await detectLanguage(content);
-        return NextResponse.json({ 
-          success: true, 
-          language: detectedLanguage 
-        });
-      
-      default:
-        return NextResponse.json({ 
-          success: true, 
-          languages: SUPPORTED_LANGUAGES 
-        });
+    let query = supabase
+      .from('translations')
+      .select('*')
+      .range(offset, offset + limit - 1);
+
+    if (targetLanguage) {
+      query = query.eq('target_language', targetLanguage);
     }
+
+    const { data: translations, error } = await query;
+    
+    if (error) {
+      return NextResponse.json({ 
+        success: true, 
+        translations: [],
+        pagination: { limit, offset, total: 0 }
+      });
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      translations,
+      pagination: {
+        limit,
+        offset,
+        total: translations?.length || 0
+      }
+    });
   } catch (error) {
-    console.error('Translation GET error:', error);
+    console.error('Get translations error:', error);
     return NextResponse.json({ 
       success: false, 
-      error: 'Failed to process request' 
+      error: 'Failed to fetch translations' 
     }, { status: 500 });
   }
 }
@@ -181,6 +167,8 @@ export async function GET(request) {
 // Translate content using AI
 async function translateContent(content, sourceLanguage, targetLanguage, contentType, options) {
   try {
+    const systemPrompt = 'You are a professional translator. Translate content accurately while maintaining tone and context. Always respond with valid JSON only.';
+    
     const prompt = `Translate the following ${contentType} from ${sourceLanguage} to ${targetLanguage}.
     
     Content: "${content}"
@@ -203,25 +191,10 @@ async function translateContent(content, sourceLanguage, targetLanguage, content
       "alternatives": ["alternative translation 1", "alternative translation 2"]
     }`;
 
-    const openai = getOpenAIClient();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a professional translator. Translate content accurately while maintaining tone and context. Always respond with valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 2000
+    const translation = await generateJSON(prompt, systemPrompt, {
+      model: 'gemini-pro',
+      temperature: 0.1
     });
-
-    const translationText = response.choices[0].message.content;
-    const translation = JSON.parse(translationText);
 
     return {
       text: translation.text,
@@ -239,71 +212,29 @@ async function translateContent(content, sourceLanguage, targetLanguage, content
 // Detect language using AI
 async function detectLanguage(content) {
   try {
-    const prompt = `Detect the language of the following text and respond with only the ISO 639-1 language code (e.g., 'en', 'es', 'fr'):
+    const systemPrompt = 'You are a language detection AI. Always respond with only the ISO 639-1 language code (e.g., "en", "es", "fr").';
+    const prompt = `Detect the language of the following text and respond with only the ISO 639-1 language code:
     
-    Text: "${content}"`;
+    "${content.substring(0, 500)}"`;
 
-    const openai = getOpenAIClient();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a language detection AI. Respond with only the ISO 639-1 language code.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 10
+    const detected = await generateText(prompt, systemPrompt, {
+      model: 'gemini-pro',
+      temperature: 0
     });
 
-    const detectedLanguage = response.choices[0].message.content.trim().toLowerCase();
-    
-    // Validate detected language
-    if (SUPPORTED_LANGUAGES[detectedLanguage]) {
-      return detectedLanguage;
-    }
-    
-    return 'en'; // Default to English
+    const langCode = detected.trim().toLowerCase().substring(0, 2);
+    return SUPPORTED_LANGUAGES[langCode] ? langCode : 'en';
   } catch (error) {
     console.error('Error detecting language:', error);
     return 'en'; // Default to English
   }
 }
 
-// Fallback translation using simple word replacement
+// Fallback translation
 async function fallbackTranslation(content, sourceLanguage, targetLanguage) {
-  // This is a very basic fallback - in production, you'd use a proper translation service
-  const commonTranslations = {
-    'en-es': {
-      'hello': 'hola',
-      'thank you': 'gracias',
-      'goodbye': 'adiós',
-      'yes': 'sí',
-      'no': 'no'
-    },
-    'en-fr': {
-      'hello': 'bonjour',
-      'thank you': 'merci',
-      'goodbye': 'au revoir',
-      'yes': 'oui',
-      'no': 'non'
-    }
-  };
-
-  const translationKey = `${sourceLanguage}-${targetLanguage}`;
-  const translations = commonTranslations[translationKey] || {};
-  
-  let translatedText = content;
-  Object.entries(translations).forEach(([original, translated]) => {
-    translatedText = translatedText.replace(new RegExp(original, 'gi'), translated);
-  });
-
+  // Simple fallback - just return original content
   return {
-    text: translatedText,
+    text: content,
     confidence: 0.3,
     alternatives: []
   };
@@ -331,9 +262,8 @@ async function getExistingTranslation(contentId, targetLanguage) {
     if (hoursDiff < 24) {
       return {
         text: data.translated_content,
-        sourceLanguage: data.source_language,
-        targetLanguage: data.target_language,
-        confidence: data.confidence
+        confidence: data.confidence,
+        alternatives: []
       };
     }
 
@@ -341,51 +271,5 @@ async function getExistingTranslation(contentId, targetLanguage) {
   } catch (error) {
     console.error('Error getting existing translation:', error);
     return null;
-  }
-}
-
-// Get translations
-async function getTranslations(request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const contentId = searchParams.get('contentId');
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
-    const offset = parseInt(searchParams.get('offset') || '0', 10);
-
-    let query = supabase
-      .from('translations')
-      .select('*')
-      .range(offset, offset + limit - 1);
-
-    if (contentId) {
-      query = query.eq('content_id', contentId);
-    }
-
-    const { data: translations, error } = await query;
-    
-    if (error) {
-      // Table might not exist
-      return NextResponse.json({ 
-        success: true, 
-        translations: [],
-        pagination: { limit, offset, total: 0 }
-      });
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      translations: translations || [],
-      pagination: {
-        limit,
-        offset,
-        total: translations?.length || 0
-      }
-    });
-  } catch (error) {
-    console.error('Error getting translations:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Failed to fetch translations' 
-    }, { status: 500 });
   }
 }

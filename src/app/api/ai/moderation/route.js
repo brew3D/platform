@@ -2,19 +2,9 @@ import { NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/app/lib/supabase';
 import { getCurrentTimestamp } from '../../../lib/dynamodb-schema';
 import { requireAuth } from '../../../lib/auth';
-import OpenAI from 'openai';
+import { generateJSON } from '../../../lib/gemini';
 
 const supabase = getSupabaseClient();
-
-// Lazy initialization of OpenAI client
-function getOpenAIClient() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY is not configured');
-  }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-}
 
 // POST /api/ai/moderation - Moderate content
 export async function POST(request) {
@@ -139,7 +129,7 @@ export async function GET(request) {
       pagination: {
         limit,
         offset,
-        total: result.Items?.length || 0
+        total: moderations?.length || 0
       }
     });
   } catch (error) {
@@ -154,6 +144,8 @@ export async function GET(request) {
 // Moderate content using AI
 async function moderateContent(content, contentType) {
   try {
+    const systemPrompt = 'You are an AI content moderator. Analyze content for policy violations and provide structured JSON responses. Always respond with valid JSON only.';
+    
     const prompt = `Analyze the following ${contentType} content for moderation. Check for:
 1. Hate speech or discriminatory language
 2. Harassment or bullying
@@ -174,56 +166,18 @@ Provide a JSON response with:
 - suggestedAction: "approve", "review", "reject", or "flag"
 - categories: object with risk levels for each category`;
 
-    const openai = getOpenAIClient();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an AI content moderator. Analyze content for policy violations and provide structured JSON responses.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 500
+    const moderationResult = await generateJSON(prompt, systemPrompt, {
+      model: 'gemini-pro',
+      temperature: 0.1
     });
 
-    const moderationText = response.choices[0].message.content;
-    
-    try {
-      const moderationResult = JSON.parse(moderationText);
-      return {
-        ...moderationResult,
-        model: 'gpt-4',
-        timestamp: new Date().toISOString()
-      };
-    } catch (parseError) {
-      // Fallback if JSON parsing fails
-      return {
-        overallRisk: 'medium',
-        confidence: 0.5,
-        violations: ['unable_to_parse'],
-        explanation: 'AI response could not be parsed',
-        suggestedAction: 'review',
-        categories: {
-          hate_speech: 'low',
-          harassment: 'low',
-          spam: 'low',
-          inappropriate: 'low',
-          violence: 'low',
-          personal_info: 'low',
-          copyright: 'low',
-          misinformation: 'low'
-        },
-        model: 'gpt-4',
-        timestamp: new Date().toISOString()
-      };
-    }
+    return {
+      ...moderationResult,
+      model: 'gemini-pro',
+      timestamp: new Date().toISOString()
+    };
   } catch (error) {
-    console.error('OpenAI moderation error:', error);
+    console.error('Gemini moderation error:', error);
     
     // Fallback moderation using simple keyword detection
     return await fallbackModeration(content);

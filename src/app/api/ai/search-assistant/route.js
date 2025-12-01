@@ -1,19 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAuth } from '../../../lib/auth';
-import OpenAI from 'openai';
-// This file doesn't directly use database, but if needed:
-// import { getSupabaseClient } from '@/app/lib/supabase';
-// const supabase = getSupabaseClient();
-
-// Lazy initialization of OpenAI client
-function getOpenAIClient() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY is not configured');
-  }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-}
+import { generateJSON } from '../../../lib/gemini';
 
 // POST /api/ai/search-assistant - AI-powered search assistance
 export async function POST(request) {
@@ -82,6 +69,8 @@ async function performPlatformSearch(query, searchType, options) {
 // Generate AI search assistance
 async function generateSearchAssistance(query, searchResults, context, searchType) {
   try {
+    const systemPrompt = 'You are an AI search assistant that helps users find relevant content and provides intelligent search guidance. Always respond with valid JSON only.';
+    
     const prompt = `You are an AI search assistant for a community platform. 
     Help the user with their search query: "${query}"
     
@@ -102,25 +91,10 @@ async function generateSearchAssistance(query, searchResults, context, searchTyp
     - confidence: Confidence level (0-1) in the assistance provided
     - nextSteps: Array of suggested next steps`;
 
-    const openai = getOpenAIClient();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an AI search assistant that helps users find relevant content and provides intelligent search guidance. Always respond with valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 1000
+    const assistance = await generateJSON(prompt, systemPrompt, {
+      model: 'gemini-pro',
+      temperature: 0.3
     });
-
-    const assistanceText = response.choices[0].message.content;
-    const assistance = JSON.parse(assistanceText);
 
     // Add metadata
     assistance.metadata = {
@@ -128,7 +102,7 @@ async function generateSearchAssistance(query, searchResults, context, searchTyp
       searchType,
       resultCount: searchResults.length,
       timestamp: new Date().toISOString(),
-      model: 'gpt-4'
+      model: 'gemini-pro'
     };
 
     return assistance;
@@ -138,26 +112,14 @@ async function generateSearchAssistance(query, searchResults, context, searchTyp
     // Fallback assistance
     return {
       queryAnalysis: `Searching for: ${query}`,
-      searchSuggestions: [
-        'Try more specific keywords',
-        'Use quotes for exact phrases',
-        'Add filters to narrow results'
-      ],
-      keyFindings: searchResults.slice(0, 5).map(result => result.content || result.title || 'Result found'),
-      relatedTopics: ['general', 'community', 'discussion'],
-      recommendations: ['Browse the results below', 'Try refining your search'],
-      searchTips: [
-        'Use specific keywords',
-        'Try different search terms',
-        'Use filters to narrow results'
-      ],
-      answer: searchResults.length > 0 ? 'Found relevant results for your query' : 'No results found for your query',
-      confidence: 0.5,
-      nextSteps: [
-        'Review the search results',
-        'Try different search terms if needed',
-        'Use filters to narrow down results'
-      ],
+      searchSuggestions: [],
+      keyFindings: [],
+      relatedTopics: [],
+      recommendations: [],
+      searchTips: ['Try using more specific keywords', 'Use quotes for exact phrases'],
+      answer: 'Unable to generate AI assistance at this time',
+      confidence: 0.3,
+      nextSteps: ['Review search results', 'Refine your search query'],
       metadata: {
         query,
         searchType,
@@ -165,101 +127,6 @@ async function generateSearchAssistance(query, searchResults, context, searchTyp
         timestamp: new Date().toISOString(),
         model: 'fallback'
       }
-    };
-  }
-}
-
-// GET /api/ai/search-assistant - Get search suggestions
-export async function GET(request) {
-  try {
-    const auth = requireAuth(request);
-    if (auth.error) return NextResponse.json({ message: auth.error.message }, { status: auth.error.status });
-
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q');
-    const type = searchParams.get('type') || 'general';
-
-    if (!query) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Query parameter is required' 
-      }, { status: 400 });
-    }
-
-    // Generate search suggestions
-    const suggestions = await generateSearchSuggestions(query, type);
-
-    return NextResponse.json({ 
-      success: true, 
-      suggestions
-    });
-  } catch (error) {
-    console.error('Get search suggestions error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Failed to generate search suggestions' 
-    }, { status: 500 });
-  }
-}
-
-// Generate search suggestions
-async function generateSearchSuggestions(query, type) {
-  try {
-    const prompt = `Generate search suggestions for the query: "${query}"
-    Search type: ${type}
-    
-    Provide a JSON response with:
-    - alternativeQueries: Array of alternative ways to phrase the query
-    - relatedQueries: Array of related search terms
-    - specificQueries: Array of more specific versions of the query
-    - broadQueries: Array of broader versions of the query
-    - filters: Array of suggested filters to apply
-    - categories: Array of relevant categories to search in`;
-
-    const openai = getOpenAIClient();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an AI assistant that generates helpful search suggestions. Always respond with valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.5,
-      max_tokens: 400
-    });
-
-    const suggestionsText = response.choices[0].message.content;
-    return JSON.parse(suggestionsText);
-  } catch (error) {
-    console.error('Error generating search suggestions:', error);
-    
-    // Fallback suggestions
-    return {
-      alternativeQueries: [
-        query + ' tips',
-        query + ' guide',
-        query + ' tutorial'
-      ],
-      relatedQueries: [
-        'related to ' + query,
-        'similar to ' + query
-      ],
-      specificQueries: [
-        query + ' for beginners',
-        query + ' advanced',
-        query + ' best practices'
-      ],
-      broadQueries: [
-        query.split(' ')[0],
-        'general ' + query
-      ],
-      filters: ['recent', 'popular', 'trending'],
-      categories: ['posts', 'events', 'users']
     };
   }
 }

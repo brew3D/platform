@@ -1,6 +1,6 @@
 # AI Game Builder UI
 
-A world-class, high-productivity UI for an AI-powered game builder platform that integrates with the OpenAI Agents SDK system.
+A world-class, high-productivity UI for an AI-powered game builder platform that integrates with the Gemini AI system.
 
 ## 🎯 Overview
 

@@ -19,11 +19,23 @@ export async function POST(request) {
     let user;
     try {
       user = await getUserByEmail(email);
+      console.log('🔍 getUserByEmail result:', user ? 'User found' : 'User not found');
+      if (user) {
+        console.log('👤 User fields:', Object.keys(user));
+        console.log('🔐 Has passwordHash:', !!user.passwordHash);
+        console.log('✅ Is active:', user.isActive);
+      }
     } catch (error) {
       console.log('🔍 getUserByEmail error:', error.name, error.message);
+      console.log('🔍 Error stack:', error.stack);
       // If it's a DynamoDB table error, let it be handled by the main catch block
       if (error.name === 'ResourceNotFoundException') {
         console.log('🚨 Throwing ResourceNotFoundException to main catch block');
+        throw error;
+      }
+      // For Supabase errors, check if it's a configuration issue
+      if (error.message && error.message.includes('Supabase')) {
+        console.log('🚨 Supabase configuration error');
         throw error;
       }
       // For other errors, return 401
@@ -35,22 +47,32 @@ export async function POST(request) {
     }
     
     if (!user) {
+      console.log('❌ User not found for email:', email);
       return NextResponse.json(
         { message: 'Invalid email or password' },
         { status: 401 }
       );
     }
 
-    // Check if user is active
-    if (!user.isActive) {
+    // Check if user is active (handle both camelCase and snake_case for compatibility)
+    const isActive = user.isActive !== undefined ? user.isActive : user.is_active;
+    if (isActive === false) {
       return NextResponse.json(
         { message: 'Account is deactivated' },
         { status: 401 }
       );
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    // Verify password (handle both camelCase and snake_case for compatibility)
+    const passwordHash = user.passwordHash || user.password_hash;
+    if (!passwordHash) {
+      console.error('❌ No password hash found for user:', user.userId || user.user_id);
+      return NextResponse.json(
+        { message: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+    const isPasswordValid = await bcrypt.compare(password, passwordHash);
     if (!isPasswordValid) {
       return NextResponse.json(
         { message: 'Invalid email or password' },
@@ -82,15 +104,16 @@ export async function POST(request) {
       }
     }
 
-    // Update last login time
-    await updateUser(user.userId, {
+    // Update last login time (handle both camelCase and snake_case)
+    const userId = user.userId || user.user_id;
+    await updateUser(userId, {
       lastLoginAt: new Date().toISOString()
     });
 
     // Generate JWT token (include role)
     const token = jwt.sign(
       { 
-        userId: user.userId, 
+        userId: userId, 
         email: user.email,
         name: user.name,
         role: user.role || 'member'

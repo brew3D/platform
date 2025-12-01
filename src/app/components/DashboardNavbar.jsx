@@ -132,8 +132,7 @@ export default function DashboardNavbar({ user }) {
 
   const handleLogout = () => {
     setShowProfileDropdown(false);
-    logout();
-    router.push('/');
+    logout(); // logout() already handles redirect
   };
 
   const getActiveItem = () => {

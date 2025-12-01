@@ -15,7 +15,8 @@ import {
   FaTag,
   FaInfoCircle,
   FaTimes,
-  FaArrowLeft
+  FaArrowLeft,
+  FaDownload
 } from 'react-icons/fa';
 // Removed DashboardSidebar and DashboardTopbar for cleaner design
 import styles from './project-settings.module.css';
@@ -319,6 +320,28 @@ export default function ProjectSettingsPage() {
     // No need to scroll since we're only showing one section at a time
   };
 
+  const handleExport = async () => {
+    if (!projectId) return;
+    
+    try {
+      const response = await fetch(`/api/projects/${projectId}/export`);
+      if (!response.ok) throw new Error('Failed to export');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${formData.title || 'game'}-export.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export game. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.page}>
@@ -362,6 +385,16 @@ export default function ProjectSettingsPage() {
                 {errors.general && <span className={styles.errorText}> {errors.general}</span>}
               </p>
             </div>
+          </div>
+          <div className={styles.headerRight}>
+            <button 
+              className={styles.exportButton}
+              onClick={handleExport}
+              disabled={loading}
+            >
+              <FaDownload />
+              Export Game
+            </button>
           </div>
         </motion.div>
 

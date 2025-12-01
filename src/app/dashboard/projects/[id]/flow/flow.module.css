@@ -67,7 +67,7 @@
   position: relative;
   width: 100%;
   height: 480px;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .svg {
@@ -77,27 +77,35 @@
   height: 1200px;
   color: #8a2be2;
   pointer-events: none;
+  z-index: 0;
 }
 
-.arrow { stroke: currentColor; stroke-width: 2px; fill: none; opacity: 0.9; }
-
-.mapNode {
-  position: absolute;
-  width: 160px;
-  min-height: 64px;
-  background: var(--card-background);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  padding: 0.5rem 0.75rem 0.75rem;
-  cursor: grab;
+.arrow { 
+  stroke: currentColor; 
+  stroke-width: 3px; 
+  fill: none; 
+  opacity: 0.9;
+  transition: all 0.2s ease;
 }
 
-.mapNode:active { cursor: grabbing; }
+.arrow:hover {
+  stroke-width: 4px;
+  opacity: 1;
+}
 
-.mapTitle { font-weight: 700; margin-bottom: 0.25rem; }
-.mapMeta { font-size: 0.85rem; color: var(--text-secondary); }
-.empty { opacity: 0.8; }
+.mapTitle { 
+  font-weight: 700; 
+  margin-bottom: 0.25rem; 
+  color: #111827;
+}
+.mapMeta { 
+  font-size: 0.85rem; 
+  color: #6b7280; 
+}
+.empty { 
+  opacity: 0.8; 
+  color: #9ca3af;
+}
 
 .attached { display: flex; align-items: center; gap: 0.5rem; }
 .link { background: transparent; border: none; color: var(--accent); cursor: pointer; padding: 0; }
@@ -108,9 +116,18 @@
   right: 6px;
   background: transparent;
   border: none;
-  color: var(--text-secondary);
+  color: #6b7280;
   cursor: pointer;
   font-size: 16px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.remove:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }
 
 .mapsSection {
@@ -150,9 +167,202 @@
   cursor: grab;
 }
 
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: var(--card-background, #1a1a1a);
+  border: 1px solid var(--card-border, #2a2a2a);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.modalClose {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #888);
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.modalClose:hover {
+  background: var(--card-hover, #252525);
+  color: var(--text-primary, #fff);
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mapNameInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--card-background, #1a1a1a);
+  border: 1px solid var(--card-border, #2a2a2a);
+  border-radius: 10px;
+  color: var(--text-primary, #fff);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.mapNameInput:focus {
+  border-color: var(--accent, #8b5cf6);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.mapTypeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.mapTypeButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--card-background, #1a1a1a);
+  border: 1px solid var(--card-border, #2a2a2a);
+  border-radius: 12px;
+  color: var(--text-primary, #fff);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.mapTypeButton:hover {
+  background: var(--card-hover, #252525);
+  border-color: var(--accent, #8b5cf6);
+  transform: translateY(-2px);
+}
+
+.mapTypeIcon {
+  font-size: 2rem;
+}
+
+.mapNode {
+  position: absolute;
+  width: 180px;
+  min-height: 80px;
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 1rem 1rem;
+  cursor: grab;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+  z-index: 10;
+}
+
+.mapNode.dragging {
+  z-index: 100;
+  cursor: grabbing;
+  transition: none;
+}
+
+.mapNode:hover {
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.mapNode:active { cursor: grabbing; }
+
+.mapNode[data-connecting="true"] {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+.mapNode.startpoint {
+  background: #ffffff;
+  border-color: #f59e0b;
+  border-width: 3px;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2), 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.mapNode.startpoint:hover {
+  border-color: #d97706;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.3), 0 4px 16px rgba(245, 158, 11, 0.4);
+}
+
+.startpointBadge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.125rem 0.375rem;
+  background: #f59e0b;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 @media (max-width: 768px) {
   .timelineInner { height: 360px; }
   .svg { width: 1400px; height: 900px; }
+  .mapTypeGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 

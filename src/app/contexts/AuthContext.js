@@ -291,11 +291,17 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     console.log('🚪 Logging out user:', user?.email);
+    // Clear user state first
+    setUser(null);
+    setToken(null);
+    // Then clear localStorage
     clearUserData();
-    // Redirect immediately to prevent temp user from being set
-    if (typeof window !== 'undefined') {
-      window.location.href = '/';
-    }
+    // Small delay to ensure state updates before redirect
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/landing';
+      }
+    }, 100);
   };
 
   // Helper function to make authenticated API calls with automatic token verification
@@ -328,12 +334,24 @@ export const AuthProvider = ({ children }) => {
     return response;
   };
 
+  // Check if user is authenticated - respect logout flag to prevent redirects
+  // Compute isAuthenticated based on current state
+  const computeIsAuthenticated = () => {
+    if (typeof window === 'undefined') return false;
+    const logoutFlag = localStorage.getItem('logout_flag');
+    // If logout flag is set, user is definitely not authenticated
+    if (logoutFlag === 'true') return false;
+    // Otherwise, check if we have user, token, and initialization is complete
+    return Boolean(user && token && isInitialized);
+  };
+
+  const isAuthenticated = computeIsAuthenticated();
+
   const value = {
     user,
     token,
     loading: loading || !isInitialized,
-    // TEMPORARY: Always return true for isAuthenticated to bypass auth checks
-    isAuthenticated: true, // Boolean(user && token && isInitialized),
+    isAuthenticated,
     login,
     register,
     logout,

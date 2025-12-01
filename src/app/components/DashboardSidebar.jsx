@@ -247,18 +247,17 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
           {/* Logout */}
           <button 
             className={`${styles.navItem} ${styles.bottomItem} ${styles.logoutItem}`}
-            onClick={async () => {
-              try {
-                if (logout) {
-                  await logout();
-                } else {
-                  // Fallback: clear local storage token for testing
-                  if (typeof window !== 'undefined') {
-                    localStorage.removeItem('auth_token');
-                  }
+            onClick={() => {
+              if (logout) {
+                logout(); // logout() already handles redirect
+              } else {
+                // Fallback: clear local storage token for testing
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('auth_token');
+                  localStorage.setItem('logout_flag', 'true');
+                  window.location.href = '/landing';
                 }
-              } catch (e) {}
-              router.push('/');
+              }
             }}
           >
             <div className={styles.navIcon}>

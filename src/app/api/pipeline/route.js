@@ -39,25 +39,25 @@ export async function POST(request) {
 
         try {
           // Step 1: Prompt Parsing Agent
-          send({ type: "status", message: "Checking OpenAI connectivity..." });
-          const openaiConnected = isOpenAIAvailable();
-          send({ type: "status", message: `OpenAI connected: ${openaiConnected ? 'yes' : 'no'}` });
+          send({ type: "status", message: "Checking Gemini connectivity..." });
+          const geminiConnected = isGeminiAvailable();
+          send({ type: "status", message: `Gemini connected: ${geminiConnected ? 'yes' : 'no'}` });
           send({ type: "status", message: "Checking Ollama connectivity..." });
           const ollamaConnected = await isOllamaAvailable();
           const USE_OLLAMA = process.env.USE_OLLAMA === '1';
           send({ type: "status", message: `Ollama connected: ${ollamaConnected ? 'yes' : 'no'} (enabled=${USE_OLLAMA})` });
-          send({ type: "status", message: "Parsing prompt (OpenAI/Ollama/heuristics)..." });
+          send({ type: "status", message: "Parsing prompt (Gemini/Ollama/heuristics)..." });
 
           let parsingResult = null;
-          if (openaiConnected) {
+          if (geminiConnected) {
             try {
-              const maybe = await tryParseWithOpenAI(prompt);
+              const maybe = await tryParseWithGemini(prompt);
               if (maybe && maybe.action) {
                 parsingResult = maybe;
-                send({ type: "status", message: "Parsed with OpenAI" });
+                send({ type: "status", message: "Parsed with Gemini" });
               }
             } catch (e) {
-              send({ type: "status", message: "OpenAI parsing failed" });
+              send({ type: "status", message: "Gemini parsing failed" });
             }
           }
           if (!parsingResult && USE_OLLAMA && ollamaConnected) {
@@ -120,14 +120,14 @@ export async function POST(request) {
           // If action is generate → Step 3: 3D Generation Agent (local)
           if (parsingResult.action === "generate") {
             let genScene = null;
-            if (openaiConnected) {
-              send({ type: "status", message: "Generating model via OpenAI..." });
-              const byOpenAI = await runWithKeepAlive("Generating (OpenAI)", async () => await tryGenerateSceneWithOpenAI(prompt, parsingResult.character, imageUrl, (m) => send({ type: 'status', message: m })));
-              if (byOpenAI && (Array.isArray(byOpenAI.objects) || Array.isArray(byOpenAI.groups) || byOpenAI.voxels)) {
-                send({ type: "status", message: "OpenAI generation succeeded" });
+            if (geminiConnected) {
+              send({ type: "status", message: "Generating model via Gemini..." });
+              const byGemini = await runWithKeepAlive("Generating (Gemini)", async () => await tryGenerateSceneWithGemini(prompt, parsingResult.character, imageUrl, (m) => send({ type: 'status', message: m })));
+              if (byGemini && (Array.isArray(byGemini.objects) || Array.isArray(byGemini.groups) || byGemini.voxels)) {
+                send({ type: "status", message: "Gemini generation succeeded" });
                 // Stream voxel chunks if present to avoid oversized payloads
-                if (byOpenAI.voxels && Array.isArray(byOpenAI.voxels.voxels) && Array.isArray(byOpenAI.voxels.palette)) {
-                  const sanitized = sanitizeVoxelScene(byOpenAI.voxels);
+                if (byGemini.voxels && Array.isArray(byGemini.voxels.voxels) && Array.isArray(byGemini.voxels.palette)) {
+                  const sanitized = sanitizeVoxelScene(byGemini.voxels);
                   const CHUNK = 5000;
                   for (let i = 0; i < sanitized.voxels.length; i += CHUNK) {
                     const part = sanitized.voxels.slice(i, i + CHUNK);
@@ -136,10 +136,10 @@ export async function POST(request) {
                     await sleep(30);
                   }
                 } else {
-                  genScene = normalizeScene(byOpenAI);
+                  genScene = normalizeScene(byGemini);
                 }
               } else {
-                send({ type: "status", message: "OpenAI generation failed" });
+                send({ type: "status", message: "Gemini generation failed" });
               }
             }
             if (!genScene && USE_OLLAMA && ollamaConnected) {
@@ -221,8 +221,8 @@ export async function POST(request) {
 
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "llama3.1";
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-pro";
 const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:5000";
 
 async function isOllamaAvailable() {
@@ -238,8 +238,8 @@ async function isOllamaAvailable() {
   }
 }
 
-function isOpenAIAvailable() {
-  return typeof OPENAI_API_KEY === 'string' && OPENAI_API_KEY.length > 0;
+function isGeminiAvailable() {
+  return typeof GEMINI_API_KEY === 'string' && GEMINI_API_KEY.length > 0;
 }
 
 function shouldUseVoxelBackend(parsed, rawPrompt, body) {
@@ -405,90 +405,35 @@ function extractJson(text) {
   return null;
 }
 
-async function tryParseWithOpenAI(input) {
+async function tryParseWithGemini(input) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
-  const system = [
-    "You are a command parser for a 3D scene editor.",
-    "Output STRICT JSON only with this schema:",
-    "{",
-    "  \"action\": \"generate\" | \"edit\",",
-    "  \"character\": string | null,",
-    "  \"edits\": string[]",
-    "}",
-    "Where edits are tokens like:",
-    "- scale_y:FLOAT",
-    "- uniform_scale:FLOAT",
-    "- hair_color:blonde",
-    "- arm_left:rotate_z:FLOAT",
-    "- arm_right:rotate_z:FLOAT",
-    "- add_floor:WxD  (e.g., add_floor:5x5)",
-    "Choose action=generate when the user asks to make/create a new character/object.",
-    "Choose action=edit when the user asks to modify or add parts to the current scene.",
-  ].join("\n");
+  const systemPrompt = "You are a command parser for a 3D scene editor. Output STRICT JSON only with this schema: {\"action\": \"generate\" | \"edit\", \"character\": string | null, \"edits\": string[]}. Where edits are tokens like: scale_y:FLOAT, uniform_scale:FLOAT, hair_color:blonde, arm_left:rotate_z:FLOAT, arm_right:rotate_z:FLOAT, add_floor:WxD (e.g., add_floor:5x5). Choose action=generate when the user asks to make/create a new character/object. Choose action=edit when the user asks to modify or add parts to the current scene.";
+  
+  const prompt = `${systemPrompt}\n\nUser input: ${input}`;
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: OPENAI_MODEL,
-      temperature: 0,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: input }
-      ]
-    }),
-    signal: controller.signal,
-  });
-  clearTimeout(timer);
-  if (!res.ok) return null;
-  const data = await res.json();
-  const content = data?.choices?.[0]?.message?.content || '';
-  const jsonText = extractJson(content);
-  if (!jsonText) return null;
-  const parsed = JSON.parse(jsonText);
-  if (!parsed.edits) parsed.edits = [];
-  if (typeof parsed.character === 'string' && parsed.character.length === 0) parsed.character = null;
-  return parsed;
+  try {
+    const { generateJSON } = await import('../../../lib/gemini');
+    const parsed = await generateJSON(prompt, null, {
+      model: GEMINI_MODEL,
+      temperature: 0
+    });
+    clearTimeout(timer);
+    if (!parsed.edits) parsed.edits = [];
+    if (typeof parsed.character === 'string' && parsed.character.length === 0) parsed.character = null;
+    return parsed;
+  } catch (error) {
+    clearTimeout(timer);
+    return null;
+  }
 }
 
-async function tryGenerateSceneWithOpenAI(userPrompt, character, imageUrl, onStatus) {
+async function tryGenerateSceneWithGemini(userPrompt, character, imageUrl, onStatus) {
   const controller = new AbortController();
   const timeoutMs = 600000; // 10 minutes
   const timer = setTimeout(() => controller.abort(), timeoutMs);
-  const system = [
-    "You are a 3D scene generator that outputs a JSON scene.",
-    "Output STRICT JSON only with this schema:",
-    "{",
-    "  \"objects\": Array<",
-    "    { id: string, object: 'cube'|'sphere'|'cylinder'|'plane',",
-    "      dimensions: number[], position: number[], rotation: number[], material?: string }",
-    "  >,",
-    "  \"groups\": Array<",
-    "    { id: string, position?: number[], children: Array<",
-    "        { id: string, object: 'cube'|'sphere'|'cylinder'|'plane',",
-    "          dimensions: number[], position: number[], rotation: number[], material?: string }",
-    "      > }",
-    "  >,",
-    "  \"voxels\"?: { palette: string[], voxels: Array<{x:integer,y:integer,z:integer,c:integer,size?:number}> },",
-    "}",
-    "Constraints:",
-    "- Use only the allowed primitive object types.",
-    "- dimensions for cube/box: [width, height, depth].",
-    "- dimensions for sphere: [diameter, _, _] (use diameter in [0.1, 5]).",
-    "- dimensions for cylinder: [diameter, height, diameter].",
-    "- dimensions for plane: [width, height, 0.01].",
-    "- position: [x,y,z]; rotation: [rx,ry,rz] in radians.",
-    "- Keep y around ground (y≈0) when appropriate.",
-    "- Prefer detailed voxel representation when it makes sense (e.g., cars/characters).",
-    "- HARD CAP: total voxels must be <= 20000. If higher, downsample to <= 20000.",
-    "- Palette size <= 16 colors.",
-    "- Use integer grid coordinates. Prefer size=1 per voxel and encode larger shapes via more voxels.",
-    "- Keep JSON compact and valid. No comments or extra text.",
-  ].join("\n");
+  
+  const systemPrompt = `You are a 3D scene generator that outputs a JSON scene. Output STRICT JSON only with this schema: {"objects": Array<{id: string, object: 'cube'|'sphere'|'cylinder'|'plane', dimensions: number[], position: number[], rotation: number[], material?: string}>, "groups": Array<{id: string, position?: number[], children: Array<{id: string, object: 'cube'|'sphere'|'cylinder'|'plane', dimensions: number[], position: number[], rotation: number[], material?: string}>}>, "voxels"?: {palette: string[], voxels: Array<{x:integer,y:integer,z:integer,c:integer,size?:number}>}}. Constraints: Use only allowed primitive object types. dimensions for cube/box: [width, height, depth]. dimensions for sphere: [diameter, _, _] (use diameter in [0.1, 5]). dimensions for cylinder: [diameter, height, diameter]. dimensions for plane: [width, height, 0.01]. position: [x,y,z]; rotation: [rx,ry,rz] in radians. Keep y around ground (y≈0) when appropriate. Prefer detailed voxel representation when it makes sense (e.g., cars/characters). HARD CAP: total voxels must be <= 20000. If higher, downsample to <= 20000. Palette size <= 16 colors. Use integer grid coordinates. Prefer size=1 per voxel and encode larger shapes via more voxels. Keep JSON compact and valid. No comments or extra text.`;
 
   const resolution = /\b(32|48|64|80|96|128)\b/.exec(userPrompt || '')?.[1] || '48';
   const capped = String(Math.min(64, Math.max(24, Number(resolution) || 48)));
@@ -497,48 +442,27 @@ async function tryGenerateSceneWithOpenAI(userPrompt, character, imageUrl, onSta
     : `Generate a voxel scene (~${capped} resolution) for: ${userPrompt}. Output voxels{palette,voxels[]} with integer x,y,z and c indexes. Keep total voxels <= 20000.`;
 
   try {
-    if (onStatus) onStatus('Preparing OpenAI prompt');
-    if (onStatus) onStatus('Sending request to OpenAI');
+    if (onStatus) onStatus('Preparing Gemini prompt');
+    if (onStatus) onStatus('Sending request to Gemini');
     const startedAt = Date.now();
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: OPENAI_MODEL,
-        temperature: 0,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: imageUrl ? `${prompt}\nImage URL: ${imageUrl}` : prompt }
-        ]
-      }),
-      signal: controller.signal,
+    
+    const { generateJSON } = await import('../../../lib/gemini');
+    const fullPrompt = imageUrl ? `${prompt}\nImage URL: ${imageUrl}` : prompt;
+    const parsed = await generateJSON(fullPrompt, systemPrompt, {
+      model: GEMINI_MODEL,
+      temperature: 0
     });
+    
     clearTimeout(timer);
-    if (onStatus) onStatus(`OpenAI responded in ${Math.round((Date.now()-startedAt)/1000)}s, parsing JSON`);
-    if (!res.ok) {
-      if (onStatus) onStatus(`OpenAI error ${res.status}`);
-      return null;
-    }
-    const data = await res.json();
-    const content = data?.choices?.[0]?.message?.content || '';
-    const jsonText = extractJson(content) || content.trim();
-    try {
-      const parsed = JSON.parse(jsonText);
-      if (onStatus) onStatus('OpenAI JSON parsed');
-      return parsed;
-    } catch (e) {
-      if (onStatus) onStatus('Failed to parse OpenAI JSON');
-      return null;
-    }
+    if (onStatus) onStatus(`Gemini responded in ${Math.round((Date.now()-startedAt)/1000)}s, parsing JSON`);
+    if (onStatus) onStatus('Gemini JSON parsed');
+    return parsed;
   } catch (err) {
     clearTimeout(timer);
     if (err && err.name === 'AbortError') {
-      if (onStatus) onStatus('OpenAI request timed out after 600s');
+      if (onStatus) onStatus('Gemini request timed out after 600s');
     } else {
-      if (onStatus) onStatus('OpenAI request failed');
+      if (onStatus) onStatus('Gemini request failed');
     }
     return null;
   } finally {

@@ -38,8 +38,16 @@ const fromSupabaseFormat = (data) => {
   const converted = {};
   for (const [key, value] of Object.entries(data)) {
     // Convert snake_case to camelCase
+    // Handle cases like: password_hash -> passwordHash, is_active -> isActive, user_id -> userId
     const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-    converted[camelKey] = value;
+    // Handle nested JSONB objects - they should already be objects, so keep them as-is
+    if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+      // Check if it's a JSONB object (like security, preferences, subscription)
+      // These are already in camelCase from Supabase, so keep them as-is
+      converted[camelKey] = value;
+    } else {
+      converted[camelKey] = value;
+    }
   }
   return converted;
 };
@@ -402,6 +410,92 @@ export const getProjectMaps = async (projectId) => {
       .from('maps')
       .select('*')
       .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(fromSupabaseFormat);
+  } catch (error) {
+    throw error;
+  }
+};
+
+// ===== SCRIPT OPERATIONS =====
+
+export const createScript = async (scriptData) => {
+  const scriptId = scriptData.scriptId || generateId('script');
+  const timestamp = getCurrentTimestamp();
+  
+  const script = {
+    script_id: scriptId,
+    project_id: scriptData.projectId,
+    map_id: scriptData.mapId || null,
+    name: scriptData.name || 'Untitled Script',
+    code: scriptData.code || '',
+    elements: scriptData.elements || [],
+    metadata: scriptData.metadata || {},
+    created_at: timestamp,
+    updated_at: timestamp
+  };
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('scripts')
+      .insert(toSupabaseFormat(script))
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, script: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateScript = async (scriptId, scriptData) => {
+  const timestamp = getCurrentTimestamp();
+  
+  const updates = {
+    ...scriptData,
+    script_id: scriptId,
+    updated_at: timestamp
+  };
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('scripts')
+      .update(toSupabaseFormat(updates))
+      .eq('script_id', scriptId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, script: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getScript = async (scriptId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('scripts')
+      .select('*')
+      .eq('script_id', scriptId)
+      .single();
+
+    if (error) throw error;
+    return fromSupabaseFormat(data);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getMapScripts = async (mapId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('scripts')
+      .select('*')
+      .eq('map_id', mapId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;

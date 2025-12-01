@@ -114,6 +114,24 @@ CREATE INDEX IF NOT EXISTS idx_characters_project_id ON characters(project_id);
 CREATE INDEX IF NOT EXISTS idx_characters_type ON characters(type);
 
 -- ===========================================
+-- SCRIPTS TABLE
+-- ===========================================
+CREATE TABLE IF NOT EXISTS scripts (
+    script_id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    map_id TEXT REFERENCES maps(map_id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    code TEXT DEFAULT '',
+    elements JSONB DEFAULT '[]'::jsonb,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_scripts_project_id ON scripts(project_id);
+CREATE INDEX IF NOT EXISTS idx_scripts_map_id ON scripts(map_id);
+
+-- ===========================================
 -- ASSETS TABLE
 -- ===========================================
 CREATE TABLE IF NOT EXISTS assets (
