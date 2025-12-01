@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getProject, getProjectMaps } from '@/app/lib/supabase-operations';
+import { getProjectById, getProjectMaps } from '@/app/lib/supabase-operations';
 
 // GET /api/projects/[id]/export - Export project as downloadable package
 export async function GET(request, { params }) {
@@ -7,7 +7,7 @@ export async function GET(request, { params }) {
     const { id } = params;
     
     // Get project data
-    const project = await getProject(id);
+    const project = await getProjectById(id);
     if (!project) {
       return NextResponse.json({ 
         success: false, 

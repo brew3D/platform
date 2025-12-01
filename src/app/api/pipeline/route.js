@@ -413,7 +413,7 @@ async function tryParseWithGemini(input) {
   const prompt = `${systemPrompt}\n\nUser input: ${input}`;
 
   try {
-    const { generateJSON } = await import('../../../lib/gemini');
+    const { generateJSON } = await import('@/app/lib/gemini');
     const parsed = await generateJSON(prompt, null, {
       model: GEMINI_MODEL,
       temperature: 0
@@ -446,7 +446,7 @@ async function tryGenerateSceneWithGemini(userPrompt, character, imageUrl, onSta
     if (onStatus) onStatus('Sending request to Gemini');
     const startedAt = Date.now();
     
-    const { generateJSON } = await import('../../../lib/gemini');
+    const { generateJSON } = await import('@/app/lib/gemini');
     const fullPrompt = imageUrl ? `${prompt}\nImage URL: ${imageUrl}` : prompt;
     const parsed = await generateJSON(fullPrompt, systemPrompt, {
       model: GEMINI_MODEL,
