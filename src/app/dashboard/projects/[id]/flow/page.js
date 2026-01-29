@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import styles from "./flow.module.css";
 import MapEditor from "@/app/components/MapEditor";
+import MugPanel from "@/app/components/MugPanel";
 
 function generateId(prefix) {
   return `${prefix}_${Math.random().toString(36).slice(2, 8)}`;
@@ -12,6 +13,10 @@ function generateId(prefix) {
 export default function ProjectFlowPage() {
   const { id } = useParams();
   const router = useRouter();
+
+  const [flowId, setFlowId] = useState(null);
+  const [isLoadingFlow, setIsLoadingFlow] = useState(true);
+  const [isSavingFlow, setIsSavingFlow] = useState(false);
 
   // Initial demo data
   const [timelineMaps, setTimelineMaps] = useState([]);
@@ -265,6 +270,7 @@ export default function ProjectFlowPage() {
   };
 
   const [editingMap, setEditingMap] = useState(null);
+  const [showMugPanel, setShowMugPanel] = useState(false);
 
   const onMapClick = (mapId, e) => {
     // Don't navigate if clicking remove button or other interactive elements
@@ -377,29 +383,69 @@ export default function ProjectFlowPage() {
     return () => window.removeEventListener("storage", onStorage);
   }, [id]);
 
-  // Load flow state on mount
+  // Load flow state from backend on mount
   useEffect(() => {
-    const flowKey = `brew3d:project:${id}:flow`;
-    try {
-      const raw = localStorage.getItem(flowKey);
-      if (raw) {
-        const flowData = JSON.parse(raw);
-        if (flowData.maps && Array.isArray(flowData.maps)) {
-          setTimelineMaps(flowData.maps);
-          console.log('Loaded flow maps:', flowData.maps.length);
+    const loadFlow = async () => {
+      if (!id) return;
+      setIsLoadingFlow(true);
+      try {
+        const res = await fetch(`/api/projects/${id}/flow`);
+        if (res.ok) {
+          const data = await res.json();
+          const nodes = data.nodes || [];
+          const edges = data.edges || [];
+          const startpoint = data.startpoint || null;
+
+          // Map flow nodes to timeline maps shape
+          const mappedMaps = nodes.map((n) => {
+            const layout = n.layout || {};
+            return {
+              id: n.nodeId || n.node_id,
+              name: n.label,
+              type: n.nodeType || n.node_type || "2d-map",
+              tags: [],
+              createdAt: n.createdAt || n.created_at || Date.now(),
+              x: layout.x ?? 16,
+              y: layout.y ?? 16,
+              scriptId: null,
+              nodeType: n.nodeType || n.node_type || "level",
+              engineLevelName: n.engineLevelName || n.engine_level_name || "",
+              unitySceneName: n.unitySceneName || n.unity_scene_name || "",
+              mapId: n.mapId || n.map_id || null,
+              metadata: n.metadata || {},
+            };
+          });
+
+          const mappedConnections = edges.map((e) => ({
+            id: e.edgeId || e.edge_id || generateId("conn"),
+            fromId: e.fromNodeId || e.from_node_id,
+            toId: e.toNodeId || e.to_node_id,
+            metadata: e.metadata || {},
+          }));
+
+          setFlowId(data.flowId || data.flow?.flowId || data.flow?.flow_id || null);
+          setTimelineMaps(mappedMaps);
+          setConnections(mappedConnections);
+          setStartpointMapId(
+            startpoint?.startNodeId ||
+              startpoint?.start_node_id ||
+              null
+          );
+        } else {
+          console.error("Failed to load flow from API");
         }
-        if (flowData.connections && Array.isArray(flowData.connections)) {
-          setConnections(flowData.connections);
-          console.log('Loaded flow connections:', flowData.connections.length);
-        }
+      } catch (error) {
+        console.error("Error loading flow from API:", error);
+      } finally {
+        // Mark as loaded after a short delay to allow state to settle
+        setTimeout(() => {
+          hasLoadedRef.current = true;
+          setIsLoadingFlow(false);
+        }, 100);
       }
-    } catch (error) {
-      console.error('Error loading flow state:', error);
-    }
-    // Mark as loaded after a short delay to allow state to settle
-    setTimeout(() => {
-      hasLoadedRef.current = true;
-    }, 100);
+    };
+
+    loadFlow();
   }, [id]);
 
   // Track if we've loaded initial state to prevent overwriting
@@ -413,16 +459,59 @@ export default function ProjectFlowPage() {
       return;
     }
 
-    const flowKey = `brew3d:project:${id}:flow`;
     const timeoutId = setTimeout(() => {
       try {
+        // Persist to localStorage as a cache
+        const flowKey = `brew3d:project:${id}:flow`;
         const flowData = {
           maps: timelineMaps,
           connections: connections,
-          startpointMapId: startpointMapId
+          startpointMapId: startpointMapId,
         };
         localStorage.setItem(flowKey, JSON.stringify(flowData));
-        console.log('Flow state saved:', { maps: timelineMaps.length, connections: connections.length, startpoint: startpointMapId });
+
+        // Persist to backend Flow API
+        const nodesPayload = timelineMaps.map((m) => ({
+          nodeId: m.id,
+          name: m.name,
+          label: m.name,
+          nodeType: m.nodeType || "level",
+          engineLevelName: m.engineLevelName || "",
+          unitySceneName: m.unitySceneName || "",
+          mapId: m.mapId || null,
+          x: m.x,
+          y: m.y,
+          metadata: m.metadata || {},
+        }));
+
+        const edgesPayload = connections.map((c) => ({
+          edgeId: c.id,
+          fromId: c.fromId,
+          toId: c.toId,
+          metadata: c.metadata || {},
+        }));
+
+        setIsSavingFlow(true);
+        fetch(`/api/projects/${id}/flow`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nodes: nodesPayload,
+            edges: edgesPayload,
+            startNodeId: startpointMapId,
+          }),
+        })
+          .then((res) => {
+            if (!res.ok) {
+              console.error("Failed to save flow to backend");
+            }
+          })
+          .catch((err) => {
+            console.error("Error saving flow to backend:", err);
+          })
+          .finally(() => {
+            setIsSavingFlow(false);
+          });
       } catch (error) {
         console.error('Error saving flow state:', error);
       }
@@ -438,7 +527,11 @@ export default function ProjectFlowPage() {
       name: mapName || `Map ${availableMaps.length + 1}`,
       type: mapType || '2d-map',
       tags: [],
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      nodeType: "level",
+      engineLevelName: "",
+      unitySceneName: "",
+      metadata: {},
     };
     
     // Add to available maps
@@ -479,9 +572,23 @@ export default function ProjectFlowPage() {
           <button className={`${styles.button} ${isConnectMode ? styles.active : ""}`} onClick={toggleConnectMode}>
             {isConnectMode ? "Connecting Mode: Click & drag from one map to another" : "Connect Maps"}
           </button>
+          <button className={styles.button} onClick={() => setShowMugPanel(true)}>
+            ☕ Ask Mug
+          </button>
         </div>
         <div className={styles.rightTools}>
-          <span className={styles.hint}>Drag maps onto timeline • Click Connect to link maps with arrows</span>
+          <div className={styles.hintRow}>
+            <span className={styles.hint}>
+              Drag maps onto timeline • Click Connect to link maps with arrows
+            </span>
+            <span className={styles.status}>
+              {isLoadingFlow
+                ? "Loading flow from cloud..."
+                : isSavingFlow
+                ? "Saving flow..."
+                : "Flow synced"}
+            </span>
+          </div>
         </div>
       </section>
 
@@ -690,6 +797,11 @@ export default function ProjectFlowPage() {
             setStartpointMapId(isStartpoint ? mapId : null);
           }}
         />
+      )}
+
+      {/* Mug AI Panel */}
+      {showMugPanel && (
+        <MugPanel projectId={id} onClose={() => setShowMugPanel(false)} />
       )}
     </div>
   );

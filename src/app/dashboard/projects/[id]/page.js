@@ -45,10 +45,10 @@ export default function ProjectDetailPage() {
 
     if (projectId) {
       fetchProject();
-      // Redirect to settings by default when project is opened
+      // Redirect to hub by default when project is opened
       const currentPath = window.location.pathname;
       if (currentPath === `/dashboard/projects/${projectId}`) {
-        router.replace(`/dashboard/projects/${projectId}/settings`);
+        router.replace(`/dashboard/projects/${projectId}/hub`);
       }
     }
   }, [projectId, router]);
@@ -68,7 +68,7 @@ export default function ProjectDetailPage() {
   // Redirect to settings page - this component should rarely render
   useEffect(() => {
     if (projectId && !loading) {
-      router.replace(`/dashboard/projects/${projectId}/settings`);
+      router.replace(`/dashboard/projects/${projectId}/hub`);
     }
   }, [projectId, loading, router]);
 

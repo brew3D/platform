@@ -2,135 +2,93 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import ProjectSidebar from '@/app/components/ProjectSidebar';
 import styles from './test.module.css';
 
 export default function TestGamePage() {
   const { id } = useParams();
   const router = useRouter();
-  const [currentMap, setCurrentMap] = useState(null);
-  const [maps, setMaps] = useState([]);
-  const [connections, setConnections] = useState([]);
-  const [startpointMapId, setStartpointMapId] = useState(null);
-  const [mapScripts, setMapScripts] = useState({});
+  const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [previewStatus, setPreviewStatus] = useState(null);
+  const [streamUrl, setStreamUrl] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadFlowData();
+    const loadProject = async () => {
+      if (!id) return;
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/projects/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setProject(data);
+        }
+      } catch (err) {
+        console.error('Error loading project:', err);
+        setError('Failed to load project');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProject();
   }, [id]);
 
-  const loadFlowData = async () => {
+  const handlePlay = async () => {
+    if (!id || !project) return;
+
+    setIsPlaying(true);
+    setError(null);
+    setPreviewStatus('queued');
+
     try {
-      // Load flow state from localStorage
-      const flowKey = `brew3d:project:${id}:flow`;
-      const raw = localStorage.getItem(flowKey);
-      let flowData = null;
-      
-      if (raw) {
-        flowData = JSON.parse(raw);
-        setMaps(flowData.maps || []);
-        setConnections(flowData.connections || []);
-        setStartpointMapId(flowData.startpointMapId || null);
-      }
+      const res = await fetch(`/api/projects/${id}/preview`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          engineType: project.engineType || 'unreal',
+          branchOrSha: project.defaultBranch || 'main',
+        }),
+      });
 
-      // Load map scripts
-      const scriptsMap = {};
-      for (const map of flowData?.maps || []) {
-        try {
-          const scriptKey = `brew3d:project:${id}:map:${map.id}:script`;
-          const scriptRaw = localStorage.getItem(scriptKey);
-          if (scriptRaw) {
-            const scriptData = JSON.parse(scriptRaw);
-            scriptsMap[map.id] = scriptData;
-          }
-        } catch (error) {
-          console.error(`Error loading script for map ${map.id}:`, error);
-        }
+      if (res.ok) {
+        const data = await res.json();
+        setPreviewStatus(data.status || 'completed');
+        setStreamUrl(data.streamUrl || data.stream_url);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setError(errData.message || 'Failed to start preview');
+        setIsPlaying(false);
       }
-      setMapScripts(scriptsMap);
-    } catch (error) {
-      console.error('Error loading flow data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getNextMap = (fromMapId) => {
-    // Find connection from current map
-    const connection = connections.find(c => c.fromId === fromMapId);
-    if (connection) {
-      return maps.find(m => m.id === connection.toId);
-    }
-    return null;
-  };
-
-  const handleMapAction = (action, targetMapId) => {
-    // Handle actions from map scripts (e.g., button clicks)
-    // For now, navigate to next map if action is "next" or similar
-    if (action === 'next' || action === 'continue') {
-      const nextMap = getNextMap(currentMap?.id);
-      if (nextMap) {
-        setCurrentMap(nextMap);
-      }
-    } else if (targetMapId) {
-      // Navigate to specific map
-      const targetMap = maps.find(m => m.id === targetMapId);
-      if (targetMap) {
-        setCurrentMap(targetMap);
-      }
-    }
-  };
-
-  const handlePlay = () => {
-    // Find startpoint map or use first map
-    const startMap = startpointMapId 
-      ? maps.find(m => m.id === startpointMapId)
-      : maps[0];
-    
-    if (startMap) {
-      setCurrentMap(startMap);
-      setIsPlaying(true);
-    } else {
-      alert('No maps found. Please add maps to your flow and set a startpoint.');
+    } catch (err) {
+      console.error('Error starting preview:', err);
+      setError('Failed to start preview');
+      setIsPlaying(false);
     }
   };
 
   const handleStop = () => {
     setIsPlaying(false);
-    setCurrentMap(null);
+    setPreviewStatus(null);
+    setStreamUrl(null);
+    setError(null);
   };
 
-  // Execute map script when map changes
-  useEffect(() => {
-    if (!currentMap || !isPlaying) return;
-
-    const script = mapScripts[currentMap.id];
-    if (script && script.code) {
-      try {
-        // Create a safe execution context
-        const scriptElement = document.createElement('script');
-        scriptElement.textContent = `
-          (function() {
-            ${script.code}
-          })();
-        `;
-        document.body.appendChild(scriptElement);
-        
-        return () => {
-          if (document.body.contains(scriptElement)) {
-            document.body.removeChild(scriptElement);
-          }
-        };
-      } catch (error) {
-        console.error('Error executing map script:', error);
-      }
-    }
-  }, [currentMap, mapScripts, isPlaying]);
+  const engineType = project?.engineType || 'unreal';
+  const repoUrl = project?.repoUrl || 'Not linked';
+  const defaultBranch = project?.defaultBranch || 'main';
 
   if (loading) {
     return (
       <div className={styles.page}>
-        <div className={styles.loading}>Loading...</div>
+        <div style={{ display: 'flex', gap: '1.5rem' }}>
+          <ProjectSidebar projectId={id} />
+          <main style={{ flex: 1 }}>
+            <div className={styles.loading}>Loading project...</div>
+          </main>
+        </div>
       </div>
     );
   }
@@ -138,90 +96,122 @@ export default function TestGamePage() {
   if (!isPlaying) {
     return (
       <div className={styles.page}>
-        <div className={styles.playContainer}>
-          <div className={styles.playBox}>
-            <button className={styles.playButton} onClick={handlePlay}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="5 3 19 12 5 21 5 3" />
-              </svg>
+        <div style={{ display: 'flex', gap: '1.5rem' }}>
+          <ProjectSidebar projectId={id} />
+          <main style={{ flex: 1 }}>
+            <button
+              className={styles.backButton}
+              onClick={() => router.push(`/dashboard/projects/${id}/hub`)}
+              style={{ marginBottom: '1rem' }}
+            >
+              ← Back to Hub
             </button>
-            <p className={styles.playLabel}>Click to Play</p>
-          </div>
+
+            <h1 className={styles.title}>Engine Preview</h1>
+            <p className={styles.subtitle}>
+              Run your {engineType.toUpperCase()} project in the cloud and stream it to your browser.
+            </p>
+
+            <div className={styles.playContainer}>
+              <div className={styles.playBox}>
+                <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                    Engine: <strong>{engineType.toUpperCase()}</strong>
+                  </p>
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                    Repo: <strong>{repoUrl}</strong>
+                  </p>
+                  <p style={{ color: 'var(--text-secondary)' }}>
+                    Branch: <strong>{defaultBranch}</strong>
+                  </p>
+                </div>
+
+                <button className={styles.playButton} onClick={handlePlay}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                </button>
+                <p className={styles.playLabel}>Start Engine Preview</p>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem', textAlign: 'center' }}>
+                  This will run your actual engine project in a cloud VM and stream the output.
+                </p>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
   }
-
-  if (!currentMap) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.error}>
-          <h2>No maps found</h2>
-          <p>Please add maps to your flow and set a startpoint.</p>
-          <button onClick={handleStop}>Back</button>
-        </div>
-      </div>
-    );
-  }
-
-  const script = mapScripts[currentMap.id];
-  const elements = script?.elements || [];
 
   return (
     <div className={styles.page}>
-      <div className={styles.gameHeader}>
-        <button className={styles.stopButton} onClick={handleStop}>
-          Stop
-        </button>
-        <h2 className={styles.gameTitle}>{currentMap.name}</h2>
-      </div>
+      <div style={{ display: 'flex', gap: '1.5rem' }}>
+        <ProjectSidebar projectId={id} />
+        <main style={{ flex: 1 }}>
+          <div className={styles.gameHeader}>
+            <button className={styles.stopButton} onClick={handleStop}>
+              Stop Preview
+            </button>
+            <h2 className={styles.gameTitle}>
+              Engine Preview - {engineType.toUpperCase()}
+            </h2>
+          </div>
 
-      <div className={styles.gameContainer}>
-        <div className={styles.mapViewer}>
-          {currentMap.backgroundImage ? (
-            <img 
-              src={currentMap.backgroundImage} 
-              alt={currentMap.name}
-              className={styles.mapImage}
-            />
-          ) : (
-            <div className={styles.mapPlaceholder}>
-              <div className={styles.placeholderIcon}>🗺️</div>
-              <p>{currentMap.name}</p>
+          {error && (
+            <div className={styles.error}>
+              <p>{error}</p>
             </div>
           )}
 
-          {/* Render UI elements from script */}
-          {elements.map(element => (
-            <div
-              key={element.id}
-              className={styles.uiElement}
-              style={{
-                left: `${(element.x / 1920) * 100}%`,
-                top: `${(element.y / 1080) * 100}%`,
-                width: `${(element.width / 1920) * 100}%`,
-                height: `${(element.height / 1080) * 100}%`,
-                ...element.style
-              }}
-              onClick={() => handleMapAction('next', null)}
-            >
-              {element.type === 'button' && (
-                <button className={styles.uiButton}>{element.text}</button>
-              )}
-              {element.type === 'text' && (
-                <div className={styles.uiText}>{element.text}</div>
-              )}
-              {element.type === 'input' && (
-                <input className={styles.uiInput} placeholder={element.text} />
-              )}
-              {element.type === 'image' && (
-                <div className={styles.uiImage}>📷 {element.text}</div>
-              )}
+          {previewStatus === 'queued' && (
+            <div className={styles.loading}>
+              <p>Preview request queued...</p>
             </div>
-          ))}
-        </div>
+          )}
+
+          {previewStatus === 'running' && (
+            <div className={styles.loading}>
+              <p>Starting engine instance...</p>
+            </div>
+          )}
+
+          {previewStatus === 'completed' && streamUrl && (
+            <div className={styles.gameContainer}>
+              <div className={styles.mapViewer}>
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'var(--card-background)',
+                  border: '1px solid var(--card-border)',
+                  borderRadius: 12,
+                  padding: '2rem',
+                }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ fontSize: '1.125rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>
+                      Engine Preview Stream
+                    </p>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                      Stream URL: <code style={{ background: 'var(--card-background)', padding: '0.25rem 0.5rem', borderRadius: 4 }}>{streamUrl}</code>
+                    </p>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                      This is a placeholder. Real engine preview will stream video + input from a cloud VM running your {engineType.toUpperCase()} project.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {previewStatus === 'failed' && (
+            <div className={styles.error}>
+              <p>Preview failed. Please try again.</p>
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );
 }
-

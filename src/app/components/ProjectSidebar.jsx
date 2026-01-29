@@ -7,6 +7,16 @@ import styles from "./ProjectSidebar.module.css";
 
 const projectMenuItems = [
   {
+    id: 'hub',
+    label: 'Project Hub',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M3 12l9-9 9 9" stroke="currentColor" strokeWidth="2" />
+        <path d="M5 10v10h14V10" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    ),
+  },
+  {
     id: 'settings',
     label: 'Project Settings',
     icon: (
@@ -84,6 +94,29 @@ const projectMenuItems = [
     ),
   },
   {
+    id: 'docs',
+    label: 'Docs',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" strokeWidth="2"/>
+        <polyline points="14 2 14 8 20 8" stroke="currentColor" strokeWidth="2"/>
+        <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2"/>
+        <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" strokeWidth="2"/>
+        <polyline points="10 9 9 9 8 9" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'snapshots',
+    label: 'Snapshots',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+        <polyline points="12 6 12 12 16 14" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+    ),
+  },
+  {
     id: 'collab',
     label: 'Collab Room',
     icon: (
@@ -121,7 +154,8 @@ export default function ProjectSidebar({ projectId }) {
   const pathname = usePathname();
 
   const getActiveItem = () => {
-    if (!pathname) return 'settings';
+    if (!pathname) return 'hub';
+    if (pathname.endsWith('/hub')) return 'hub';
     if (pathname.includes('/settings')) return 'settings';
     if (pathname.includes('/flow')) return 'flow';
     if (pathname.includes('/script')) return 'script';
@@ -129,10 +163,12 @@ export default function ProjectSidebar({ projectId }) {
     if (pathname.includes('/maps')) return 'maps';
     if (pathname.includes('/assets')) return 'assets';
     if (pathname.includes('/characters')) return 'characters';
+    if (pathname.includes('/docs')) return 'docs';
+    if (pathname.includes('/snapshots')) return 'snapshots';
     if (pathname.includes('/collab')) return 'collab';
     if (pathname.includes('/carve')) return 'carve';
     if (pathname.includes('/test')) return 'test';
-    return 'settings';
+    return 'hub';
   };
 
   const activeItem = getActiveItem();

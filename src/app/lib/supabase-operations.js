@@ -202,6 +202,10 @@ export const createProject = async (projectData) => {
       isTest: isTestProject
     },
     status: 'active',
+    engine_type: projectData.engineType || 'unreal',
+    engine_version: projectData.engineVersion || '',
+    repo_url: projectData.repoUrl || '',
+    default_branch: projectData.defaultBranch || 'main',
     created_at: timestamp,
     updated_at: timestamp,
     last_accessed_at: timestamp
@@ -419,6 +423,162 @@ export const getProjectMaps = async (projectId) => {
   }
 };
 
+// ===== FLOW OPERATIONS =====
+
+export const createFlow = async (projectId, { name = "Main Flow", metadata = {} } = {}) => {
+  const flowId = generateId("flow");
+  const timestamp = getCurrentTimestamp();
+
+  const flow = {
+    flow_id: flowId,
+    project_id: projectId,
+    name,
+    metadata,
+    created_at: timestamp,
+    updated_at: timestamp,
+  };
+
+  try {
+    const { data, error } = await getSupabase()
+      .from("project_flows")
+      .insert(flow)
+      .select("*")
+      .single();
+
+    if (error) throw error;
+    return { success: true, flow: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProjectFlows = async (projectId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from("project_flows")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+    return (data || []).map(fromSupabaseFormat);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getFlowWithNodesAndEdges = async (flowId) => {
+  try {
+    const supabase = getSupabase();
+
+    const [{ data: flowData, error: flowError }, { data: nodesData, error: nodesError }, { data: edgesData, error: edgesError }, { data: startData, error: startError }] =
+      await Promise.all([
+        supabase.from("project_flows").select("*").eq("flow_id", flowId).single(),
+        supabase.from("flow_nodes").select("*").eq("flow_id", flowId),
+        supabase.from("flow_edges").select("*").eq("flow_id", flowId),
+        supabase.from("flow_startpoints").select("*").eq("flow_id", flowId).maybeSingle(),
+      ]);
+
+    if (flowError) throw flowError;
+    if (nodesError) throw nodesError;
+    if (edgesError) throw edgesError;
+    if (startError) throw startError;
+
+    return {
+      flow: fromSupabaseFormat(flowData),
+      nodes: (nodesData || []).map(fromSupabaseFormat),
+      edges: (edgesData || []).map(fromSupabaseFormat),
+      startpoint: startData ? fromSupabaseFormat(startData) : null,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const upsertFlowNodesAndEdges = async (flowId, projectId, { nodes, edges, startNodeId }) => {
+  const supabase = getSupabase();
+
+  try {
+    // Delete existing edges and nodes for this flow
+    const { error: deleteEdgesError } = await supabase
+      .from("flow_edges")
+      .delete()
+      .eq("flow_id", flowId);
+    if (deleteEdgesError) throw deleteEdgesError;
+
+    const { error: deleteNodesError } = await supabase
+      .from("flow_nodes")
+      .delete()
+      .eq("flow_id", flowId);
+    if (deleteNodesError) throw deleteNodesError;
+
+    // Insert nodes
+    if (nodes && nodes.length > 0) {
+      const nodeRows = nodes.map((n) => ({
+        node_id: n.nodeId || n.id,
+        flow_id: flowId,
+        project_id: projectId,
+        label: n.label || n.name || "Untitled",
+        node_type: n.nodeType || "level",
+        engine_level_name: n.engineLevelName || null,
+        unity_scene_name: n.unitySceneName || null,
+        map_id: n.mapId || null,
+        layout: {
+          x: n.x ?? 0,
+          y: n.y ?? 0,
+        },
+        metadata: n.metadata || {},
+      }));
+
+      const { error: insertNodesError } = await supabase
+        .from("flow_nodes")
+        .insert(nodeRows);
+      if (insertNodesError) throw insertNodesError;
+    }
+
+    // Insert edges
+    if (edges && edges.length > 0) {
+      const edgeRows = edges.map((e) => ({
+        edge_id: e.edgeId || e.id || generateId("edge"),
+        flow_id: flowId,
+        from_node_id: e.fromNodeId || e.fromId,
+        to_node_id: e.toNodeId || e.toId,
+        metadata: e.metadata || {},
+      }));
+
+      const { error: insertEdgesError } = await supabase
+        .from("flow_edges")
+        .insert(edgeRows);
+      if (insertEdgesError) throw insertEdgesError;
+    }
+
+    // Upsert startpoint
+    if (startNodeId) {
+      const { error: upsertStartError } = await supabase
+        .from("flow_startpoints")
+        .upsert(
+          {
+            flow_id: flowId,
+            start_node_id: startNodeId,
+          },
+          { onConflict: "flow_id" }
+        );
+      if (upsertStartError) throw upsertStartError;
+    } else {
+      // Clear startpoint if none provided
+      const { error: deleteStartError } = await supabase
+        .from("flow_startpoints")
+        .delete()
+        .eq("flow_id", flowId);
+      if (deleteStartError) throw deleteStartError;
+    }
+
+    return { success: true };
+  } catch (error) {
+    throw error;
+  }
+};
+
 // ===== SCRIPT OPERATIONS =====
 
 export const createScript = async (scriptData) => {
@@ -612,6 +772,429 @@ export const getAssetsByCategory = async (category, limit = 20) => {
 
     if (error) throw error;
     return (data || []).map(fromSupabaseFormat);
+  } catch (error) {
+    throw error;
+  }
+};
+
+// ===== PROJECT ASSET OPERATIONS =====
+
+export const createProjectAsset = async (assetData) => {
+  const assetId = generateId('project_asset');
+  const timestamp = getCurrentTimestamp();
+  
+  const asset = {
+    project_asset_id: assetId,
+    project_id: assetData.projectId,
+    asset_id: assetData.assetId || null,
+    name: assetData.name,
+    type: assetData.type,
+    source: assetData.source || 'engine',
+    engine_path: assetData.enginePath || '',
+    license: assetData.license || '',
+    tags: assetData.tags || [],
+    metadata: assetData.metadata || {},
+    created_at: timestamp,
+    updated_at: timestamp
+  };
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('project_assets')
+      .insert(asset)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, asset: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProjectAssets = async (projectId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('project_assets')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(fromSupabaseFormat);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProjectAssetsByType = async (projectId, type) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('project_assets')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('type', type)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(fromSupabaseFormat);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const linkAssetToFlowNode = async (nodeId, projectAssetId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('flow_node_assets')
+      .insert({
+        node_id: nodeId,
+        project_asset_id: projectAssetId,
+        created_at: getCurrentTimestamp()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      // If already exists, that's fine
+      if (error.code === '23505') {
+        return { success: true, link: null };
+      }
+      throw error;
+    }
+    return { success: true, link: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const unlinkAssetFromFlowNode = async (nodeId, projectAssetId) => {
+  try {
+    const { error } = await getSupabase()
+      .from('flow_node_assets')
+      .delete()
+      .eq('node_id', nodeId)
+      .eq('project_asset_id', projectAssetId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getAssetsForFlowNode = async (nodeId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('flow_node_assets')
+      .select(`
+        project_asset_id,
+        project_assets (*)
+      `)
+      .eq('node_id', nodeId);
+
+    if (error) throw error;
+    return (data || []).map(item => ({
+      ...fromSupabaseFormat(item.project_assets),
+      linkId: item.project_asset_id
+    }));
+  } catch (error) {
+    throw error;
+  }
+};
+
+// ===== ENGINE PREVIEW OPERATIONS =====
+
+export const createEnginePreview = async (previewData) => {
+  const previewId = generateId('preview');
+  const timestamp = getCurrentTimestamp();
+  
+  const preview = {
+    preview_id: previewId,
+    project_id: previewData.projectId,
+    engine_type: previewData.engineType || 'unreal',
+    commit_sha: previewData.commitSha || '',
+    status: 'queued',
+    stream_url: '',
+    logs: previewData.logs || {},
+    created_at: timestamp,
+    updated_at: timestamp
+  };
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('engine_previews')
+      .insert(preview)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, preview: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProjectPreviews = async (projectId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('engine_previews')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(fromSupabaseFormat);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateEnginePreview = async (previewId, updates) => {
+  const timestamp = getCurrentTimestamp();
+  
+  const updatePayload = {
+    ...toSupabaseFormat(updates),
+    updated_at: timestamp
+  };
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('engine_previews')
+      .update(updatePayload)
+      .eq('preview_id', previewId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, preview: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+// ===== BUILD OPERATIONS =====
+
+export const createBuild = async (buildData) => {
+  const buildId = generateId('build');
+  const timestamp = getCurrentTimestamp();
+  
+  const build = {
+    build_id: buildId,
+    project_id: buildData.projectId,
+    engine_type: buildData.engineType || 'unreal',
+    commit_sha: buildData.commitSha || '',
+    status: 'queued',
+    logs: buildData.logs || '',
+    artifacts: buildData.artifacts || {},
+    trigger: buildData.trigger || 'manual',
+    created_at: timestamp,
+    updated_at: timestamp
+  };
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('builds')
+      .insert(build)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, build: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProjectBuilds = async (projectId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('builds')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(fromSupabaseFormat);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateBuild = async (buildId, updates) => {
+  const timestamp = getCurrentTimestamp();
+  
+  const updatePayload = {
+    ...toSupabaseFormat(updates),
+    updated_at: timestamp
+  };
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('builds')
+      .update(updatePayload)
+      .eq('build_id', buildId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, build: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+// ===== PROJECT DOCS OPERATIONS =====
+
+export const createProjectDoc = async (docData) => {
+  const docId = generateId('doc');
+  const timestamp = getCurrentTimestamp();
+  
+  const doc = {
+    doc_id: docId,
+    project_id: docData.projectId,
+    title: docData.title,
+    content: docData.content || '',
+    links: docData.links || {},
+    created_at: timestamp,
+    updated_at: timestamp
+  };
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('project_docs')
+      .insert(doc)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, doc: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProjectDocs = async (projectId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('project_docs')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(fromSupabaseFormat);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProjectDoc = async (docId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('project_docs')
+      .select('*')
+      .eq('doc_id', docId)
+      .single();
+
+    if (error) throw error;
+    return fromSupabaseFormat(data);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateProjectDoc = async (docId, updates) => {
+  const timestamp = getCurrentTimestamp();
+  
+  const updatePayload = {
+    ...toSupabaseFormat(updates),
+    updated_at: timestamp
+  };
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('project_docs')
+      .update(updatePayload)
+      .eq('doc_id', docId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, doc: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteProjectDoc = async (docId) => {
+  try {
+    const { error } = await getSupabase()
+      .from('project_docs')
+      .delete()
+      .eq('doc_id', docId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    throw error;
+  }
+};
+
+// ===== PROJECT SNAPSHOT OPERATIONS =====
+
+export const createProjectSnapshot = async (snapshotData) => {
+  const snapshotId = generateId('snapshot');
+  const timestamp = getCurrentTimestamp();
+  
+  const snapshot = {
+    snapshot_id: snapshotId,
+    project_id: snapshotData.projectId,
+    label: snapshotData.label,
+    commit_sha: snapshotData.commitSha || '',
+    snapshot_data: snapshotData.snapshotData || {},
+    created_at: timestamp
+  };
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('project_snapshots')
+      .insert(snapshot)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, snapshot: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProjectSnapshots = async (projectId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('project_snapshots')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(fromSupabaseFormat);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProjectSnapshot = async (snapshotId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('project_snapshots')
+      .select('*')
+      .eq('snapshot_id', snapshotId)
+      .single();
+
+    if (error) throw error;
+    return fromSupabaseFormat(data);
   } catch (error) {
     throw error;
   }

@@ -1,0 +1,215 @@
+Brew3D — Product, Architecture & Execution Document (Grounded Version)
+Positioning (lock this in):
+Brew3D is not a game engine.
+Brew3D is the infrastructure, brain, and CI/CD system for game development, with AI deeply integrated.
+
+1. Core Philosophy (This Is the Anchor)
+What Brew3D IS
+The single source of truth for a game project
+The place where context, assets, decisions, and builds live together
+A game-aware CI/CD platform
+An AI-powered control tower for Unreal / Unity projects
+What Brew3D IS NOT (for now)
+❌ A replacement for Unreal or Unity
+❌ A physics engine
+❌ A custom renderer
+❌ A mesh / animation editor
+Engines already exist. Studios struggle with coordination, reproducibility, and shipping. Brew3D fixes that.
+
+2. Target User (Phase 1)
+Primary User
+Indie developers
+Small teams (1–5 people)
+Already using Unreal or Unity
+Feeling pain around:
+"works on my machine"
+asset chaos
+broken builds
+lost context
+AI that can’t understand their project
+Explicitly NOT targeting (yet)
+AAA studios
+Marketing agencies
+Beginners with no engine experience
+
+3. High-Level System Model
+Every Brew3D project has two linked but separate layers:
+A. Brew3D Cloud Project (Owned by Brew3D)
+Game flow
+Asset registry
+Metadata
+Design docs
+AI memory
+Test & build history
+B. Engine Project (Owned by the Engine)
+Unreal / Unity project
+Physics
+Scripts
+Engine configs
+Runtime logic
+Brew3D wraps around the engine project. It does not replace it.
+
+4. Core Feature Areas (MVP → v1)
+
+4.1 Project Hub (Mandatory)
+The landing page for every game.
+Features:
+Project overview
+Target engine (Unreal / Unity)
+Connected repo status
+Last successful build
+Last failed build
+Active collaborators
+This is the home base.
+
+4.2 Flow (The Game Brain)
+This is Brew3D’s biggest differentiator.
+Purpose:
+Represent the game at a conceptual level
+Preserve intent and reasoning
+Features:
+Flow graphs (levels, states, transitions)
+Mechanics breakdown (e.g. shooting = input → raycast → collision → damage)
+Player journey mapping
+AI-readable structure
+AI Capabilities:
+Explain how the game works
+Detect missing logic
+Suggest next steps
+Map flow → engine concepts
+
+4.3 Asset Registry (Not Editing)
+Assets are tracked, not authored here.
+Features:
+Upload assets (models, audio, textures)
+Link external assets (Marketplace, Sketchfab, etc.)
+License tracking (free vs paid)
+Usage tracking (where asset is used)
+Preview via GLB / GLTF
+Important:
+No mesh editing
+No animation editing
+Preview-only
+
+4.4 Scene & Map Preview
+Purpose: Review and understand scenes without opening the engine.
+Features:
+GLB / GLTF scene preview
+Camera controls
+Annotations & comments
+AI explanations of scene structure
+This is a lens, not an editor.
+
+4.5 Scripts (Orchestration Layer)
+Scripts are engine-native, not Brew3D-native.
+Features:
+Read-only browsing of code / Blueprints
+Diff viewing between builds
+AI explanations of scripts
+AI-proposed patches (never silent changes)
+All real changes go back as git commits.
+
+5. Engine-Backed Preview (Critical Feature)
+What “Run Preview” Means
+Brew3D spins up a clean cloud VM
+Installs exact engine version
+Pulls engine repo
+Syncs assets
+Runs Play-in-Editor or equivalent
+Streams video + input to browser
+Technologies:
+Cloud GPU
+WebRTC / Pixel Streaming
+Result:
+Real physics
+Real gameplay
+Real scripts
+No "works on my machine"
+
+6. Game CI/CD (The Infra Win)
+Brew3D provides:
+Deterministic builds
+Reproducible environments
+Build logs
+Crash logs
+Video recordings of test runs
+Triggers:
+Manual
+Git commit
+AI change
+This is CI/CD for game dev.
+
+7. AI Agent (“Mug”)
+What Mug Does
+Understands the entire project
+Reads flow, assets, scripts, logs
+Diagnoses failures
+Proposes fixes
+Explains decisions
+What Mug Does NOT Do
+One-shot generate full games
+Modify code without approval
+Replace human judgment
+Mug is a collaborator, not a magician.
+
+8. Docs & Knowledge Base
+Integrated documentation (Confluence-style, but game-aware).
+Features:
+Design docs
+Lore
+Technical decisions
+AI-linked references to code & flow
+This prevents context loss.
+
+9. Versioning Model (Non-Git Mental Model)
+Users see:
+Timeline
+Snapshots
+Rollbacks
+Diffs explained in plain English
+Under the hood:
+Git
+LFS
+Engine-native files
+
+10. What You Should NOT Build Now
+❌ Custom physics
+❌ Full 3D editor
+❌ Shader graph
+❌ Animation tools
+❌ Marketing-focused features
+
+11. Long-Term Vision (Park This)
+The Brew Engine (Future)
+Deep engine integration
+In-engine AI co-builder
+Native editor extensions
+Only after:
+Hundreds of studios
+Proven infra
+Clear demand
+
+12. Execution Order (Very Important)
+Phase 1 (Now)
+Project hub
+Flow system
+Asset registry
+Engine repo linking
+Engine-backed preview
+Phase 2
+AI diagnostics
+CI automation
+Better preview tooling
+Phase 3
+Native shell
+Studio features
+
+Final Truth
+You were right to think big.
+You are now right to stay grounded.
+Brew3D wins by:
+Owning infra
+Owning context
+Letting engines do engine things
+This document is your execution north star.
+Do not violate it lightly
