@@ -42,8 +42,6 @@ export default function DashboardPage() {
             onScrollToProjects={handleScrollToProjects}
           />
           
-          <TemplateGallery />
-          
           <div id="projects-section">
             <ProjectsSection 
               projects={projects}
@@ -61,6 +59,8 @@ export default function DashboardPage() {
               onCreateNew={() => setShowNewProject(true)}
             />
           </div>
+
+          <TemplateGallery />
         </div>
 
       <NewProjectModal 

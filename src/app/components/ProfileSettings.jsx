@@ -78,7 +78,7 @@ export default function ProfileSettings({ user }) {
         
         <div className={styles.userInfo}>
           <h2 className={styles.userName}>{user?.name || "User"}</h2>
-          <p className={styles.userEmail}>{user?.email || "user@example.com"}</p>
+          {user?.email ? <p className={styles.userEmail}>{user.email}</p> : null}
           <div className={styles.memberSince}>
             Member since {new Date(user?.createdAt || Date.now()).toLocaleDateString()}
           </div>

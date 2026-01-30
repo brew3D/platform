@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { getUserByEmail, updateUser } from '@/app/lib/dynamodb-operations';
 
 /**
- * Development-only signin endpoint
- * This bypasses DynamoDB for testing when AWS credentials are not configured
- * Only use this in development mode!
+ * Development-only signin endpoint.
+ * Allowed users: only the 4 seeded users OR any user who exists in the DB (signed up / authenticated).
+ * No arbitrary emails (e.g. user@example.com) — must exist in Supabase and password must match.
  */
 
 export async function POST(request) {
-  // Only allow in development
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json(
       { message: 'This endpoint is only available in development' },
@@ -19,7 +20,6 @@ export async function POST(request) {
   try {
     const { email, password } = await request.json();
 
-    // Validate required fields
     if (!email || !password) {
       return NextResponse.json(
         { message: 'Email and password are required' },
@@ -27,7 +27,6 @@ export async function POST(request) {
       );
     }
 
-    // Simple validation for demo purposes
     if (password.length < 6) {
       return NextResponse.json(
         { message: 'Password must be at least 6 characters' },
@@ -35,58 +34,62 @@ export async function POST(request) {
       );
     }
 
-    // Create a mock user (in real app, this would come from database)
-    const mockUser = {
-      userId: 'dev-user-123',
-      email: email,
-      name: email.split('@')[0],
-      profilePicture: '',
-      preferences: {
-        theme: 'light',
-        editorSettings: {},
-        notifications: {
-          email: true,
-          platform: true,
-          projectUpdates: false
-        },
-        language: 'en',
-        timezone: 'UTC',
-        defaultProjectSettings: {}
-      },
-      subscription: {
-        plan: 'free',
-        status: 'active',
-        expiresAt: null,
-        features: ['basic-editor', 'basic-assets']
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      lastLoginAt: new Date().toISOString(),
-      isActive: true
-    };
+    // Only allow users that exist in the database (seeded or signed up)
+    const user = await getUserByEmail(email);
+    if (!user) {
+      return NextResponse.json(
+        { message: 'Invalid email or password. Only seeded or registered users can sign in.' },
+        { status: 401 }
+      );
+    }
 
-    // Generate JWT token
+    const isActive = user.isActive !== undefined ? user.isActive : user.is_active;
+    if (isActive === false) {
+      return NextResponse.json(
+        { message: 'Account is deactivated' },
+        { status: 401 }
+      );
+    }
+
+    const passwordHash = user.passwordHash || user.password_hash;
+    if (!passwordHash) {
+      return NextResponse.json(
+        { message: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+    const valid = await bcrypt.compare(password, passwordHash);
+    if (!valid) {
+      return NextResponse.json(
+        { message: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+
+    const userId = user.userId || user.user_id;
+    await updateUser(userId, { lastLoginAt: new Date().toISOString() });
+
     const token = jwt.sign(
-      { 
-        userId: mockUser.userId, 
-        email: mockUser.email,
-        name: mockUser.name
+      {
+        userId,
+        email: user.email,
+        name: user.name,
+        role: user.role || 'member',
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
 
+    const { passwordHash: _, password_hash: __, ...safeUser } = user;
     return NextResponse.json({
-      message: 'Login successful (Development Mode)',
-      user: mockUser,
+      message: 'Login successful (Development)',
+      user: safeUser,
       token,
-      warning: 'This is a development-only endpoint. Set up AWS credentials for production.'
     }, { status: 200 });
-
   } catch (error) {
     console.error('Dev signin error:', error);
     return NextResponse.json(
-      { message: `Internal server error: ${error.message}` },
+      { message: error.message || 'Internal server error' },
       { status: 500 }
     );
   }
