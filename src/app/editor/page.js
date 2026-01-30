@@ -1503,7 +1503,6 @@ export default function EditorPage() {
         exported_at: new Date().toISOString(),
       };
       // Console log as requested
-      // eslint-disable-next-line no-console
       console.log('sJson export:', JSON.stringify(sJson, null, 2));
     }
   };

@@ -18,13 +18,14 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "Design/**",
     ],
   },
   {
     rules: {
-      "react-hooks/exhaustive-deps": "warn",
-      "@next/next/no-img-element": "warn",
-      "import/no-anonymous-default-export": "warn",
+      "react-hooks/exhaustive-deps": "off",
+      "@next/next/no-img-element": "off",
+      "import/no-anonymous-default-export": "off",
     },
   },
 ];

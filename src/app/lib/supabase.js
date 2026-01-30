@@ -9,7 +9,7 @@ export function getSupabaseClient() {
   const supabaseAnonKey = process.env.SUPABASE_ANON;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables: SUPABASE_URL and SUPABASE_ANON are required');
+    return null;
   }
 
   cachedClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -32,7 +32,6 @@ export function getSupabaseAdmin() {
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON;
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
-    console.warn('Service role key not found, falling back to anon key. RLS policies may block operations.');
     return getSupabaseClient();
   }
 

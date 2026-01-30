@@ -842,7 +842,6 @@ function PS5Preview() {
   useEffect(() => {
     // Default to Front view on mount
     setFrontView();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // floating handled by PreviewModel inside Canvas

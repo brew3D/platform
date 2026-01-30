@@ -11,10 +11,8 @@ import {
 let supabaseInstance = null;
 const getSupabase = () => {
   if (!supabaseInstance) {
-    try {
-      supabaseInstance = getSupabaseAdmin();
-    } catch (error) {
-      console.error('Failed to initialize Supabase admin client:', error);
+    supabaseInstance = getSupabaseAdmin();
+    if (!supabaseInstance) {
       throw new Error('Supabase is not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON) environment variables.');
     }
   }

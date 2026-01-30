@@ -4,11 +4,14 @@ import { getCurrentTimestamp } from '../../../lib/dynamodb-schema';
 import { requireAuth } from '../../../lib/auth';
 import { generateJSON } from '../../../lib/gemini';
 
-const supabase = getSupabaseClient();
-
 // POST /api/ai/moderation - Moderate content
 export async function POST(request) {
   try {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    }
+
     const auth = requireAuth(request);
     if (auth.error) return NextResponse.json({ message: auth.error.message }, { status: auth.error.status });
 
@@ -23,7 +26,7 @@ export async function POST(request) {
     }
 
     // Check if content was recently moderated
-    const recentModeration = await checkRecentModeration(contentId || content);
+    const recentModeration = await checkRecentModeration(supabase, contentId || content);
     if (recentModeration) {
       return NextResponse.json({ 
         success: true, 
@@ -87,6 +90,11 @@ export async function POST(request) {
 // GET /api/ai/moderation - Get moderation history
 export async function GET(request) {
   try {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    }
+
     const auth = requireAuth(request);
     if (auth.error) return NextResponse.json({ message: auth.error.message }, { status: auth.error.status });
 
@@ -247,7 +255,7 @@ async function fallbackModeration(content) {
 }
 
 // Check if content was recently moderated
-async function checkRecentModeration(contentId) {
+async function checkRecentModeration(supabase, contentId) {
   try {
     const { data, error } = await supabase
       .from('ai_moderation')
