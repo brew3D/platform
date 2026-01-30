@@ -30,7 +30,7 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #8a2be2, #9d3be8);
+  background: linear-gradient(135deg, var(--brew-accent), #9d3be8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -121,7 +121,7 @@
 .input:focus,
 .textarea:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
 }
 
@@ -159,7 +159,7 @@
 }
 
 .editBtn {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
 }
 

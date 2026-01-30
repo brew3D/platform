@@ -65,6 +65,7 @@ export default function SignupPage() {
       <div className={styles.authCard}>
         <div className={styles.authHeader}>
           <Link href="/" className={styles.logo}>
+            <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
             <span className={styles.logoText}>Brew3D</span>
           </Link>
           <h1 className={styles.title}>Create Account</h1>

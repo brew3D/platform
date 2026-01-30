@@ -1,0 +1,53 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: #f5f0e8;
+  border: 1px solid #d4c4a8;
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+}
+
+.copy {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #2c2416;
+}
+
+.copy strong {
+  color: #6b4423;
+}
+
+.action {
+  flex-shrink: 0;
+  background: #d4c4a8;
+  color: #2c2416;
+  border: 1px solid #b5a588;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.action:hover {
+  background: #c4b498;
+  transform: translateY(-1px);
+}
+
+.dismiss {
+  background: none;
+  border: none;
+  color: #6b5d4f;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.dismiss:hover {
+  color: #2c2416;
+}

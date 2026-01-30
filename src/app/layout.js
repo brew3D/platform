@@ -29,10 +29,14 @@ export const metadata = {
   creator: "Brew3D",
   publisher: "Brew3D Studios",
   robots: "index, follow",
+  icons: {
+    icon: "/brew3d-logo.png",
+    apple: "/brew3d-logo.png",
+  },
   openGraph: {
     title: "Brew3D — Build 3D Worlds with AI",
     description: "Collaborate, render, and create 3D worlds together — right from your browser.",
-    url: "https://nuvra.com",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://brew3d.com",
     siteName: "Brew3D",
     images: [
       {

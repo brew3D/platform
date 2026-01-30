@@ -1,32 +1,62 @@
 @import "tailwindcss";
 
+/* ============================================
+   Brew 3D – Brown accent theme (CSS variables)
+   Change these to rebrand colors site-wide.
+   ============================================ */
 :root {
-  /* Global (default dark) */
+  /* Brown accent palette */
+  --brew-accent: #6b4423;
+  --brew-accent-light: #8b5a2b;
+  --brew-accent-lighter: #a67c52;
+  --brew-accent-dark: #4a2f1a;
+  --brew-accent-muted: rgba(107, 68, 35, 0.15);
+  --brew-accent-rgb: 107, 68, 35;
+
+  /* Brown neutrals (backgrounds, borders, text) */
+  --brew-brown-50: #faf8f5;
+  --brew-brown-100: #f5f0e8;
+  --brew-brown-200: #e8dfd0;
+  --brew-brown-300: #e0d6c4;
+  --brew-brown-400: #d4c4a8;
+  --brew-brown-500: #c4b498;
+  --brew-brown-600: #b5a588;
+  --brew-brown-700: #8b7355;
+  --brew-brown-800: #6b4423;
+  --brew-brown-900: #2c2416;
+  --brew-brown-950: #1a120a;
+
+  /* Aliases for components that use --accent / --gradient-primary */
+  --accent: var(--brew-accent);
+  --accent-hover: var(--brew-accent-light);
+  --gradient-primary: linear-gradient(135deg, var(--brew-accent) 0%, var(--brew-accent-light) 100%);
+  --primary-gradient: linear-gradient(135deg, var(--brew-accent) 0%, var(--brew-accent-light) 100%);
+
+  /* Global (default) */
   --background: #0a0a0a;
   --foreground: #ffffff;
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --text-primary: #ffffff;
   --text-secondary: #a0a0a0;
   --border-color: #1a1a1a;
   --card-bg: #1a1a1a;
-  --hover-bg: rgba(102, 126, 234, 0.1);
+  --hover-bg: var(--brew-accent-muted);
 
-  /* Editor theme tokens (default dark) */
-  --editor-bg: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+  /* Editor theme tokens (default) */
+  --editor-bg: linear-gradient(135deg, #0a0a0a 0%, #1a1510 50%, #1a120a 100%);
   --editor-text: #ffffff;
   --editor-text-primary: #ffffff;
   --editor-text-secondary: rgba(255, 255, 255, 0.7);
   --editor-text-muted: rgba(255, 255, 255, 0.5);
-  --editor-bg-primary: rgba(20,20,32,0.6);
-  --editor-bg-secondary: rgba(255,255,255,0.08);
-  --editor-border-primary: rgba(102,126,234,0.25);
-  --editor-border-secondary: rgba(102,126,234,0.35);
-  --toolbar-bg: rgba(26, 26, 46, 0.8);
-  --panel-bg: rgba(26, 26, 46, 0.8);
-  --panel-border: rgba(102, 126, 234, 0.2);
-  --subtle-panel: rgba(102, 126, 234, 0.1);
+  --editor-bg-primary: rgba(20, 18, 14, 0.6);
+  --editor-bg-secondary: rgba(255, 255, 255, 0.08);
+  --editor-border-primary: rgba(107, 68, 35, 0.35);
+  --editor-border-secondary: rgba(107, 68, 35, 0.45);
+  --toolbar-bg: rgba(26, 22, 16, 0.8);
+  --panel-bg: rgba(26, 22, 16, 0.8);
+  --panel-border: rgba(107, 68, 35, 0.25);
+  --subtle-panel: rgba(107, 68, 35, 0.12);
   --item-bg: rgba(255, 255, 255, 0.02);
-  --item-bg-hover: rgba(102, 126, 234, 0.1);
+  --item-bg-hover: rgba(107, 68, 35, 0.12);
   --input-bg: rgba(255, 255, 255, 0.1);
   --input-text: #ffffff;
 }
@@ -34,30 +64,30 @@
 /* Light theme overrides */
 body[data-theme="light"] {
   --background: #ffffff;
-  --foreground: #0b0b0b;
-  --text-primary: #0b0b0b;
+  --foreground: #1a1510;
+  --text-primary: #1a1510;
   --text-secondary: #444444;
-  --border-color: #e6e6e6;
+  --border-color: #e8e4e0;
   --card-bg: #ffffff;
-  --hover-bg: rgba(102, 126, 234, 0.08);
+  --hover-bg: rgba(107, 68, 35, 0.08);
 
   --editor-bg: #ffffff;
-  --editor-text: #0b0b0b;
-  --editor-text-primary: #1a1a1a;
-  --editor-text-secondary: rgba(26, 26, 26, 0.7);
-  --editor-text-muted: rgba(26, 26, 26, 0.5);
-  --editor-bg-primary: rgba(240,240,240,0.8);
-  --editor-bg-secondary: rgba(0,0,0,0.05);
-  --editor-border-primary: rgba(102,126,234,0.3);
-  --editor-border-secondary: rgba(102,126,234,0.4);
-  --toolbar-bg: rgba(255, 255, 255, 0.85);
-  --panel-bg: rgba(255, 255, 255, 0.85);
+  --editor-text: #1a1510;
+  --editor-text-primary: #1a1510;
+  --editor-text-secondary: rgba(26, 21, 16, 0.7);
+  --editor-text-muted: rgba(26, 21, 16, 0.5);
+  --editor-bg-primary: rgba(245, 240, 232, 0.9);
+  --editor-bg-secondary: rgba(0, 0, 0, 0.05);
+  --editor-border-primary: rgba(107, 68, 35, 0.25);
+  --editor-border-secondary: rgba(107, 68, 35, 0.35);
+  --toolbar-bg: rgba(255, 255, 255, 0.9);
+  --panel-bg: rgba(255, 255, 255, 0.9);
   --panel-border: rgba(0, 0, 0, 0.08);
-  --subtle-panel: rgba(102, 126, 234, 0.08);
+  --subtle-panel: rgba(107, 68, 35, 0.06);
   --item-bg: rgba(0, 0, 0, 0.02);
-  --item-bg-hover: rgba(102, 126, 234, 0.12);
+  --item-bg-hover: rgba(107, 68, 35, 0.1);
   --input-bg: #ffffff;
-  --input-text: #0b0b0b;
+  --input-text: #1a1510;
 }
 
 @theme inline {
@@ -84,27 +114,27 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: var(--brew-brown-950, #0a0a0a);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333333;
+  background: var(--brew-brown-700, #333333);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555555;
+  background: var(--brew-brown-600, #555555);
 }
 
 /* Selection */
 ::selection {
-  background: rgba(102, 126, 234, 0.3);
+  background: rgba(107, 68, 35, 0.35);
   color: #ffffff;
 }
 
 /* Focus styles */
 *:focus {
-  outline: 2px solid #667eea;
+  outline: 2px solid var(--brew-accent);
   outline-offset: 2px;
 }
 

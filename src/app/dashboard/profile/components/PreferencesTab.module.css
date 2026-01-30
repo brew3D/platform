@@ -83,9 +83,9 @@
 }
 
 .themeToggle.active {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .toggle {
@@ -126,7 +126,7 @@
 }
 
 input:checked + .slider {
-  background-color: #8a2be2;
+  background-color: var(--brew-accent);
 }
 
 input:checked + .slider:before {
@@ -147,7 +147,7 @@ input:checked + .slider:before {
 
 .select:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
 }
 
@@ -160,7 +160,7 @@ input:checked + .slider:before {
 }
 
 .saveBtn {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
   border: none;
   padding: 0.75rem 2rem;

@@ -123,7 +123,7 @@ function TrackRow({ track, pxPerSecond, onClipDrag, onSelectItem }) {
 
   const getClipColor = (type) => {
     switch (type) {
-      case 'movement': return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+      case 'movement': return 'linear-gradient(135deg, #6b4423 0%, #8b5a2b 100%)';
       case 'camera': return 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
       case 'audio': return 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
       case 'video': return 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';

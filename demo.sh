@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# NUVRA - Demo Script
+# Brew 3D - Demo Script
 # Shows all the features and URLs for easy demo
 
-echo "🎨 NUVRA - Demo Guide"
+echo "🎨 Brew 3D - Demo Guide"
 echo "========================"
 echo ""
 

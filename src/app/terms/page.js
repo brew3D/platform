@@ -22,6 +22,7 @@ export default function TermsPage() {
           <div className={styles.headerContent}>
             <div className={styles.logo}>
               <Link href="/" className={styles.logoLink}>
+                <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
                 <span className={styles.logoText}>Brew3D</span>
               </Link>
             </div>

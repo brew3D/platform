@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import styles from "./DashboardSidebar.module.css";
 
-const sidebarItems = [
+// Primary nav: My projects and Templates — directly below logo
+const primarySidebarItems = [
   {
     id: 'projects',
     label: 'Projects',
@@ -28,6 +29,10 @@ const sidebarItems = [
     ),
     href: '/dashboard/templates'
   },
+];
+
+// Rest of nav — below primary
+const sidebarItems = [
   {
     id: 'team',
     label: 'Team',
@@ -85,15 +90,15 @@ const sidebarItems = [
     href: '/dashboard/community'
   },
   {
-    id: 'chat',
-    label: 'Chat',
+    id: 'tasks',
+    label: 'My tasks',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
-        <path d="M8 9h8M8 13h6" stroke="currentColor" strokeWidth="2"/>
+        <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="2"/>
+        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" strokeWidth="2"/>
       </svg>
     ),
-    href: '/dashboard/chat'
+    href: '/dashboard/tasks'
   }
 ];
 
@@ -158,16 +163,10 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
 
   return (
     <div className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
-      {/* Logo */}
+      {/* Logo (Design asset - do not replace font) */}
       <div className={styles.logo}>
         <Link href="/dashboard" className={styles.logoLink}>
-          <div className={styles.logoIcon}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2"/>
-              <path d="M2 17l10 5 10-5" stroke="currentColor" strokeWidth="2"/>
-              <path d="M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2"/>
-            </svg>
-          </div>
+          <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
           {!collapsed && (
             <span className={styles.logoText}>Brew3D</span>
           )}
@@ -200,8 +199,28 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
         </div>
       )}
 
-      {/* Navigation Items */}
+      {/* Navigation Items — Projects and Templates below logo, then rest */}
       <nav className={styles.nav}>
+        <div className={styles.navSection}>
+          {primarySidebarItems.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`${styles.navItem} ${currentActiveItem === item.id ? styles.active : ''}`}
+              onClick={() => handleItemClick(item.id)}
+            >
+              <div className={styles.navIcon}>
+                {item.icon}
+              </div>
+              {!collapsed && (
+                <span className={styles.navLabel}>{item.label}</span>
+              )}
+              {currentActiveItem === item.id && (
+                <div className={styles.activeIndicator}></div>
+              )}
+            </Link>
+          ))}
+        </div>
         <div className={styles.navSection}>
           {sidebarItems.map((item) => (
             <Link

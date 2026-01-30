@@ -30,7 +30,7 @@ const MAP_TYPES = [
     name: '2D Map',
     description: 'Classic 2D tile-based map',
     icon: '🗺️',
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    gradient: 'linear-gradient(135deg, #6b4423 0%, #8b5a2b 100%)'
   },
   {
     id: '2d-boardgame',

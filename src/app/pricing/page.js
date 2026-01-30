@@ -30,6 +30,7 @@ export default function PricingPage() {
       <nav className={`${styles.navbar} ${scrolled ? styles.navbarScrolled : ''}`} ref={navbarRef}>
         <div className={styles.navContainer}>
           <div className={styles.logo} ref={logoRef}>
+            <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
             <span className={styles.logoText}>Brew3D</span>
             <div className={styles.logoAccent}></div>
           </div>
@@ -170,6 +171,7 @@ export default function PricingPage() {
         <div className={styles.footerGrid}>
           <div>
             <div className={styles.logo} style={{ marginBottom: '0.5rem' }}>
+              <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
               <span className={styles.logoText}>Brew3D</span>
               <div className={styles.logoAccent}></div>
             </div>

@@ -32,7 +32,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -53,7 +53,7 @@
 }
 
 .startButton {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;

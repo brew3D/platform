@@ -23,6 +23,7 @@ export default function SimpleLoader({ isLoading = true, delay = 0 }) {
     <div className={styles.loaderOverlay}>
       <div className={styles.loaderContainer}>
         <div className={styles.logo}>
+          <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
           <span className={styles.logoText}>Brew3D</span>
         </div>
         <div className={styles.spinner}></div>

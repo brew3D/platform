@@ -14,7 +14,7 @@ export async function POST(request) {
     const { authenticator } = await import('otplib');
     const secret = authenticator.generateSecret();
     const label = encodeURIComponent(user.email);
-    const issuer = encodeURIComponent('NUVRA');
+    const issuer = encodeURIComponent('Brew 3D');
     const otpauth = `otpauth://totp/${issuer}:${label}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
 
     await updateUser(user.userId, { security: { ...user.security, totpSecret: secret } });

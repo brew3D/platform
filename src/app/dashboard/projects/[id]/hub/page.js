@@ -1,26 +1,33 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import ProjectSidebar from "@/app/components/ProjectSidebar";
 import MugPanel from "@/app/components/MugPanel";
 import styles from "../project.module.css";
+import hubStyles from "./hub.module.css";
+
+const ONBOARDING_ROADMAP = [
+  { id: "storyline", label: "Add your storyline (Script)", href: "script", copy: "Your script is the storyline—define scenes and flow." },
+  { id: "flow", label: "Design your Flow", href: "flow", copy: "Connect nodes and transitions—your game’s brain." },
+  { id: "assets", label: "Import free assets", href: "assets", copy: "Add models, textures, and audio from the Asset Library." },
+  { id: "scenes", label: "Set up scenes", href: "scenes", copy: "Create animated scenes and level structure." },
+  { id: "repo", label: "Link your repo (optional)", copy: "Connect your engine repo for builds and CI." },
+  { id: "build", label: "Run your first build", copy: "Create a build to test your project." },
+];
 
 export default function ProjectHubPage() {
   const params = useParams();
   const projectId = params?.id;
   const router = useRouter();
+  const fileInputRef = useRef(null);
 
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showMugPanel, setShowMugPanel] = useState(false);
-  const [savingRepo, setSavingRepo] = useState(false);
-  const [checkingRepo, setCheckingRepo] = useState(false);
-  const [repoUrlInput, setRepoUrlInput] = useState("");
-  const [branchInput, setBranchInput] = useState("main");
-  const [repoStatus, setRepoStatus] = useState(null);
   const [builds, setBuilds] = useState([]);
   const [runningBuild, setRunningBuild] = useState(false);
+  const [buildError, setBuildError] = useState(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -30,8 +37,6 @@ export default function ProjectHubPage() {
         if (response.ok) {
           const data = await response.json();
           setProject(data);
-          setRepoUrlInput(data.repoUrl || "");
-          setBranchInput(data.defaultBranch || "main");
         }
       } catch (error) {
         console.error("Error fetching project for hub:", error);
@@ -64,66 +69,43 @@ export default function ProjectHubPage() {
   const engineVersion = project?.engineVersion || "Not set";
   const repoUrl = project?.repoUrl || "Not linked";
   const defaultBranch = project?.defaultBranch || "main";
+  const coverImageUrl = project?.settings?.coverImageUrl || null;
+  const latestBuild = builds.length ? builds[0] : null;
 
-  const handleSaveRepo = async (e) => {
-    e.preventDefault();
-    if (!projectId) return;
-    setSavingRepo(true);
-    try {
-      const res = await fetch(`/api/projects/${projectId}/repo`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          repoUrl: repoUrlInput,
-          defaultBranch: branchInput,
-          engineType,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setProject(data.project);
-      } else {
-        console.error("Failed to save repo config");
-      }
-    } catch (error) {
-      console.error("Error saving repo config:", error);
-    } finally {
-      setSavingRepo(false);
-    }
-  };
-
-  const handleCheckRepo = async () => {
-    if (!projectId) return;
-    setCheckingRepo(true);
-    try {
-      const res = await fetch(`/api/projects/${projectId}/repo/check`, {
-        method: "POST",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setRepoStatus(data);
-      } else {
-        setRepoStatus({
-          success: false,
-          status: "failed",
-          message: "Connectivity check failed",
+  const handleCoverChange = (e) => {
+    const file = e.target?.files?.[0];
+    if (!file || !projectId) return;
+    setUploadingCover(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const dataUrl = reader.result;
+        const currentSettings = project?.settings || {};
+        const res = await fetch(`/api/projects/${projectId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            settings: { ...currentSettings, coverImageUrl: dataUrl },
+          }),
         });
+        if (res.ok) {
+          const data = await res.json();
+          setProject((prev) => (prev ? { ...prev, settings: data.project?.settings ?? { ...(prev.settings || {}), coverImageUrl: dataUrl } } : null));
+        }
+      } catch (error) {
+        console.error("Error saving cover:", error);
+      } finally {
+        setUploadingCover(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
       }
-    } catch (error) {
-      console.error("Error checking repo:", error);
-      setRepoStatus({
-        success: false,
-        status: "failed",
-        message: "Error during connectivity check",
-      });
-    } finally {
-      setCheckingRepo(false);
-    }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleRunBuild = async () => {
     if (!projectId) return;
     setRunningBuild(true);
+    setBuildError(null);
     try {
       const res = await fetch(`/api/projects/${projectId}/builds`, {
         method: "POST",
@@ -135,121 +117,174 @@ export default function ProjectHubPage() {
         }),
       });
       if (res.ok) {
-        const data = await res.json();
-        // Reload builds
         const buildsRes = await fetch(`/api/projects/${projectId}/builds`);
         if (buildsRes.ok) {
           const buildsData = await buildsRes.json();
           setBuilds(buildsData.builds || []);
         }
       } else {
-        console.error("Failed to run build");
+        const text = await res.text().catch(() => "");
+        let message = `Build failed: ${res.status} ${res.statusText}`;
+        try {
+          const body = text ? JSON.parse(text) : {};
+          if (body?.message) message = body.message;
+          else if (body?.error) message = `${message} — ${body.error}`;
+        } catch (_) {
+          if (text) message = `${message} — ${text.slice(0, 200)}`;
+        }
+        setBuildError(message);
       }
     } catch (error) {
-      console.error("Error running build:", error);
+      setBuildError(`Build request failed: ${error?.message || error}`);
     } finally {
       setRunningBuild(false);
     }
   };
 
+  const handlePlay = () => {
+    if (projectId) router.push(`/dashboard/projects/${projectId}/preview`);
+  };
+
   return (
     <div className={styles.projectPage}>
-      <div style={{ display: "flex", gap: "1.5rem" }}>
-        <ProjectSidebar projectId={projectId} />
-        <main style={{ flex: 1 }}>
-          <button
-            className={styles.backButton}
-            onClick={() => router.push("/dashboard")}
-          >
-            ← Back to Dashboard
-          </button>
+      <button
+        className={styles.backButton}
+        onClick={() => router.push("/dashboard")}
+      >
+        ← Back to Dashboard
+      </button>
 
-          {loading && (
-            <div className={styles.loading}>Loading project hub...</div>
-          )}
+      {loading && (
+        <div className={styles.loading}>Loading project hub...</div>
+      )}
 
-          {!loading && project && (
-            <>
-              <h1 className={styles.title}>{project.name}</h1>
-              <p className={styles.subtitle}>
-                Cloud control tower for your {engineType.toUpperCase()} project.
-              </p>
+      {!loading && project && (
+        <>
+          <h1 className={styles.title}>{project.name}</h1>
+          <p className={styles.subtitle}>
+            Cloud control tower for your {engineType.toUpperCase()} project.
+          </p>
 
-              <div style={{ marginBottom: "1rem" }}>
-                <button
-                  className={styles.backButton}
-                  onClick={() => setShowMugPanel(true)}
-                  style={{ marginBottom: 0 }}
-                >
-                  ☕ Ask Mug
-                </button>
-              </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <button
+              className={styles.backButton}
+              onClick={() => setShowMugPanel(true)}
+              style={{ marginBottom: 0 }}
+            >
+              ☕ Ask Mug
+            </button>
+          </div>
 
-              <div className={styles.headerContent}>
-                <div className={styles.projectInfo}>
-                  <div className={styles.infoItem}>
-                    <span className={styles.infoLabel}>Engine</span>
-                    <span className={styles.infoValue}>
-                      {engineType.toUpperCase()} • {engineVersion}
-                    </span>
-                  </div>
-                  <div className={styles.infoItem}>
-                    <span className={styles.infoLabel}>Repo</span>
-                    <span className={styles.infoValue}>
-                      {repoUrl === "Not linked" ? repoUrl : repoUrl}
-                    </span>
-                  </div>
-                  <div className={styles.infoItem}>
-                    <span className={styles.infoLabel}>Default Branch</span>
-                    <span className={styles.infoValue}>{defaultBranch}</span>
-                  </div>
-                  <div className={styles.infoItem}>
-                    <span className={styles.infoLabel}>Status</span>
-                    <span className={`${styles.infoValue} ${styles.statusActive}`}>
-                      {project.status || "active"}
-                    </span>
-                  </div>
+          <div className={hubStyles.hubRow}>
+            {/* Left: project info */}
+            <div className={hubStyles.hubLeft}>
+              <div className={styles.projectInfo}>
+                <div className={styles.infoItem}>
+                  <span className={styles.infoLabel}>Engine</span>
+                  <span className={styles.infoValue}>
+                    {engineType.toUpperCase()} • {engineVersion}
+                  </span>
+                </div>
+                <div className={styles.infoItem}>
+                  <span className={styles.infoLabel}>Repo</span>
+                  <span className={styles.infoValue}>
+                    {repoUrl === "Not linked" ? repoUrl : repoUrl}
+                  </span>
+                </div>
+                <div className={styles.infoItem}>
+                  <span className={styles.infoLabel}>Default Branch</span>
+                  <span className={styles.infoValue}>{defaultBranch}</span>
+                </div>
+                <div className={styles.infoItem}>
+                  <span className={styles.infoLabel}>Status</span>
+                  <span className={styles.statusActive}>active</span>
                 </div>
               </div>
+            </div>
 
-              <div className={styles.analytics} style={{ marginTop: "2rem" }}>
-                <h2>Project Overview</h2>
-                <div className={styles.analyticsGrid}>
-                  <div className={styles.metric}>
-                    <div className={styles.metricLabel}>Builds</div>
-                    <div className={styles.metricValue}>{builds.length}</div>
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
-                      {builds.filter((b) => b.status === "succeeded").length} succeeded,{" "}
-                      {builds.filter((b) => b.status === "failed").length} failed
+            {/* Right: cover + Play, build actions, roadmap */}
+            <div className={hubStyles.hubRight}>
+              <div className={hubStyles.coverSection}>
+                {coverImageUrl ? (
+                  <>
+                    <img src={coverImageUrl} alt="Project cover" className={hubStyles.coverImage} />
+                    <div className={hubStyles.playOverlay}>
+                      <button type="button" className={hubStyles.playBtn} onClick={handlePlay} aria-label="Play">
+                        ▶
+                      </button>
                     </div>
+                  </>
+                ) : (
+                  <div className={hubStyles.coverPlaceholder}>
+                    <span>No cover image yet</span>
+                    <input
+                      ref={fileInputRef}
+                      id="cover-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCoverChange}
+                      disabled={uploadingCover}
+                      style={{ display: "none" }}
+                    />
+                    <label className={hubStyles.coverUploadBtn} htmlFor="cover-upload">
+                      {uploadingCover ? "Uploading…" : "Upload cover"}
+                    </label>
                   </div>
-                  <div className={styles.metric}>
-                    <div className={styles.metricLabel}>Flow</div>
-                    <div className={styles.metricValue}>Managed in Flow tab</div>
-                  </div>
-                  <div className={styles.metric}>
-                    <div className={styles.metricLabel}>Assets</div>
-                    <div className={styles.metricValue}>Managed in Asset Library</div>
-                  </div>
-                </div>
+                )}
               </div>
 
-              <div className={styles.analytics} style={{ marginTop: "1.5rem" }}>
-                <h2>Builds</h2>
+              {coverImageUrl && (
                 <div style={{ marginBottom: "1rem" }}>
                   <button
-                    className={styles.backButton}
-                    onClick={handleRunBuild}
-                    disabled={runningBuild}
-                    style={{ marginBottom: 0 }}
+                    type="button"
+                    className={hubStyles.playBtn}
+                    onClick={handlePlay}
+                    style={{ width: "auto", padding: "0.6rem 1.5rem", fontSize: "1.1rem" }}
                   >
-                    {runningBuild ? "Running Build..." : "Run Build"}
+                    ▶ Play
                   </button>
                 </div>
+              )}
+
+              <div className={hubStyles.buildActions}>
+                <button
+                  type="button"
+                  className={`${hubStyles.buildActionBtn} ${hubStyles.primary}`}
+                  onClick={handleRunBuild}
+                  disabled={runningBuild}
+                >
+                  {runningBuild ? "Creating…" : "Create new build"}
+                </button>
+                {latestBuild && (
+                  <button
+                    type="button"
+                    className={hubStyles.buildActionBtn}
+                    onClick={() => router.push(`/dashboard/projects/${projectId}/preview`)}
+                  >
+                    Test last build
+                  </button>
+                )}
+                <a
+                  href="#builds"
+                  className={hubStyles.buildActionBtn}
+                  onClick={(e) => { e.preventDefault(); document.getElementById("builds")?.scrollIntoView({ behavior: "smooth" }); }}
+                >
+                  Previous builds →
+                </a>
+              </div>
+
+              {buildError && (
+                <p role="alert" style={{ marginBottom: "1rem", color: "var(--error-color, #e74c3c)", fontSize: "0.9rem" }}>
+                  {buildError}
+                </p>
+              )}
+
+              <div id="builds" className={styles.analytics} style={{ marginTop: "1rem" }}>
+                <h2>Builds</h2>
                 {builds.length === 0 ? (
-                  <p style={{ color: "var(--text-secondary)" }}>No builds yet. Click "Run Build" to start.</p>
+                  <p style={{ color: "var(--text-secondary)", margin: 0 }}>No builds yet. Click "Create new build" above.</p>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
                     {builds.slice(0, 5).map((build) => {
                       const buildId = build.buildId || build.build_id;
                       const status = build.status || "queued";
@@ -258,113 +293,57 @@ export default function ProjectHubPage() {
                         <div
                           key={buildId}
                           style={{
-                            padding: "1rem",
+                            padding: "0.75rem 1rem",
                             background: "var(--card-background)",
                             border: "1px solid var(--card-border)",
                             borderRadius: 8,
                           }}
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div>
-                              <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>
-                                Build {buildId.slice(0, 8)}
-                              </div>
-                              <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
-                                {status} • {new Date(createdAt).toLocaleString()}
-                              </div>
-                            </div>
-                            <div
-                              style={{
-                                padding: "0.25rem 0.75rem",
-                                borderRadius: 12,
-                                fontSize: "0.75rem",
-                                fontWeight: 600,
-                                background:
-                                  status === "succeeded"
-                                    ? "rgba(16, 185, 129, 0.1)"
-                                    : status === "failed"
-                                    ? "rgba(239, 68, 68, 0.1)"
-                                    : "rgba(156, 163, 175, 0.1)",
-                                color:
-                                  status === "succeeded"
-                                    ? "#10b981"
-                                    : status === "failed"
-                                    ? "#ef4444"
-                                    : "var(--text-secondary)",
-                              }}
-                            >
-                              {status.toUpperCase()}
-                            </div>
+                            <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{buildId}</span>
+                            <span style={{ color: status === "succeeded" ? "#10b981" : "var(--text-secondary)", fontSize: "0.85rem" }}>
+                              {status}
+                            </span>
                           </div>
+                          {createdAt && (
+                            <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                              {new Date(createdAt).toLocaleString()}
+                            </p>
+                          )}
                         </div>
                       );
                     })}
                   </div>
                 )}
               </div>
+            </div>
+          </div>
 
-              <div className={styles.analytics} style={{ marginTop: "1.5rem" }}>
-                <h2>Engine & Repo Configuration</h2>
-                <form onSubmit={handleSaveRepo} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                  <label className={styles.infoLabel}>
-                    Repo URL
-                    <input
-                      type="text"
-                      value={repoUrlInput}
-                      onChange={(e) => setRepoUrlInput(e.target.value)}
-                      placeholder="https://github.com/your-org/your-game-project.git"
-                      style={{ width: "100%", marginTop: "0.25rem", padding: "0.5rem 0.75rem", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-background)", color: "var(--text-primary)" }}
-                    />
-                  </label>
-                  <label className={styles.infoLabel}>
-                    Default Branch
-                    <input
-                      type="text"
-                      value={branchInput}
-                      onChange={(e) => setBranchInput(e.target.value)}
-                      placeholder="main"
-                      style={{ width: "100%", marginTop: "0.25rem", padding: "0.5rem 0.75rem", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-background)", color: "var(--text-primary)" }}
-                    />
-                  </label>
-                  <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
-                    <button
-                      type="submit"
-                      className={styles.backButton}
-                      style={{ marginBottom: 0 }}
-                      disabled={savingRepo}
-                    >
-                      {savingRepo ? "Saving..." : "Save Repo Config"}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.backButton}
-                      style={{ marginBottom: 0 }}
-                      onClick={handleCheckRepo}
-                      disabled={checkingRepo}
-                    >
-                      {checkingRepo ? "Checking..." : "Check Connection"}
-                    </button>
-                  </div>
-                  {repoStatus && (
-                    <div style={{ marginTop: "0.5rem", fontSize: "0.9rem" }}>
-                      <span className={styles.infoLabel}>Connection status: </span>
-                      <span className={styles.infoValue}>
-                        {repoStatus.status} - {repoStatus.message}
-                      </span>
-                    </div>
-                  )}
-                </form>
-              </div>
-            </>
-          )}
-        </main>
-      </div>
+          {/* Onboarding roadmap – full width across both columns */}
+          <div className={hubStyles.roadmapSection} style={{ marginTop: "2rem", width: "100%" }}>
+            <h3 className={hubStyles.roadmapTitle}>Onboarding roadmap</h3>
+            <ul className={hubStyles.roadmapList}>
+              {ONBOARDING_ROADMAP.map((item, i) => (
+                <li key={item.id} className={hubStyles.roadmapItem}>
+                  <span className={hubStyles.roadmapItemNum}>{i + 1}</span>
+                  <span style={{ display: "flex", flexDirection: "column", gap: "0.2rem", flex: 1 }}>
+                    {item.href ? (
+                      <a href={`/dashboard/projects/${projectId}/${item.href}`}>{item.label}</a>
+                    ) : (
+                      <span>{item.label}</span>
+                    )}
+                    {item.copy && <span style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>{item.copy}</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
 
-      {/* Mug AI Panel */}
-      {showMugPanel && (
+      {showMugPanel && projectId && (
         <MugPanel projectId={projectId} onClose={() => setShowMugPanel(false)} />
       )}
     </div>
   );
 }
-

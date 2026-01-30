@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
-import ChatPopup from "../../components/ChatPopup";
 import { FaComments } from 'react-icons/fa';
 import styles from "./team.module.css";
 
@@ -41,7 +40,6 @@ export default function TeamPage() {
   const [loading, setLoading] = useState(true);
   const [forceUpdate, setForceUpdate] = useState(0);
   const [teamProjects, setTeamProjects] = useState([]);
-  const [chatPopup, setChatPopup] = useState({ isOpen: false, recipient: null });
   const statusIntervalRef = useRef(null);
 
   // Watch for user changes
@@ -351,27 +349,9 @@ export default function TeamPage() {
 
   const handleOpenChat = (member) => {
     // Prevent users from messaging themselves
-    if (member.userId === user?.userId) {
-      alert('You cannot message yourself!');
-      return;
-    }
-    
-    setChatPopup({
-      isOpen: true,
-      recipient: member
-    });
-  };
-
-  const handleCloseChat = () => {
-    setChatPopup({
-      isOpen: false,
-      recipient: null
-    });
-  };
-
-  const handleSendMessage = async (messageData) => {
-    // This will be handled by the ChatPopup component
-    console.log('Sending message:', messageData);
+    if (member.userId === user?.userId) return;
+    // Message / chat coming soon
+    alert('Direct messaging will be available in a future update.');
   };
 
   // Helper function to get button text
@@ -831,14 +811,6 @@ export default function TeamPage() {
           )}
       </div>
 
-      {/* Chat Popup */}
-      <ChatPopup
-        isOpen={chatPopup.isOpen}
-        onClose={handleCloseChat}
-        recipient={chatPopup.recipient}
-        currentUser={user}
-        onSendMessage={handleSendMessage}
-      />
     </div>
   );
 }

@@ -11,7 +11,7 @@ const templateTiers = [
   {
     id: 'tier1',
     name: 'Tier 1 - Most Popular',
-    color: '#8a2be2',
+    color: '#6b4423',
     description: 'Our most popular and battle-tested templates'
   },
   {

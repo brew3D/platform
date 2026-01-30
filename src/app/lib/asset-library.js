@@ -1,4 +1,4 @@
-// NUVRA Asset Library - Comprehensive 3D Asset Collection
+// Brew 3D Asset Library - Comprehensive 3D Asset Collection
 // Organized into 8 themed packs for easy browsing and management
 
 export const ASSET_PACKS = {
@@ -7,7 +7,7 @@ export const ASSET_PACKS = {
     name: 'Basic Shapes',
     description: 'Core building blocks for any 3D scene. Parameterized primitives with customizable dimensions.',
     icon: '🟦',
-    color: '#667eea',
+    color: '#8b5a2b',
     assets: [
       { 
         id: 'cube', 

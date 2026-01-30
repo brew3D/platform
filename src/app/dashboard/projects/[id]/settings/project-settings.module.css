@@ -29,7 +29,7 @@
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 20% 20%, rgba(138, 43, 226, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 20% 20%, rgba(107, 68, 35, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(102, 126, 234, 0.03) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
@@ -43,7 +43,7 @@
   margin-top: 0;
   margin-bottom: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(138, 43, 226, 0.1);
+  border: 1px solid rgba(107, 68, 35, 0.1);
   position: relative;
   z-index: 1;
   display: flex;
@@ -69,7 +69,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #8a2be2;
+  background: var(--brew-accent);
   border: none;
   color: white;
   padding: 0.75rem 1.5rem;
@@ -81,9 +81,9 @@
 }
 
 .exportButton:hover:not(:disabled) {
-  background: #7a1bd2;
+  background: var(--brew-accent-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+  box-shadow: 0 4px 12px rgba(107, 68, 35, 0.3);
 }
 
 .exportButton:disabled {
@@ -95,9 +95,9 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(138, 43, 226, 0.1);
-  border: 1px solid rgba(138, 43, 226, 0.2);
-  color: #8a2be2;
+  background: rgba(107, 68, 35, 0.1);
+  border: 1px solid rgba(107, 68, 35, 0.2);
+  color: var(--brew-accent);
   padding: 0.75rem 1rem;
   border-radius: 8px;
   font-weight: 500;
@@ -107,8 +107,8 @@
 }
 
 .backButton:hover {
-  background: rgba(138, 43, 226, 0.15);
-  border-color: rgba(138, 43, 226, 0.3);
+  background: rgba(107, 68, 35, 0.15);
+  border-color: rgba(107, 68, 35, 0.3);
   transform: translateY(-1px);
 }
 
@@ -128,8 +128,8 @@
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(138, 43, 226, 0.1);
-  border-top-color: rgba(138, 43, 226, 0.8);
+  border: 4px solid rgba(107, 68, 35, 0.1);
+  border-top-color: rgba(107, 68, 35, 0.8);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -156,7 +156,7 @@
   font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  background: linear-gradient(135deg, var(--brew-accent) 0%, var(--brew-accent-light) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -170,14 +170,14 @@
 }
 
 .editLink {
-  color: #8a2be2;
+  color: var(--brew-accent);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
 .editLink:hover {
-  color: #667eea;
+  color: var(--brew-accent-light);
   text-decoration: underline;
 }
 
@@ -201,7 +201,7 @@
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(138, 43, 226, 0.1);
+  border: 1px solid rgba(107, 68, 35, 0.1);
 }
 
 .sidebarContent {
@@ -216,7 +216,7 @@
   color: #1a1a1a;
   margin: 0 0 0.5rem 0;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid rgba(138, 43, 226, 0.1);
+  border-bottom: 2px solid rgba(107, 68, 35, 0.1);
 }
 
 .sidebarNav {
@@ -242,16 +242,16 @@
 }
 
 .sidebarItem:hover {
-  background: rgba(138, 43, 226, 0.08);
-  color: #8a2be2;
+  background: rgba(107, 68, 35, 0.08);
+  color: var(--brew-accent);
   transform: translateX(4px);
 }
 
 .sidebarItem.active {
-  background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(102, 126, 234, 0.1));
-  color: #8a2be2;
+  background: linear-gradient(135deg, rgba(107, 68, 35, 0.1), rgba(102, 126, 234, 0.1));
+  color: var(--brew-accent);
   font-weight: 600;
-  border-left: 3px solid #8a2be2;
+  border-left: 3px solid var(--brew-accent);
 }
 
 .sidebarIcon {
@@ -273,7 +273,7 @@
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(138, 43, 226, 0.1);
+  border: 1px solid rgba(107, 68, 35, 0.1);
   position: relative;
   overflow: hidden;
 }
@@ -285,7 +285,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  background: linear-gradient(135deg, var(--brew-accent) 0%, var(--brew-accent-light) 100%);
 }
 
 .sectionHeader {
@@ -342,9 +342,9 @@
 .textarea:focus,
 .select:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   background: white;
-  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+  box-shadow: 0 0 0 3px rgba(107, 68, 35, 0.1);
 }
 
 .input::placeholder,
@@ -388,9 +388,9 @@
 }
 
 .urlInput:focus-within {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   background: white;
-  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+  box-shadow: 0 0 0 3px rgba(107, 68, 35, 0.1);
 }
 
 .urlPrefix {
@@ -433,12 +433,12 @@
 
 .radioOption:hover {
   background: #f1f5f9;
-  border-color: rgba(138, 43, 226, 0.3);
+  border-color: rgba(107, 68, 35, 0.3);
 }
 
 .radioOption input[type="radio"] {
   margin: 0;
-  accent-color: #8a2be2;
+  accent-color: var(--brew-accent);
   transform: scale(1.2);
 }
 
@@ -471,9 +471,9 @@
 }
 
 .currencyInput:focus-within {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   background: white;
-  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+  box-shadow: 0 0 0 3px rgba(107, 68, 35, 0.1);
 }
 
 .currencySymbol {
@@ -504,7 +504,7 @@
   background: white;
   border-radius: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(138, 43, 226, 0.1);
+  border: 1px solid rgba(107, 68, 35, 0.1);
   margin-top: 2rem;
 }
 
@@ -529,7 +529,7 @@
 
 .publishButton {
   padding: 0.875rem 2rem;
-  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  background: linear-gradient(135deg, var(--brew-accent) 0%, var(--brew-accent-light) 100%);
   border: none;
   color: white;
   border-radius: 8px;
@@ -537,12 +537,12 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+  box-shadow: 0 4px 15px rgba(107, 68, 35, 0.3);
 }
 
 .publishButton:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(138, 43, 226, 0.4);
+  box-shadow: 0 8px 25px rgba(107, 68, 35, 0.4);
 }
 
 .draftButton:disabled,
@@ -944,12 +944,12 @@
 }
 
 .content::-webkit-scrollbar-track {
-  background: rgba(138, 43, 226, 0.05);
+  background: rgba(107, 68, 35, 0.05);
   border-radius: 4px;
 }
 
 .content::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   border-radius: 4px;
 }
 
@@ -975,13 +975,13 @@
 }
 
 .uploadZone:hover {
-  border-color: #8a2be2;
-  background: rgba(138, 43, 226, 0.05);
+  border-color: var(--brew-accent);
+  background: rgba(107, 68, 35, 0.05);
 }
 
 .uploadIcon {
   font-size: 3rem;
-  color: #8a2be2;
+  color: var(--brew-accent);
   margin-bottom: 1rem;
 }
 
@@ -1019,8 +1019,8 @@
 }
 
 .uploadButton:hover {
-  border-color: #8a2be2;
-  color: #8a2be2;
+  border-color: var(--brew-accent);
+  color: var(--brew-accent);
   transform: translateY(-1px);
 }
 
@@ -1052,16 +1052,16 @@
 }
 
 .tagsList:focus-within {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   background: white;
-  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+  box-shadow: 0 0 0 3px rgba(107, 68, 35, 0.1);
 }
 
 .tag {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   padding: 0.375rem 0.75rem;
   border-radius: 20px;
@@ -1123,12 +1123,12 @@
 
 .toggleOption:hover {
   background: #f1f5f9;
-  border-color: rgba(138, 43, 226, 0.3);
+  border-color: rgba(107, 68, 35, 0.3);
 }
 
 .toggleOption input[type="radio"] {
   margin: 0;
-  accent-color: #8a2be2;
+  accent-color: var(--brew-accent);
   transform: scale(1.2);
 }
 
@@ -1167,8 +1167,8 @@
 }
 
 .imageUploadArea:hover {
-  border-color: #8a2be2;
-  background: rgba(138, 43, 226, 0.05);
+  border-color: var(--brew-accent);
+  background: rgba(107, 68, 35, 0.05);
 }
 
 .imagePreview {
@@ -1309,9 +1309,9 @@
 }
 
 .addScreenshot:hover {
-  border-color: #8a2be2;
-  background: rgba(138, 43, 226, 0.05);
-  color: #8a2be2;
+  border-color: var(--brew-accent);
+  background: rgba(107, 68, 35, 0.05);
+  color: var(--brew-accent);
 }
 
 .addScreenshot .uploadIcon {

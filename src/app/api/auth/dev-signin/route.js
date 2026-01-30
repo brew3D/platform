@@ -72,7 +72,7 @@ export async function POST(request) {
         email: mockUser.email,
         name: mockUser.name
       },
-      process.env.JWT_SECRET || 'dev-secret-key',
+      process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
 

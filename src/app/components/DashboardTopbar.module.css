@@ -7,7 +7,7 @@
   padding: 0 2rem;
   background: rgba(26, 26, 46, 0.8);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+  border-bottom: 1px solid rgba(107, 68, 35, 0.2);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -22,7 +22,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(138, 43, 226, 0.02) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(107, 68, 35, 0.02) 50%, transparent 100%);
   pointer-events: none;
 }
 
@@ -67,9 +67,9 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+  box-shadow: 0 0 0 3px rgba(107, 68, 35, 0.1);
 }
 
 .rightSection {
@@ -95,10 +95,10 @@
 }
 
 .themeToggle:hover {
-  background: rgba(138, 43, 226, 0.2);
-  border-color: rgba(138, 43, 226, 0.4);
+  background: rgba(107, 68, 35, 0.2);
+  border-color: rgba(107, 68, 35, 0.4);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.2);
+  box-shadow: 0 4px 12px rgba(107, 68, 35, 0.2);
 }
 
 .themeToggle:active {
@@ -169,7 +169,7 @@
   margin-top: 0.5rem;
   background: rgba(26, 26, 46, 0.95);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(138, 43, 226, 0.3);
+  border: 1px solid rgba(107, 68, 35, 0.3);
   border-radius: 16px;
   padding: 1rem;
   min-width: 320px;
@@ -195,7 +195,7 @@
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+  border-bottom: 1px solid rgba(107, 68, 35, 0.2);
 }
 
 .notificationHeader h3 {
@@ -208,7 +208,7 @@
 .markAllRead {
   background: none;
   border: none;
-  color: #8a2be2;
+  color: var(--brew-accent);
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -216,7 +216,7 @@
 }
 
 .markAllRead:hover {
-  color: #9d3be8;
+  color: var(--brew-accent-light);
 }
 
 .notificationList {
@@ -238,7 +238,7 @@
 }
 
 .notificationItem.unread {
-  background: rgba(138, 43, 226, 0.05);
+  background: rgba(107, 68, 35, 0.05);
   margin: 0 -0.75rem;
   padding: 0.75rem;
   border-radius: 8px;
@@ -263,11 +263,11 @@
 .unreadDot {
   width: 8px;
   height: 8px;
-  background: #8a2be2;
+  background: var(--brew-accent);
   border-radius: 50%;
   flex-shrink: 0;
   margin-top: 0.25rem;
-  box-shadow: 0 0 8px rgba(138, 43, 226, 0.5);
+  box-shadow: 0 0 8px rgba(107, 68, 35, 0.5);
 }
 
 /* Profile Dropdown */
@@ -299,14 +299,14 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  background: linear-gradient(135deg, var(--brew-accent) 0%, var(--brew-accent-light) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 0.9rem;
   color: white;
-  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+  box-shadow: 0 4px 15px rgba(107, 68, 35, 0.3);
 }
 
 .profileInfo {
@@ -342,7 +342,7 @@
   margin-top: 0.5rem;
   background: rgba(26, 26, 46, 0.95);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(138, 43, 226, 0.3);
+  border: 1px solid rgba(107, 68, 35, 0.3);
   border-radius: 16px;
   padding: 1rem;
   min-width: 280px;
@@ -357,21 +357,21 @@
   gap: 0.75rem;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+  border-bottom: 1px solid rgba(107, 68, 35, 0.2);
 }
 
 .profileAvatarLarge {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  background: linear-gradient(135deg, var(--brew-accent) 0%, var(--brew-accent-light) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 1.1rem;
   color: white;
-  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+  box-shadow: 0 4px 15px rgba(107, 68, 35, 0.3);
 }
 
 .profileDetails h4 {
@@ -389,7 +389,7 @@
 
 .dropdownDivider {
   height: 1px;
-  background: rgba(138, 43, 226, 0.2);
+  background: rgba(107, 68, 35, 0.2);
   margin: 0.75rem 0;
 }
 
@@ -418,8 +418,8 @@
 }
 
 .dropdownItem:hover {
-  background: rgba(138, 43, 226, 0.1);
-  color: #8a2be2;
+  background: rgba(107, 68, 35, 0.1);
+  color: var(--brew-accent);
 }
 
 .dropdownItem svg {

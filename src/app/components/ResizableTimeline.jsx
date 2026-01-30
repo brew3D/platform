@@ -231,7 +231,7 @@ export default function ResizableTimeline({
           left: 0,
           right: 0,
           height: 4,
-          background: 'linear-gradient(90deg, #667eea, #764ba2)',
+          background: 'linear-gradient(90deg, #6b4423, #8b5a2b)',
           cursor: 'ns-resize',
           opacity: 0,
           transition: 'opacity 0.2s'
@@ -325,7 +325,7 @@ function TrackRow({ track, pxPerSecond, onSelectItem, onClipDrag, snapToTime, sn
 
   const getClipColor = (type) => {
     switch (type) {
-      case 'movement': return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+      case 'movement': return 'linear-gradient(135deg, #6b4423 0%, #8b5a2b 100%)';
       case 'camera': return 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
       case 'audio': return 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
       case 'video': return 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';

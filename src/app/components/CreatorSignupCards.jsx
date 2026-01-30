@@ -16,7 +16,7 @@ const creatorTypes = [
       'Community recognition'
     ],
     earnings: 'Up to 70% revenue share',
-    color: '#8a2be2'
+    color: '#6b4423'
   },
   {
     id: 'asset',
@@ -30,7 +30,7 @@ const creatorTypes = [
       'Sound effects & music'
     ],
     earnings: 'Up to 80% revenue share',
-    color: '#667eea'
+    color: '#8b5a2b'
   },
   {
     id: 'game',

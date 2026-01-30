@@ -14,7 +14,7 @@
 .title {
   font-size: 2.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -52,13 +52,13 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
 }
 
 .searchButton {
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border: none;
   border-radius: 12px;
@@ -97,7 +97,7 @@
 }
 
 .tab.active {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border-color: transparent;
 }
@@ -129,7 +129,7 @@
 
 .filterSelect:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .clearFilters {
@@ -169,7 +169,7 @@
   width: 24px;
   height: 24px;
   border: 3px solid #e1e5e9;
-  border-top: 3px solid #8a2be2;
+  border-top: 3px solid var(--brew-accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -217,7 +217,7 @@
 .postCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .postHeader {
@@ -251,7 +251,7 @@
 }
 
 .tag {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
@@ -286,7 +286,7 @@
 .userCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .userAvatar {
@@ -306,7 +306,7 @@
 .avatarPlaceholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   display: flex;
   align-items: center;
@@ -333,7 +333,7 @@
 
 .userRole {
   font-size: 0.8rem;
-  color: #8a2be2;
+  color: var(--brew-accent);
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -356,7 +356,7 @@
 .tagCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .tagName {
@@ -417,13 +417,13 @@
 .trendingCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .trendingRank {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #8a2be2;
+  color: var(--brew-accent);
   min-width: 40px;
 }
 
@@ -464,7 +464,7 @@
 .recentSearch:hover {
   background: #e9ecef;
   color: #333;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .error {

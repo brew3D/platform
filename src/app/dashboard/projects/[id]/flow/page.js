@@ -432,10 +432,35 @@ export default function ProjectFlowPage() {
               null
           );
         } else {
-          console.error("Failed to load flow from API");
+          const errBody = await res.json().catch(() => ({}));
+          const msg = errBody?.message || errBody?.error || res.statusText;
+          console.error("Failed to load flow from API:", res.status, msg, errBody);
+          // Fallback: try localStorage cache so the page still works
+          try {
+            const flowKey = `brew3d:project:${id}:flow`;
+            const raw = localStorage.getItem(flowKey);
+            if (raw) {
+              const cached = JSON.parse(raw);
+              if (cached.maps?.length !== undefined) {
+                setTimelineMaps(cached.maps || []);
+                setConnections(cached.connections || []);
+                setStartpointMapId(cached.startpointMapId || null);
+              }
+            }
+          } catch (_) {}
         }
       } catch (error) {
         console.error("Error loading flow from API:", error);
+        try {
+          const flowKey = `brew3d:project:${id}:flow`;
+          const raw = localStorage.getItem(flowKey);
+          if (raw) {
+            const cached = JSON.parse(raw);
+            setTimelineMaps(cached.maps || []);
+            setConnections(cached.connections || []);
+            setStartpointMapId(cached.startpointMapId || null);
+          }
+        } catch (_) {}
       } finally {
         // Mark as loaded after a short delay to allow state to settle
         setTimeout(() => {
@@ -501,9 +526,11 @@ export default function ProjectFlowPage() {
             startNodeId: startpointMapId,
           }),
         })
-          .then((res) => {
+          .then(async (res) => {
             if (!res.ok) {
-              console.error("Failed to save flow to backend");
+              const errBody = await res.json().catch(() => ({}));
+              const msg = errBody?.message || errBody?.error || res.statusText;
+              console.error("Failed to save flow to backend:", res.status, msg, errBody);
             }
           })
           .catch((err) => {

@@ -99,7 +99,7 @@ export default function SceneEditorPage() {
       // Add default objects if scene is empty
       if (scene.objects && scene.objects.length === 0) {
         const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-        const cubeMaterial = new THREE.MeshLambertMaterial({ color: 0x8a2be2 });
+        const cubeMaterial = new THREE.MeshLambertMaterial({ color: 0x6b4423 });
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.position.set(0, 0.5, 0);
         cube.castShadow = true;
@@ -154,7 +154,7 @@ export default function SceneEditorPage() {
       position: [0, 0, 0],
       rotation: [0, 0, 0],
       scale: [1, 1, 1],
-      color: '#8a2be2'
+      color: '#6b4423'
     };
 
     const updatedScene = {

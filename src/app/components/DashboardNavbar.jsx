@@ -7,7 +7,18 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import styles from "./DashboardNavbar.module.css";
 
-const navItems = [
+function getDisplayName(user) {
+  if (!user) return "User";
+  if (user.name && user.name.trim()) return user.name.trim();
+  if (user.email) {
+    const prefix = user.email.split("@")[0];
+    return prefix.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (s) => s.toUpperCase());
+  }
+  return "User";
+}
+
+// Primary nav: Projects and Templates — directly below logo
+const primaryNavItems = [
   {
     id: 'projects',
     label: 'Projects',
@@ -29,6 +40,9 @@ const navItems = [
       </svg>
     ),
   },
+];
+
+const navItems = [
   {
     id: 'team',
     label: 'Team',
@@ -86,13 +100,13 @@ const navItems = [
     ),
   },
   {
-    id: 'chat',
-    label: 'Chat',
-    href: '/dashboard/chat',
+    id: 'tasks',
+    label: 'My tasks',
+    href: '/dashboard/tasks',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
-        <path d="M8 9h8M8 13h6" stroke="currentColor" strokeWidth="2"/>
+        <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="2"/>
+        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" strokeWidth="2"/>
       </svg>
     ),
   },
@@ -143,7 +157,7 @@ export default function DashboardNavbar({ user }) {
     if (pathname?.startsWith('/dashboard/assets')) return 'assets';
     if (pathname?.startsWith('/dashboard/tutorials')) return 'tutorials';
     if (pathname?.startsWith('/dashboard/community')) return 'community';
-    if (pathname?.startsWith('/dashboard/chat')) return 'chat';
+    if (pathname?.startsWith('/dashboard/tasks')) return 'tasks';
     return 'projects';
   };
 
@@ -151,22 +165,30 @@ export default function DashboardNavbar({ user }) {
 
   return (
     <header className={styles.navbar}>
-      {/* Logo */}
+      {/* Logo (Design asset - do not replace font) */}
       <div className={styles.logoSection}>
         <Link href="/dashboard" className={styles.logoLink}>
-          <div className={styles.logoIcon}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2"/>
-              <path d="M2 17l10 5 10-5" stroke="currentColor" strokeWidth="2"/>
-              <path d="M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2"/>
-            </svg>
-          </div>
+          <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
           <span className={styles.logoText}>Brew3D</span>
         </Link>
       </div>
 
-      {/* Navigation Items */}
+      {/* Navigation Items — Projects and Templates below logo, then rest */}
       <nav className={styles.navSection}>
+        {primaryNavItems.map((item) => {
+          const isActive = activeItem === item.id;
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+            >
+              <div className={styles.navIcon}>{item.icon}</div>
+              <span className={styles.navLabel}>{item.label}</span>
+              {isActive && <div className={styles.activeIndicator}></div>}
+            </Link>
+          );
+        })}
         {navItems.map((item) => {
           const isActive = activeItem === item.id;
           return (
@@ -279,10 +301,10 @@ export default function DashboardNavbar({ user }) {
             onClick={() => setShowProfileDropdown(!showProfileDropdown)}
           >
             <div className={styles.profileAvatar}>
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              {(getDisplayName(user) || "U").charAt(0).toUpperCase()}
             </div>
             <div className={styles.profileInfo}>
-              <span className={styles.profileName}>{user?.name || 'User'}</span>
+              <span className={styles.profileName}>{getDisplayName(user)}</span>
               <span className={styles.profileRole}>Developer</span>
             </div>
             <svg 
@@ -300,10 +322,10 @@ export default function DashboardNavbar({ user }) {
             <div className={styles.profileDropdown}>
               <div className={styles.profileHeader}>
                 <div className={styles.profileAvatarLarge}>
-                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  {(getDisplayName(user) || "U").charAt(0).toUpperCase()}
                 </div>
                 <div className={styles.profileDetails}>
-                  <h4>{user?.name || 'User'}</h4>
+                  <h4>{getDisplayName(user)}</h4>
                   <p>{user?.email || 'user@example.com'}</p>
                 </div>
               </div>

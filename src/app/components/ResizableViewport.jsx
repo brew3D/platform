@@ -287,7 +287,7 @@ export default function ResizableViewport({
           right: 0,
           width: 4,
           height: '100%',
-          background: 'linear-gradient(180deg, #667eea, #764ba2)',
+          background: 'linear-gradient(180deg, #6b4423, #8b5a2b)',
           cursor: 'ew-resize',
           opacity: 0,
           transition: 'opacity 0.2s'

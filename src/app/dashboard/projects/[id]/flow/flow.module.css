@@ -75,7 +75,7 @@
   inset: 0;
   width: 2000px;
   height: 1200px;
-  color: #8a2be2;
+  color: var(--brew-accent);
   pointer-events: none;
   z-index: 0;
 }

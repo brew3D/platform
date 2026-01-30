@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Populate NUVRA Asset Library in DynamoDB
+ * Populate Brew 3D Asset Library in DynamoDB
  * This script populates the ruchi-ai-assets table with all the comprehensive asset library
  */
 
@@ -29,7 +29,7 @@ const ASSET_PACKS = {
     name: 'Basic Shapes',
     description: 'Core building blocks for any 3D scene. Parameterized primitives with customizable dimensions.',
     icon: '🟦',
-    color: '#667eea',
+    color: '#8b5a2b',
     assets: [
       { id: 'cube', name: 'Cube', type: 'cube', description: 'Box with customizable width, height, and depth' },
       { id: 'sphere', name: 'Sphere', type: 'sphere', description: 'Perfect sphere with adjustable radius' },
@@ -236,7 +236,7 @@ async function batchWriteItems(items) {
 
 // Main function
 async function populateAssetLibrary() {
-  console.log('🚀 Starting NUVRA Asset Library population...');
+  console.log('🚀 Starting Brew 3D Asset Library population...');
   console.log(`📊 Table: ${TABLE_NAME}`);
   
   try {

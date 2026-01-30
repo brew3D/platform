@@ -189,7 +189,7 @@
   align-items: center;
   gap: 6px;
 }
-/* NUVRA Editor - Super Sexy Dark Theme */
+/* Brew 3D Editor - Dark theme with brown accents */
 .editorContainer {
   display: flex;
   flex-direction: column;
@@ -245,7 +245,7 @@
   width: 45px;
   height: 45px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -366,8 +366,8 @@
 }
 
 .toolbarBtn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: #667eea;
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
+  border-color: var(--brew-accent-light);
   color: var(--editor-text-primary);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
   transform: translateY(-2px);
@@ -410,7 +410,7 @@
 
 .snapInput:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
   background: rgba(255, 255, 255, 0.15);
 }
@@ -529,14 +529,14 @@
 }
 
 .iconButton.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   color: var(--editor-text-primary);
   border-color: rgba(102, 126, 234, 0.5);
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .expandButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   border: 1px solid rgba(102, 126, 234, 0.5);
   color: var(--editor-text-primary);
   cursor: pointer;
@@ -612,7 +612,7 @@
   background: rgba(255,255,255,0.06);
   border: 1px solid var(--panel-border);
   font-size: 1.25rem;
-  color: #667eea;
+  color: var(--brew-accent-light);
 }
 
 .assetName {
@@ -693,7 +693,7 @@
 }
 
 .newSceneBtn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   border: none;
   color: var(--editor-text-primary);
   padding: 0.5rem;
@@ -1187,14 +1187,14 @@
 .outlinerObject.selected {
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
   color: var(--editor-text-primary);
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
   transform: translateX(10px);
 }
 
 .objectIcon {
   font-size: 1.1rem;
-  color: #667eea;
+  color: var(--brew-accent-light);
   transition: all 0.3s ease;
 }
 
@@ -1290,7 +1290,7 @@
 }
 
 .viewportMode {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   color: var(--editor-text-primary);
   padding: 0.5rem 1rem;
   border-radius: 20px;
@@ -1330,8 +1330,8 @@
 }
 
 .viewportControls button.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: #667eea;
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
+  border-color: var(--brew-accent-light);
   color: var(--editor-text-primary);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
@@ -1462,7 +1462,7 @@
 
 .inputRow input[type="number"]:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
   background: rgba(255, 255, 255, 0.15);
 }
@@ -1479,7 +1479,7 @@
 }
 
 .inputRow input[type="color"]:hover {
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   transform: scale(1.05);
 }
 
@@ -1498,7 +1498,7 @@
   appearance: none;
   width: 20px;
   height: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
@@ -1557,7 +1557,7 @@
 }
 
 .playButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   border: none;
   color: var(--editor-text-primary);
   padding: 1rem 2rem;
@@ -1606,7 +1606,7 @@
   appearance: none;
   width: 24px;
   height: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
@@ -1790,7 +1790,7 @@
 }
 
 .promptTextarea:focus {
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
@@ -1827,8 +1827,8 @@
 }
 
 .generateBtn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: 1px solid #667eea;
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
+  border: 1px solid var(--brew-accent-light);
   color: var(--editor-text-primary);
   padding: 1rem 2rem;
   border-radius: 12px;
@@ -1849,7 +1849,7 @@
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   border: none;
   color: var(--editor-text-primary);
   padding: 1.5rem;
@@ -1957,20 +1957,20 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   border-radius: 4px;
   transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  background: linear-gradient(135deg, var(--brew-accent-dark) 0%, var(--brew-accent-light) 100%);
 }
 
 /* Focus styles */
 input:focus,
 button:focus,
 textarea:focus {
-  outline: 2px solid #667eea;
+  outline: 2px solid var(--brew-accent-light);
   outline-offset: 2px;
 }
 
@@ -2020,8 +2020,8 @@ textarea:focus {
 }
 
 .authButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: 1px solid #667eea;
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
+  border: 1px solid var(--brew-accent-light);
   color: var(--editor-text-primary);
   padding: 1rem 2.5rem;
   border-radius: 15px;
@@ -2136,7 +2136,7 @@ textarea:focus {
 }
 
 .toolboxSectionHeader:hover {
-  color: #667eea;
+  color: var(--brew-accent-light);
 }
 
 .toolboxItems {
@@ -2162,7 +2162,7 @@ textarea:focus {
 
 .toolboxItem:hover {
   background: var(--item-bg-hover);
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   transform: translateX(4px);
 }
 
@@ -2179,7 +2179,7 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   color: white;
   padding: 0.75rem 1rem;
   border-radius: 6px;
@@ -2245,7 +2245,7 @@ textarea:focus {
 
 .propertyInput:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
@@ -2273,7 +2273,7 @@ textarea:focus {
   appearance: none;
   width: 16px;
   height: 16px;
-  background: #667eea;
+  background: var(--brew-accent-light);
   border-radius: 50%;
   cursor: pointer;
 }
@@ -2281,7 +2281,7 @@ textarea:focus {
 .propertySlider::-moz-range-thumb {
   width: 16px;
   height: 16px;
-  background: #667eea;
+  background: var(--brew-accent-light);
   border-radius: 50%;
   cursor: pointer;
   border: none;
@@ -2319,7 +2319,7 @@ textarea:focus {
 .checkbox {
   width: 16px;
   height: 16px;
-  accent-color: #667eea;
+  accent-color: var(--brew-accent-light);
 }
 
 .checkboxGroup {
@@ -2359,7 +2359,7 @@ textarea:focus {
 }
 
 .physicsObject.selected {
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   background: var(--item-bg-hover);
 }
 
@@ -2374,7 +2374,7 @@ textarea:focus {
 }
 
 .lightObject.selected {
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   background: var(--item-bg-hover);
 }
 
@@ -2389,7 +2389,7 @@ textarea:focus {
 }
 
 .audioTrack.selected {
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   background: var(--item-bg-hover);
 }
 
@@ -2455,7 +2455,7 @@ textarea:focus {
 
 .trackBtn:hover {
   background: var(--item-bg-hover);
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
 }
 
 .volumeDisplay {
@@ -2479,7 +2479,7 @@ textarea:focus {
   top: 0;
   left: 0;
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, var(--brew-accent-light), var(--brew-accent-dark));
   transition: width 0.1s ease;
 }
 
@@ -2585,7 +2585,7 @@ textarea:focus {
 
 .addEffectBtn:hover {
   background: var(--item-bg-hover);
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   color: var(--editor-text-primary);
 }
 
@@ -2600,7 +2600,7 @@ textarea:focus {
 }
 
 .inputMapping.selected {
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   background: var(--item-bg-hover);
 }
 
@@ -2650,7 +2650,7 @@ textarea:focus {
 
 .mappingBtn:hover {
   background: var(--item-bg-hover);
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
 }
 
 .mappingBindings {
@@ -2684,7 +2684,7 @@ textarea:focus {
 
 .captureBtn:hover {
   background: var(--item-bg-hover);
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
 }
 
 .touchControlType {
@@ -2756,7 +2756,7 @@ textarea:focus {
 
 .keymapBtn:hover, .timelineBtn:hover, .lobbyBtn:hover {
   background: var(--item-bg-hover);
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
 }
 
 .keymapContent, .timelineContent, .lobbyContent {
@@ -2864,12 +2864,12 @@ textarea:focus {
 
 .alignmentBtn:hover {
   background: var(--item-bg-hover);
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
 }
 
 .alignmentBtn.active {
-  background: #667eea;
-  border-color: #667eea;
+  background: var(--brew-accent-light);
+  border-color: var(--brew-accent-light);
   color: white;
 }
 
@@ -2884,7 +2884,7 @@ textarea:focus {
 }
 
 .lobbyRoom.selected {
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   background: var(--item-bg-hover);
 }
 
@@ -2945,7 +2945,7 @@ textarea:focus {
 
 .roomBtn:hover {
   background: var(--item-bg-hover);
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
 }
 
 .roomPlayers {

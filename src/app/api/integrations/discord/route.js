@@ -149,7 +149,7 @@ async function handlePostsCommand(options, channelId) {
     const embeds = posts.map((post, index) => ({
       title: `Post ${index + 1}`,
       description: post.content.substring(0, 200) + (post.content.length > 200 ? '...' : ''),
-      color: 0x8a2be2,
+      color: 0x6b4423,
       fields: [
         {
           name: 'Likes',
@@ -230,7 +230,7 @@ async function handleEventsCommand(options, channelId) {
       return {
         title: event.title,
         description: event.description.substring(0, 200) + (event.description.length > 200 ? '...' : ''),
-        color: 0x8a2be2,
+        color: 0x6b4423,
         fields: [
           {
             name: 'Date & Time',
@@ -323,7 +323,7 @@ async function handleSearchCommand(options, channelId) {
     if (posts.length > 0) {
       embeds.push({
         title: '📝 Posts',
-        color: 0x8a2be2,
+        color: 0x6b4423,
         fields: posts.slice(0, 3).map((post, index) => ({
           name: `Post ${index + 1}`,
           value: post.content.substring(0, 100) + (post.content.length > 100 ? '...' : ''),
@@ -335,7 +335,7 @@ async function handleSearchCommand(options, channelId) {
     if (users.length > 0) {
       embeds.push({
         title: '👥 Users',
-        color: 0x8a2be2,
+        color: 0x6b4423,
         fields: users.slice(0, 3).map((user, index) => ({
           name: `User ${index + 1}`,
           value: `${user.name} (${user.email})`,
@@ -347,7 +347,7 @@ async function handleSearchCommand(options, channelId) {
     if (tags.length > 0) {
       embeds.push({
         title: '🏷️ Tags',
-        color: 0x8a2be2,
+        color: 0x6b4423,
         description: tags.slice(0, 5).map(tag => `#${tag.name}`).join(' '),
         fields: []
       });
@@ -386,7 +386,7 @@ async function handleHelpCommand(channelId) {
   const embed = {
     title: '🤖 Brew3D Platform Discord Bot',
     description: 'Connect your Discord server with the Brew3D community platform!',
-    color: 0x8a2be2,
+    color: 0x6b4423,
     fields: [
       {
         name: 'Available Commands',

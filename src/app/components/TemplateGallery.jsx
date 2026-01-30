@@ -12,7 +12,7 @@ const templates = [
     difficulty: 'Beginner',
     thumbnail: '/api/placeholder/300/200',
     features: ['Jump mechanics', 'Enemy AI', 'Collectibles', 'Level progression'],
-    color: '#8a2be2'
+    color: '#6b4423'
   },
   {
     id: 'rpg',
@@ -22,7 +22,7 @@ const templates = [
     difficulty: 'Intermediate',
     thumbnail: '/api/placeholder/300/200',
     features: ['Character stats', 'Inventory system', 'Dialogue trees', 'Combat system'],
-    color: '#667eea'
+    color: '#8b5a2b'
   },
   {
     id: 'fps',

@@ -14,7 +14,7 @@
 .header h1 {
   font-size: 2.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -42,7 +42,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -107,12 +107,12 @@
 .prevButton:hover,
 .skipButton:hover {
   background: #f8f9fa;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   color: #333;
 }
 
 .primaryButton {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border: none;
   border-radius: 8px;
@@ -135,8 +135,8 @@
 
 .secondaryButton {
   background: white;
-  color: #8a2be2;
-  border: 2px solid #8a2be2;
+  color: var(--brew-accent);
+  border: 2px solid var(--brew-accent);
   border-radius: 8px;
   padding: 0.75rem 2rem;
   font-weight: 600;
@@ -148,7 +148,7 @@
 }
 
 .secondaryButton:hover {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
 }
 
@@ -198,7 +198,7 @@
 
 .input:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
 }
 
@@ -258,7 +258,7 @@
 
 .textarea:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
 }
 
@@ -282,14 +282,14 @@
 }
 
 .interestTag:hover {
-  border-color: #8a2be2;
-  color: #8a2be2;
+  border-color: var(--brew-accent);
+  color: var(--brew-accent);
 }
 
 .interestTag.selected {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .formRow {
@@ -338,11 +338,11 @@
 }
 
 .themeOption:hover {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .themeOption.selected {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   background: #f8f9ff;
 }
 
@@ -401,7 +401,7 @@
 
 .select:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
 }
 
@@ -434,14 +434,14 @@
 }
 
 .tagButton:hover {
-  border-color: #8a2be2;
-  color: #8a2be2;
+  border-color: var(--brew-accent);
+  color: var(--brew-accent);
 }
 
 .tagButton.selected {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .selectedTags {
@@ -455,7 +455,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
   border-radius: 15px;
   font-size: 0.8rem;
@@ -497,7 +497,7 @@
 }
 
 .featureCard:hover {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
@@ -562,7 +562,7 @@
 }
 
 .channelCard:hover {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .channelCard.joined {
@@ -601,8 +601,8 @@
 }
 
 .joinButton:hover {
-  border-color: #8a2be2;
-  color: #8a2be2;
+  border-color: var(--brew-accent);
+  color: var(--brew-accent);
 }
 
 .joinButton.joined {
@@ -638,7 +638,7 @@
 .completeContent h1 {
   font-size: 2.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

@@ -71,7 +71,7 @@ The Game Builder UI provides an intuitive interface for users to create games th
 ## 🎨 Design System
 
 ### Color Palette
-- **Primary**: Gradient from #667eea to #764ba2
+- **Primary**: Gradient from #6b4423 to #8b5a2b (Brew 3D brown theme)
 - **Agent Categories**: Each agent type has a unique color
   - Flow: #3B82F6 (Blue)
   - Script: #10B981 (Green)

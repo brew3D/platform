@@ -1,4 +1,4 @@
-/* Chemistry Loader - Dark Theme with Purple Elements */
+/* Chemistry Loader - Dark theme with brown accents */
 
 .loaderOverlay {
   position: fixed;
@@ -55,11 +55,11 @@
 .atomCore {
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, #8a2be2 0%, #4a148c 70%, #1a0a2e 100%);
+  background: radial-gradient(circle, var(--brew-accent) 0%, var(--brew-accent-dark) 70%, #1a0a2e 100%);
   border-radius: 50%;
   box-shadow: 
-    0 0 20px #8a2be2,
-    0 0 40px rgba(138, 43, 226, 0.5),
+    0 0 20px var(--brew-accent),
+    0 0 40px rgba(107, 68, 35, 0.5),
     inset 0 0 20px rgba(255, 255, 255, 0.1);
   animation: atomPulse 2s ease-in-out infinite;
 }
@@ -70,7 +70,7 @@
   left: -10px;
   width: 60px;
   height: 60px;
-  border: 2px solid #8a2be2;
+  border: 2px solid var(--brew-accent);
   border-radius: 50%;
   animation: atomGlow 3s ease-in-out infinite;
 }
@@ -88,9 +88,9 @@
 .orbitingAtom .atomCore {
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, #667eea 0%, #4a148c 70%, #1a0a2e 100%);
+  background: radial-gradient(circle, var(--brew-accent-light) 0%, var(--brew-accent-dark) 70%, #1a0a2e 100%);
   border-radius: 50%;
-  box-shadow: 0 0 15px #667eea;
+  box-shadow: 0 0 15px var(--brew-accent-light);
 }
 
 .electron {
@@ -112,7 +112,7 @@
   left: 50%;
   width: 2px;
   height: 60px;
-  background: linear-gradient(to bottom, transparent, #8a2be2, transparent);
+  background: linear-gradient(to bottom, transparent, var(--brew-accent), transparent);
   transform: translate(-50%, -50%) rotate(var(--angle));
   animation: bondPulse 2s ease-in-out infinite;
 }
@@ -124,7 +124,7 @@
   right: 20%;
   width: 40px;
   height: 60px;
-  border: 3px solid #8a2be2;
+  border: 3px solid var(--brew-accent);
   border-radius: 0 0 20px 20px;
   border-top: none;
   overflow: hidden;
@@ -135,7 +135,7 @@
   bottom: 0;
   width: 100%;
   height: 70%;
-  background: linear-gradient(to top, #1a0a2e, #4a148c, #8a2be2);
+  background: linear-gradient(to top, #1a0a2e, var(--brew-accent-dark), var(--brew-accent));
   animation: liquidBubble 3s ease-in-out infinite;
 }
 
@@ -150,7 +150,7 @@
   position: absolute;
   width: 4px;
   height: 4px;
-  background: rgba(138, 43, 226, 0.6);
+  background: rgba(107, 68, 35, 0.6);
   border-radius: 50%;
   animation: bubbleRise 2s ease-in-out infinite;
 }
@@ -165,7 +165,7 @@
   left: 20%;
   width: 15px;
   height: 80px;
-  border: 2px solid #667eea;
+  border: 2px solid var(--brew-accent-light);
   border-radius: 0 0 8px 8px;
   border-top: none;
   overflow: hidden;
@@ -176,7 +176,7 @@
   bottom: 0;
   width: 100%;
   height: 60%;
-  background: linear-gradient(to top, #1a0a2e, #667eea);
+  background: linear-gradient(to top, #1a0a2e, var(--brew-accent-light));
   animation: liquidGlow 2s ease-in-out infinite;
 }
 
@@ -185,7 +185,7 @@
   position: absolute;
   width: 30px;
   height: 30px;
-  background: linear-gradient(135deg, #8a2be2, #4a148c);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-dark));
   border: 2px solid #ff6b6b;
   border-radius: 8px;
   display: flex;
@@ -208,10 +208,10 @@
 /* Chemical Formulas */
 .formula {
   position: absolute;
-  color: #8a2be2;
+  color: var(--brew-accent);
   font-weight: bold;
   font-size: 14px;
-  text-shadow: 0 0 10px #8a2be2;
+  text-shadow: 0 0 10px var(--brew-accent);
   animation: formulaGlow 2s ease-in-out infinite;
 }
 
@@ -226,7 +226,7 @@
   left: 50%;
   width: 200px;
   height: 200px;
-  border: 2px solid #8a2be2;
+  border: 2px solid var(--brew-accent);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   animation: energyPulse 4s ease-in-out infinite;
@@ -239,9 +239,9 @@
   position: absolute;
   width: 12px;
   height: 12px;
-  background: radial-gradient(circle, #8a2be2, #4a148c);
+  background: radial-gradient(circle, var(--brew-accent), var(--brew-accent-dark));
   border-radius: 50%;
-  box-shadow: 0 0 15px #8a2be2;
+  box-shadow: 0 0 15px var(--brew-accent);
   animation: floatUp 5s ease-in-out infinite;
 }
 
@@ -253,11 +253,11 @@
 
 .loadingTitle {
   display: block;
-  color: #8a2be2;
+  color: var(--brew-accent);
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  text-shadow: 0 0 20px #8a2be2;
+  text-shadow: 0 0 20px var(--brew-accent);
   animation: titleGlow 2s ease-in-out infinite;
 }
 
@@ -270,7 +270,7 @@
 .loadingDots span {
   width: 8px;
   height: 8px;
-  background: #8a2be2;
+  background: var(--brew-accent);
   border-radius: 50%;
   animation: dotPulse 1.5s ease-in-out infinite;
 }
@@ -288,7 +288,7 @@
 .progressBar {
   width: 100%;
   height: 4px;
-  background: rgba(138, 43, 226, 0.2);
+  background: rgba(107, 68, 35, 0.2);
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 1rem;
@@ -296,7 +296,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #8a2be2, #667eea, #ff6b6b);
+  background: linear-gradient(90deg, var(--brew-accent), var(--brew-accent-light), #ff6b6b);
   border-radius: 2px;
   animation: progressFill 3s ease-in-out infinite;
 }
@@ -350,8 +350,8 @@
 }
 
 @keyframes liquidGlow {
-  0%, 100% { box-shadow: 0 0 10px #667eea; }
-  50% { box-shadow: 0 0 20px #667eea, 0 0 30px #667eea; }
+  0%, 100% { box-shadow: 0 0 10px var(--brew-accent-light); }
+  50% { box-shadow: 0 0 20px var(--brew-accent-light), 0 0 30px var(--brew-accent-light); }
 }
 
 @keyframes elementFloat {
@@ -378,8 +378,8 @@
 }
 
 @keyframes titleGlow {
-  0%, 100% { text-shadow: 0 0 20px #8a2be2; }
-  50% { text-shadow: 0 0 30px #8a2be2, 0 0 40px #8a2be2; }
+  0%, 100% { text-shadow: 0 0 20px var(--brew-accent); }
+  50% { text-shadow: 0 0 30px var(--brew-accent), 0 0 40px var(--brew-accent); }
 }
 
 @keyframes dotPulse {

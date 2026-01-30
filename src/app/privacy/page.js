@@ -22,6 +22,7 @@ export default function PrivacyPage() {
           <div className={styles.headerContent}>
             <div className={styles.logo}>
               <Link href="/" className={styles.logoLink}>
+                <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
                 <span className={styles.logoText}>Brew3D</span>
               </Link>
             </div>
@@ -164,7 +165,7 @@ export default function PrivacyPage() {
             <div className={styles.sectionContent}>
               <p>If you have any questions about this privacy policy or our data practices, please contact us at:</p>
               <div className={styles.contactInfo}>
-                <p><strong>Email:</strong> privacy@nuvra.com</p>
+                <p><strong>Email:</strong> privacy@brew3d.com</p>
                 <p><strong>Address:</strong> 123 Innovation Drive, Tech City, TC 12345</p>
                 <p><strong>Phone:</strong> +1 (555) 123-4567</p>
               </div>
@@ -180,6 +181,7 @@ export default function PrivacyPage() {
           <div className={styles.footerContent}>
             <div className={styles.footerBrand}>
               <div className={styles.logo}>
+                <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
                 <span className={styles.logoText}>Brew3D</span>
               </div>
               <p className={styles.footerDescription}>

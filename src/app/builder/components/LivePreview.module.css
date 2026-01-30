@@ -68,9 +68,9 @@
 }
 
 .modeButton.active {
-  background: #667eea;
+  background: var(--brew-accent-light);
   color: white;
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
 }
 
 .modeIcon {
@@ -277,7 +277,7 @@
   padding: 1rem;
   background: white;
   border-radius: 8px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--brew-accent-light);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
 }

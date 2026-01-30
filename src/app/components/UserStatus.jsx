@@ -63,7 +63,7 @@ export default function UserStatus({ compact = false }) {
             console.log('🔍 Manual debug - list:', list);
           }}
           style={{
-            background: '#667eea',
+            background: '#8b5a2b',
             color: 'white',
             border: 'none',
             borderRadius: '4px',

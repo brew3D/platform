@@ -68,6 +68,7 @@ export default function SigninPage() {
       <nav className={`${landingStyles.navbar} ${scrolled ? landingStyles.navbarScrolled : ''}`}>
         <div className={landingStyles.navContainer}>
           <div className={landingStyles.logo}>
+            <img src="/brew3d-logo.png" alt="Brew3D" className={landingStyles.logoImage} />
             <span className={landingStyles.logoText}>Brew3D</span>
             <div className={landingStyles.logoAccent}></div>
           </div>

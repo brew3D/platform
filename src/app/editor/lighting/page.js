@@ -70,7 +70,7 @@ function LightObject({ light, onSelect, isSelected, onUpdate }) {
       <mesh position={position || [0, 0, 0]} onClick={handleClick}>
         <sphereGeometry args={[0.1, 16, 16]} />
         <meshBasicMaterial 
-          color={isSelected ? "#667eea" : color || "#ffffff"}
+          color={isSelected ? '#8b5a2b' : color || "#ffffff"}
           emissive={color || "#ffffff"}
           emissiveIntensity={0.5}
         />

@@ -84,7 +84,7 @@
 .activeTab {
   background: var(--bg-secondary);
   color: var(--text-primary);
-  border-bottom: 2px solid #8a2be2;
+  border-bottom: 2px solid var(--brew-accent);
 }
 
 .tabIcon {

@@ -33,14 +33,22 @@
 
 .logo {
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 1.5rem;
+}
+
+.logoImage {
+  height: 2rem;
+  width: auto;
+  object-fit: contain;
 }
 
 .logoText {
   font-size: 2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -93,7 +101,7 @@
 }
 
 .input:focus {
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   background: rgba(255, 255, 255, 0.08);
 }
@@ -110,7 +118,7 @@
 
 .submitButton {
   width: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -178,7 +186,7 @@
 
 .googleButton:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.08);
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
 }
@@ -200,14 +208,14 @@
 }
 
 .forgotLink {
-  color: #667eea;
+  color: var(--brew-accent-light);
   text-decoration: none;
   font-size: 0.9rem;
   transition: color 0.3s ease;
 }
 
 .forgotLink:hover {
-  color: #8a2be2;
+  color: var(--brew-accent);
 }
 
 .authFooter {
@@ -221,14 +229,14 @@
 }
 
 .authLink {
-  color: #667eea;
+  color: var(--brew-accent-light);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
 .authLink:hover {
-  color: #8a2be2;
+  color: var(--brew-accent);
 }
 
 /* Background Elements */

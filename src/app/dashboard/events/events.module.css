@@ -18,7 +18,7 @@
 .title {
   font-size: 2.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -32,7 +32,7 @@
 }
 
 .createButton {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border: none;
   border-radius: 12px;
@@ -75,7 +75,7 @@
 }
 
 .tab.active {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border-color: transparent;
 }
@@ -99,7 +99,7 @@
 
 .filterSelect:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
 }
 
@@ -125,7 +125,7 @@
   width: 24px;
   height: 24px;
   border: 3px solid #e1e5e9;
-  border-top: 3px solid #8a2be2;
+  border-top: 3px solid var(--brew-accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -167,7 +167,7 @@
 
 .navButton:hover {
   background: #e9ecef;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .monthTitle {
@@ -209,12 +209,12 @@
 }
 
 .dayCell.selected {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
 }
 
 .dayCell.today {
-  border: 2px solid #8a2be2;
+  border: 2px solid var(--brew-accent);
 }
 
 .dayNumber {
@@ -231,7 +231,7 @@
 .eventDot {
   width: 8px;
   height: 8px;
-  background: #8a2be2;
+  background: var(--brew-accent);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -239,7 +239,7 @@
 
 .eventDot:hover {
   transform: scale(1.5);
-  background: #667eea;
+  background: var(--brew-accent-light);
 }
 
 .moreEvents {
@@ -272,7 +272,7 @@
 .eventCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .eventHeader {
@@ -338,7 +338,7 @@
 }
 
 .tag {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
@@ -353,7 +353,7 @@
 }
 
 .rsvpButton {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border: none;
   border-radius: 8px;
@@ -386,8 +386,8 @@
 
 .changeRSVP {
   background: transparent;
-  border: 1px solid #8a2be2;
-  color: #8a2be2;
+  border: 1px solid var(--brew-accent);
+  color: var(--brew-accent);
   border-radius: 6px;
   padding: 0.25rem 0.75rem;
   font-size: 0.8rem;
@@ -396,7 +396,7 @@
 }
 
 .changeRSVP:hover {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
 }
 
@@ -529,12 +529,12 @@
 
 .rsvpOption:hover {
   background: #e9ecef;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   color: #333;
 }
 
 .rsvpOption.selected {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border-color: transparent;
 }
@@ -566,7 +566,7 @@
 .formGroup textarea:focus,
 .formGroup select:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
 }
 
@@ -602,7 +602,7 @@
 }
 
 .submitButton {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border: none;
   border-radius: 8px;

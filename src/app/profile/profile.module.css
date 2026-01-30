@@ -19,7 +19,7 @@
   width: 40px;
   height: 40px;
   border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top: 3px solid #667eea;
+  border-top: 3px solid var(--brew-accent-light);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -53,7 +53,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,7 +66,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0 0 0.25rem 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -154,7 +154,7 @@
 }
 
 .navItem.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   color: white;
 }
 
@@ -207,7 +207,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0 0 2rem 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -256,7 +256,7 @@
 .textarea:focus,
 .select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--brew-accent-light);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -280,7 +280,7 @@
 .checkbox {
   width: 18px;
   height: 18px;
-  accent-color: #667eea;
+  accent-color: var(--brew-accent-light);
 }
 
 .checkboxLabel {
@@ -303,7 +303,7 @@
 }
 
 .submitButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   color: white;
   border: none;
   padding: 0.875rem 2rem;
@@ -353,7 +353,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.875rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   color: white;
   text-decoration: none;
   border-radius: 8px;

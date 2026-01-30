@@ -385,7 +385,7 @@ function AnimationPageContent() {
                   style={{ 
                     display: 'inline-block',
                     padding: '0.5rem 1rem',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #6b4423 0%, #8b5a2b 100%)',
                     color: 'white',
                     borderRadius: 6,
                     cursor: 'pointer',

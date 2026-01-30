@@ -42,7 +42,7 @@
   font-weight: 700;
   color: #8b5cf6;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -149,7 +149,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -386,7 +386,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   border-radius: 12px;
@@ -794,7 +794,7 @@
 
 .saveButton {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   border-radius: 8px;

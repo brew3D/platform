@@ -1,14 +1,34 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import ProjectSidebar from "@/app/components/ProjectSidebar";
 import styles from "../project.module.css";
+import docStyles from "./docs.module.css";
+
+// Minimal safe markdown-to-HTML (escape first, then replace)
+function renderMarkdown(text) {
+  if (!text) return "";
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+  return escaped
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\n/g, "<br />");
+}
 
 export default function ProjectDocsPage() {
   const params = useParams();
   const projectId = params?.id;
   const router = useRouter();
+  const textareaRef = useRef(null);
 
   const [docs, setDocs] = useState([]);
   const [selectedDoc, setSelectedDoc] = useState(null);
@@ -29,9 +49,6 @@ export default function ProjectDocsPage() {
         if (res.ok) {
           const data = await res.json();
           setDocs(data.docs || []);
-          if (data.docs && data.docs.length > 0 && !selectedDoc) {
-            setSelectedDoc(data.docs[0]);
-          }
         }
       } catch (error) {
         console.error("Error loading docs:", error);
@@ -39,23 +56,32 @@ export default function ProjectDocsPage() {
         setLoading(false);
       }
     };
-
     loadDocs();
   }, [projectId]);
 
+  const insertAtCursor = (before, after = "") => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const value = showNewDoc ? newDocContent : editContent;
+    const setter = showNewDoc ? (v) => setNewDocContent(v) : (v) => setEditContent(v);
+    const newVal = value.slice(0, start) + before + (value.slice(start, end) || "text") + after + value.slice(end);
+    setter(newVal);
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(start + before.length, end + before.length + (after ? "text".length : 0));
+    }, 0);
+  };
+
   const handleCreateDoc = async () => {
     if (!newDocTitle.trim()) return;
-
     try {
       const res = await fetch(`/api/projects/${projectId}/docs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: newDocTitle,
-          content: newDocContent,
-        }),
+        body: JSON.stringify({ title: newDocTitle.trim(), content: newDocContent }),
       });
-
       if (res.ok) {
         const data = await res.json();
         setDocs([data.doc, ...docs]);
@@ -71,18 +97,16 @@ export default function ProjectDocsPage() {
 
   const handleSaveDoc = async () => {
     if (!selectedDoc || !editTitle.trim()) return;
-
     try {
       const res = await fetch(`/api/projects/${projectId}/docs`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           docId: selectedDoc.docId || selectedDoc.doc_id,
-          title: editTitle,
+          title: editTitle.trim(),
           content: editContent,
         }),
       });
-
       if (res.ok) {
         const data = await res.json();
         setDocs(docs.map((d) => (d.docId || d.doc_id) === (selectedDoc.docId || selectedDoc.doc_id) ? data.doc : d));
@@ -95,13 +119,9 @@ export default function ProjectDocsPage() {
   };
 
   const handleDeleteDoc = async (docId) => {
-    if (!confirm("Are you sure you want to delete this doc?")) return;
-
+    if (!confirm("Delete this document?")) return;
     try {
-      const res = await fetch(`/api/projects/${projectId}/docs?docId=${docId}`, {
-        method: "DELETE",
-      });
-
+      const res = await fetch(`/api/projects/${projectId}/docs?docId=${docId}`, { method: "DELETE" });
       if (res.ok) {
         setDocs(docs.filter((d) => (d.docId || d.doc_id) !== docId));
         if (selectedDoc && (selectedDoc.docId || selectedDoc.doc_id) === docId) {
@@ -121,190 +141,196 @@ export default function ProjectDocsPage() {
     }
   };
 
+  const openNewEditor = () => {
+    setSelectedDoc(null);
+    setShowNewDoc(true);
+    setNewDocTitle("");
+    setNewDocContent("");
+  };
+
+  const closeNewEditor = () => {
+    setShowNewDoc(false);
+    setNewDocTitle("");
+    setNewDocContent("");
+  };
+
+  const currentDocId = selectedDoc ? (selectedDoc.docId || selectedDoc.doc_id) : null;
+
   return (
     <div className={styles.projectPage}>
-      <div style={{ display: "flex", gap: "1.5rem" }}>
-        <ProjectSidebar projectId={projectId} />
-        <main style={{ flex: 1, display: "flex", gap: "1.5rem" }}>
-          <div style={{ width: "300px", display: "flex", flexDirection: "column" }}>
-            <button
-              className={styles.backButton}
-              onClick={() => router.push(`/dashboard/projects/${projectId}/hub`)}
-              style={{ marginBottom: "1rem" }}
-            >
-              ← Back to Hub
+      <button className={styles.backButton} onClick={() => router.push(`/dashboard/projects/${projectId}/hub`)} style={{ marginBottom: "0.5rem" }}>
+        ← Back to Hub
+      </button>
+
+      <div className={docStyles.docsLayout}>
+        {/* Doc list sidebar (Outlook-style) */}
+        <aside className={docStyles.docListSidebar}>
+          <div className={docStyles.docListHeader}>
+            <h2 className={docStyles.docListTitle}>Docs</h2>
+            <button type="button" className={docStyles.newDocBtn} onClick={openNewEditor} title="New document">
+              +
             </button>
+          </div>
+          <div className={docStyles.docList}>
+            {loading ? (
+              <div className={styles.loading}>Loading...</div>
+            ) : docs.length === 0 ? (
+              <p style={{ padding: "1rem", margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)" }}>No documents yet.</p>
+            ) : (
+              docs.map((doc) => {
+                const docId = doc.docId || doc.doc_id;
+                const isActive = currentDocId === docId;
+                return (
+                  <button
+                    key={docId}
+                    type="button"
+                    className={`${docStyles.docListItem} ${isActive ? docStyles.active : ""}`}
+                    onClick={() => {
+                      setSelectedDoc(doc);
+                      setIsEditing(false);
+                      setShowNewDoc(false);
+                    }}
+                  >
+                    <span className={docStyles.docListItemTitle}>{doc.title}</span>
+                    <span className={docStyles.docListItemDate}>
+                      {new Date(doc.createdAt || doc.created_at).toLocaleDateString()}
+                    </span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </aside>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-              <h2 style={{ margin: 0 }}>Docs</h2>
-              <button
-                className={styles.backButton}
-                onClick={() => setShowNewDoc(true)}
-                style={{ marginBottom: 0, padding: "0.5rem 1rem", fontSize: "0.875rem" }}
-              >
-                + New
-              </button>
-            </div>
-
-            {showNewDoc && (
-              <div style={{ marginBottom: "1rem", padding: "1rem", background: "var(--card-background)", border: "1px solid var(--card-border)", borderRadius: 8 }}>
+        {/* Main area: empty state, new doc editor, or viewer/editor */}
+        <main className={docStyles.mainArea}>
+          {showNewDoc ? (
+            /* Professional markdown editor (new doc) */
+            <>
+              <div className={docStyles.editorToolbar}>
                 <input
                   type="text"
-                  placeholder="Doc title"
+                  className={docStyles.editorTitleInput}
+                  placeholder="Document title"
                   value={newDocTitle}
                   onChange={(e) => setNewDocTitle(e.target.value)}
-                  style={{ width: "100%", marginBottom: "0.5rem", padding: "0.5rem", borderRadius: 4, border: "1px solid var(--card-border)" }}
                 />
-                <textarea
-                  placeholder="Content (Markdown supported)"
-                  value={newDocContent}
-                  onChange={(e) => setNewDocContent(e.target.value)}
-                  rows={4}
-                  style={{ width: "100%", marginBottom: "0.5rem", padding: "0.5rem", borderRadius: 4, border: "1px solid var(--card-border)" }}
-                />
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <button className={styles.backButton} onClick={handleCreateDoc} style={{ marginBottom: 0, flex: 1 }}>
-                    Create
+                <button type="button" className={docStyles.toolbarBtn} onClick={() => insertAtCursor("**", "**")} title="Bold">
+                  <strong>B</strong>
+                </button>
+                <button type="button" className={docStyles.toolbarBtn} onClick={() => insertAtCursor("*", "*")} title="Italic">
+                  <em>I</em>
+                </button>
+                <button type="button" className={docStyles.toolbarBtn} onClick={() => insertAtCursor("`", "`")} title="Code">
+                  &lt;/&gt;
+                </button>
+                <button type="button" className={docStyles.toolbarBtn} onClick={() => insertAtCursor("[", "](url)")} title="Link">
+                  🔗
+                </button>
+                <button type="button" className={docStyles.toolbarBtn} onClick={() => insertAtCursor("\n## ", "")} title="Heading">
+                  H
+                </button>
+                <div className={docStyles.editorActions}>
+                  <button type="button" className={styles.backButton} onClick={handleCreateDoc} disabled={!newDocTitle.trim()} style={{ marginBottom: 0 }}>
+                    Save
                   </button>
-                  <button
-                    className={styles.backButton}
-                    onClick={() => {
-                      setShowNewDoc(false);
-                      setNewDocTitle("");
-                      setNewDocContent("");
-                    }}
-                    style={{ marginBottom: 0, flex: 1 }}
-                  >
+                  <button type="button" className={styles.backButton} onClick={closeNewEditor} style={{ marginBottom: 0 }}>
                     Cancel
                   </button>
                 </div>
               </div>
-            )}
-
-            {loading ? (
-              <div className={styles.loading}>Loading docs...</div>
-            ) : docs.length === 0 ? (
-              <p style={{ color: "var(--text-secondary)" }}>No docs yet. Create one to get started.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {docs.map((doc) => {
-                  const docId = doc.docId || doc.doc_id;
-                  return (
-                    <div
-                      key={docId}
-                      onClick={() => {
-                        setSelectedDoc(doc);
-                        setIsEditing(false);
-                      }}
-                      style={{
-                        padding: "0.75rem",
-                        background: selectedDoc && (selectedDoc.docId || selectedDoc.doc_id) === docId ? "var(--accent)" : "var(--card-background)",
-                        background: selectedDoc && (selectedDoc.docId || selectedDoc.doc_id) === docId
-                          ? "linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(102, 126, 234, 0.1))"
-                          : "var(--card-background)",
-                        border: "1px solid var(--card-border)",
-                        borderRadius: 8,
-                        cursor: "pointer",
-                      }}
-                    >
-                      <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{doc.title}</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
-                        {new Date(doc.createdAt || doc.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className={docStyles.editorBody}>
+                <textarea
+                  ref={textareaRef}
+                  className={docStyles.editorTextarea}
+                  placeholder="Write your document in Markdown. Use **bold**, *italic*, ## headings, [links](url), and `code`."
+                  value={newDocContent}
+                  onChange={(e) => setNewDocContent(e.target.value)}
+                />
               </div>
-            )}
-          </div>
-
-          <div style={{ flex: 1 }}>
-            {selectedDoc ? (
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                  <h1 className={styles.title}>{isEditing ? "Edit Doc" : selectedDoc.title}</h1>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    {!isEditing && (
-                      <>
-                        <button className={styles.backButton} onClick={handleStartEdit} style={{ marginBottom: 0 }}>
-                          Edit
-                        </button>
-                        <button
-                          className={styles.backButton}
-                          onClick={() => handleDeleteDoc(selectedDoc.docId || selectedDoc.doc_id)}
-                          style={{ marginBottom: 0 }}
-                        >
-                          Delete
-                        </button>
-                      </>
-                    )}
-                    {isEditing && (
-                      <>
-                        <button className={styles.backButton} onClick={handleSaveDoc} style={{ marginBottom: 0 }}>
-                          Save
-                        </button>
-                        <button
-                          className={styles.backButton}
-                          onClick={() => setIsEditing(false)}
-                          style={{ marginBottom: 0 }}
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    )}
+            </>
+          ) : selectedDoc ? (
+            isEditing ? (
+              /* Edit mode */
+              <>
+                <div className={docStyles.editorToolbar}>
+                  <input
+                    type="text"
+                    className={docStyles.editorTitleInput}
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                  />
+                  <button type="button" className={docStyles.toolbarBtn} onClick={() => insertAtCursor("**", "**")} title="Bold">
+                    <strong>B</strong>
+                  </button>
+                  <button type="button" className={docStyles.toolbarBtn} onClick={() => insertAtCursor("*", "*")} title="Italic">
+                    <em>I</em>
+                  </button>
+                  <button type="button" className={docStyles.toolbarBtn} onClick={() => insertAtCursor("`", "`")} title="Code">
+                    &lt;/&gt;
+                  </button>
+                  <button type="button" className={docStyles.toolbarBtn} onClick={() => insertAtCursor("[", "](url)")} title="Link">
+                    🔗
+                  </button>
+                  <button type="button" className={docStyles.toolbarBtn} onClick={() => insertAtCursor("\n## ", "")} title="Heading">
+                    H
+                  </button>
+                  <div className={docStyles.editorActions}>
+                    <button type="button" className={styles.backButton} onClick={handleSaveDoc} style={{ marginBottom: 0 }}>
+                      Save
+                    </button>
+                    <button type="button" className={styles.backButton} onClick={() => setIsEditing(false)} style={{ marginBottom: 0 }}>
+                      Cancel
+                    </button>
                   </div>
                 </div>
-
-                {isEditing ? (
-                  <div>
-                    <input
-                      type="text"
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      style={{
-                        width: "100%",
-                        marginBottom: "1rem",
-                        padding: "0.75rem",
-                        borderRadius: 8,
-                        border: "1px solid var(--card-border)",
-                        fontSize: "1.25rem",
-                        fontWeight: 600,
-                      }}
-                    />
-                    <textarea
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      rows={20}
-                      style={{
-                        width: "100%",
-                        padding: "1rem",
-                        borderRadius: 8,
-                        border: "1px solid var(--card-border)",
-                        fontFamily: "monospace",
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div
-                    className={styles.analytics}
-                    style={{
-                      whiteSpace: "pre-wrap",
-                      lineHeight: 1.6,
-                      padding: "2rem",
-                    }}
-                  >
-                    {selectedDoc.content || "No content yet."}
-                  </div>
-                )}
-              </div>
+                <div className={docStyles.editorBody}>
+                  <textarea
+                    ref={textareaRef}
+                    className={docStyles.editorTextarea}
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                  />
+                </div>
+              </>
             ) : (
-              <div>
-                <h1 className={styles.title}>Knowledge Base</h1>
-                <p className={styles.subtitle}>Create and manage project documentation.</p>
-                <p style={{ color: "var(--text-secondary)" }}>Select a doc from the sidebar or create a new one.</p>
-              </div>
-            )}
-          </div>
+              /* View mode */
+              <>
+                <div className={docStyles.viewHeader}>
+                  <h1 className={docStyles.viewTitle}>{selectedDoc.title}</h1>
+                  <div className={docStyles.viewActions}>
+                    <button type="button" className={styles.backButton} onClick={handleStartEdit} style={{ marginBottom: 0 }}>
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.backButton}
+                      onClick={() => handleDeleteDoc(selectedDoc.docId || selectedDoc.doc_id)}
+                      style={{ marginBottom: 0 }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+                <div
+                  className={docStyles.viewContentRendered}
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedDoc.content || "No content yet.") }}
+                />
+              </>
+            )
+          ) : (
+            /* Empty state: select a file or create new */
+            <div className={docStyles.emptyState}>
+              <p className={docStyles.emptyStateTitle}>Select a file or create a new one</p>
+              <p className={docStyles.emptyStateSub}>Choose a document from the list or add a new Markdown doc.</p>
+              <button type="button" className={docStyles.emptyStateBtn} onClick={openNewEditor}>
+                + New document
+              </button>
+              <p style={{ fontSize: "0.8rem", margin: 0, maxWidth: 320 }}>
+                Supported: Markdown. PDF and Word: paste a link to open (coming soon). Unsupported types will show a message.
+              </p>
+            </div>
+          )}
         </main>
       </div>
     </div>

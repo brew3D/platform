@@ -3,17 +3,20 @@
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useProjects } from "../contexts/ProjectsContext";
+import { useOnboarding } from "../contexts/OnboardingContext";
 import { useRouter } from "next/navigation";
 import DashboardNavbar from "../components/DashboardNavbar";
 import HeroSection from "../components/HeroSection";
 import TemplateGallery from "../components/TemplateGallery";
 import ProjectsSection from "../components/ProjectsSection";
 import NewProjectModal from "../components/NewProjectModal";
+import OnboardingNextStep from "../components/OnboardingNextStep";
 import styles from "./dashboard.module.css";
 
 export default function DashboardPage() {
   const { user, authenticatedFetch } = useAuth();
   const { projects, loading: projectsLoading } = useProjects();
+  const { markStepDone } = useOnboarding();
   const router = useRouter();
   const [activeProject, setActiveProject] = useState(null);
   const [showNewProject, setShowNewProject] = useState(false);
@@ -29,6 +32,10 @@ export default function DashboardPage() {
   return (
     <>
       <div className={styles.content}>
+          <OnboardingNextStep
+            onCreateProject={() => setShowNewProject(true)}
+            hasProjects={Array.isArray(projects) && projects.length > 0}
+          />
           <HeroSection 
             activeProject={activeProject}
             onCreateProject={() => setShowNewProject(true)}
@@ -79,6 +86,8 @@ export default function DashboardPage() {
             if (res.ok) {
               const data = await res.json();
               const id = data.project.projectId;
+              markStepDone('create_project');
+              markStepDone('choose_engine');
               if ((gameMode || data.project.gameMode) === '2D') {
                 window.location.href = `/dashboard/projects2d/${id}`;
               } else {

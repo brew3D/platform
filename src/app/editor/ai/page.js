@@ -49,7 +49,7 @@ function AINode({ node, onSelect, isSelected, onUpdate, onDelete, onConnect, con
     top: position.y,
     width: 120,
     height: 80,
-    backgroundColor: isActive ? '#667eea' : '#333',
+    backgroundColor: isActive ? '#8b5a2b' : '#333',
     border: isSelected ? '2px solid #ff6b35' : '1px solid #666',
     borderRadius: '8px',
     display: 'flex',

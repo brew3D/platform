@@ -37,17 +37,17 @@
 }
 
 .planCard:hover {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   transform: translateY(-2px);
 }
 
 .planCard.selected {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   background: rgba(138, 43, 226, 0.05);
 }
 
 .planCard.popular {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   background: rgba(138, 43, 226, 0.02);
 }
 
@@ -56,7 +56,7 @@
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
   padding: 0.25rem 1rem;
   border-radius: 12px;
@@ -138,9 +138,9 @@
 }
 
 .selectedBtn {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .selectedBtn:hover {
@@ -160,7 +160,7 @@
 }
 
 .upgradeBtn {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
   border: none;
   padding: 1rem 2rem;

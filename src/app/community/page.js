@@ -40,6 +40,7 @@ export default function CommunityPage() {
       <nav className={`${landingStyles.navbar} ${scrolled ? landingStyles.navbarScrolled : ""}`} ref={navbarRef}>
         <div className={landingStyles.navContainer}>
           <div className={landingStyles.logo}>
+            <img src="/brew3d-logo.png" alt="Brew3D" className={landingStyles.logoImage} />
             <span className={landingStyles.logoText}>Brew3D</span>
             <div className={landingStyles.logoAccent}></div>
           </div>
@@ -195,6 +196,7 @@ export default function CommunityPage() {
           <div className={landingStyles.footerContent}>
             <div className={landingStyles.footerBrand}>
               <div className={landingStyles.logo}>
+                <img src="/brew3d-logo.png" alt="Brew3D" className={landingStyles.logoImage} />
                 <span className={landingStyles.logoText}>Brew3D</span>
               </div>
               <p className={landingStyles.footerDescription}>The future of AI-powered 3D creation</p>

@@ -44,7 +44,7 @@ function UIElement({ element, onSelect, isSelected, onUpdate, onDelete, onDragSt
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    border: isSelected ? '2px solid #667eea' : '1px solid rgba(255,255,255,0.2)',
+    border: isSelected ? '2px solid #8b5a2b' : '1px solid rgba(255,255,255,0.2)',
     borderRadius: type === 'button' ? '8px' : '4px',
     cursor: 'move',
     opacity: isVisible ? 1 : 0.5,
@@ -384,13 +384,13 @@ function UIInspector({ selectedElement, onUpdate, onDelete, showGrid, onToggleGr
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <input
                 type="color"
-                value={selectedElement.color || '#667eea'}
+                value={selectedElement.color || '#8b5a2b'}
                 onChange={(e) => handlePropertyChange('color', e.target.value)}
                 className={styles.colorInput}
               />
               <input
                 type="text"
-                value={selectedElement.color || '#667eea'}
+                value={selectedElement.color || '#8b5a2b'}
                 onChange={(e) => handlePropertyChange('color', e.target.value)}
                 className={styles.propertyInput}
                 style={{ flex: 1 }}
@@ -625,7 +625,7 @@ export default function UIEditor() {
       position: { x: 100, y: 100 },
       size: { width: 100, height: 50 },
       text: type === 'text' ? 'Text' : type === 'button' ? 'Button' : '',
-      color: '#667eea',
+      color: '#8b5a2b',
       fontSize: 16,
       anchor: 'top-left',
       isVisible: true,
@@ -678,7 +678,7 @@ export default function UIEditor() {
       position: element.position,
       size: element.size,
       text: element.text || '',
-      color: element.color || '#667eea',
+      color: element.color || '#8b5a2b',
       fontSize: element.fontSize || 16,
       anchor: 'top-left',
       isVisible: true,

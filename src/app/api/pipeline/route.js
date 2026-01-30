@@ -598,9 +598,8 @@ function sanitizePrimitive(o) {
     red: '#ef4444',
     green: '#22c55e',
     blue: '#3b82f6',
-    purple: '#a855f7',
-    yellow: '#eab308',
-    brown: '#8b4513'
+    brown: '#6b4423',
+    yellow: '#eab308'
   };
   let material = typeof o.material === 'string' ? o.material : undefined;
   if (material) {

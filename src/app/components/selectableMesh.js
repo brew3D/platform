@@ -299,8 +299,8 @@ export default function SelectableMesh({
       >
         {geom}
         <meshStandardMaterial
-          color={isSelected ? "#a855f7" : isHighlighted ? "#ff6b6b" : o.material || "#888888"}
-          emissive={isSelected ? "#a855f7" : isHighlighted ? "#ff6b6b" : "black"}
+          color={isSelected ? "#6b4423" : isHighlighted ? "#ff6b6b" : o.material || "#888888"}
+          emissive={isSelected ? "#6b4423" : isHighlighted ? "#ff6b6b" : "black"}
           emissiveIntensity={isSelected ? 0.4 : isHighlighted ? 0.3 : 0}
         />
       </mesh>

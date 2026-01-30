@@ -45,7 +45,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -64,7 +64,7 @@
 
 .closeButton:hover {
   background: rgba(138, 43, 226, 0.1);
-  color: #8a2be2;
+  color: var(--brew-accent);
 }
 
 .form {
@@ -90,7 +90,7 @@
   height: 40px;
   background: rgba(138, 43, 226, 0.1);
   border-radius: 10px;
-  color: #8a2be2;
+  color: var(--brew-accent);
   flex-shrink: 0;
 }
 
@@ -142,7 +142,7 @@
 .input:focus,
 .textarea:focus {
   outline: none;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
 }
 
@@ -166,7 +166,7 @@
 .cancelButton {
   background: white;
   border: 2px solid rgba(138, 43, 226, 0.2);
-  color: #8a2be2;
+  color: var(--brew-accent);
   padding: 0.75rem 1.5rem;
   border-radius: 10px;
   font-weight: 600;
@@ -180,7 +180,7 @@
 }
 
 .confirmButton {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;

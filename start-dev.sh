@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# NUVRA - Development Startup Script
+# Brew 3D - Development Startup Script
 # This script starts both the frontend (Next.js) and backend (Flask) servers
 
-echo "🚀 Starting NUVRA Development Environment..."
+echo "🚀 Starting Brew 3D Development Environment..."
 echo "================================================"
 
 # Colors for output

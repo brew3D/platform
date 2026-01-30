@@ -280,7 +280,7 @@ CREATE TABLE IF NOT EXISTS badges (
     description TEXT DEFAULT '',
     category TEXT NOT NULL CHECK (category IN ('community', 'content', 'achievement', 'special')),
     icon TEXT DEFAULT '',
-    color TEXT DEFAULT '#667eea',
+    color TEXT DEFAULT '#8b5a2b',
     rarity TEXT DEFAULT 'common' CHECK (rarity IN ('common', 'uncommon', 'rare', 'epic', 'legendary')),
     points INTEGER DEFAULT 0,
     requirements JSONB DEFAULT '{}'::jsonb,

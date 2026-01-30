@@ -33,7 +33,7 @@
   font-size: 3.5rem;
   font-weight: 900;
   font-family: var(--font-space-grotesk);
-  background: linear-gradient(135deg, #bf9cff 0%, #8a2be2 40%, #ffffff 100%);
+  background: linear-gradient(135deg, #bf9cff 0%, var(--brew-accent) 40%, #ffffff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -55,7 +55,7 @@
 }
 
 .primaryButton {
-  background: linear-gradient(135deg, #8a2be2 0%, #5b22a6 100%);
+  background: linear-gradient(135deg, var(--brew-accent) 0%, #5b22a6 100%);
   color: #fff;
   padding: 0.9rem 1.4rem;
   border-radius: 12px;
@@ -80,7 +80,7 @@
 }
 
 .secondaryButton:hover {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   background: rgba(138, 43, 226, 0.08);
 }
 
@@ -118,7 +118,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: radial-gradient(circle, #bf9cff, #8a2be2);
+  background: radial-gradient(circle, #bf9cff, var(--brew-accent));
   box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
   animation: orb 12s ease-in-out infinite;
 }
@@ -252,7 +252,7 @@
 }
 
 .viewButton {
-  background: linear-gradient(135deg, #8a2be2 0%, #5b22a6 100%);
+  background: linear-gradient(135deg, var(--brew-accent) 0%, #5b22a6 100%);
   color: #fff;
   padding: 0.7rem 1.2rem;
   border-radius: 10px;
@@ -334,7 +334,7 @@
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  background: linear-gradient(135deg, #bf9cff, #8a2be2);
+  background: linear-gradient(135deg, #bf9cff, var(--brew-accent));
   box-shadow: 0 0 10px rgba(138, 43, 226, 0.6);
 }
 

@@ -14,7 +14,7 @@
 .header h1 {
   font-size: 2.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -164,7 +164,7 @@
 }
 
 .planCard:hover {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
   transform: translateY(-4px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
@@ -202,7 +202,7 @@
 .planPrice {
   font-size: 2rem;
   font-weight: 900;
-  color: #8a2be2;
+  color: var(--brew-accent);
   margin: 0;
 }
 
@@ -262,7 +262,7 @@
 }
 
 .selectPlanButton {
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border: none;
   border-radius: 8px;

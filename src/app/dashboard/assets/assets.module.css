@@ -4,16 +4,16 @@
 .content { flex: 1; padding: 2rem; background: linear-gradient(135deg,#ffffff,#f8f9ff); overflow: auto; }
 .header { margin-bottom: 1rem; }
 .headerTop { display: flex; align-items: flex-start; gap: 1rem; }
-.backButton { background: rgba(138,43,226,.1); border: 1px solid rgba(138,43,226,.3); color: #8a2be2; padding: .5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all .3s ease; }
+.backButton { background: rgba(138,43,226,.1); border: 1px solid rgba(138,43,226,.3); color: var(--brew-accent); padding: .5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all .3s ease; }
 .backButton:hover { background: rgba(138,43,226,.2); transform: translateY(-1px); }
-.title { font-size: 2rem; font-weight: 900; background: linear-gradient(135deg,#8a2be2,#667eea); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin:0; }
+.title { font-size: 2rem; font-weight: 900; background: linear-gradient(135deg,var(--brew-accent),var(--brew-accent-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin:0; }
 .subtitle { color:#666; margin:.25rem 0 0; }
 .filters { background:#fff; border:1px solid rgba(138,43,226,.15); border-radius:14px; padding:1rem; box-shadow:0 4px 18px rgba(0,0,0,.06); margin-bottom:1rem; }
 .searchRow { display:flex; gap:.5rem; align-items:center; justify-content:space-between; flex-wrap:wrap; }
 .searchBox { display:flex; align-items:center; background:#fff; border:2px solid rgba(138,43,226,.2); border-radius:10px; padding:.5rem .75rem; min-width:260px; }
-.searchBox svg{ color:#8a2be2; margin-right:.5rem; }
+.searchBox svg{ color:var(--brew-accent); margin-right:.5rem; }
 .searchBox input{ border:none; outline:none; background:transparent; color:#1a1a2e; width:100%; }
-.uploadButton{ background:linear-gradient(135deg,#8a2be2,#667eea); color:#fff; border:none; border-radius:10px; padding:.6rem 1rem; font-weight:700; box-shadow:0 8px 24px rgba(138,43,226,.28); cursor:pointer; }
+.uploadButton{ background:linear-gradient(135deg,var(--brew-accent),var(--brew-accent-light)); color:#fff; border:none; border-radius:10px; padding:.6rem 1rem; font-weight:700; box-shadow:0 8px 24px rgba(138,43,226,.28); cursor:pointer; }
 .filterRow{ display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap; }
 .select{ background:#fff; border:2px solid rgba(138,43,226,.2); border-radius:10px; padding:.6rem .75rem; color:#1a1a2e; }
 .gridSection{ margin-top:1rem; }
@@ -26,7 +26,7 @@
 .thumbOverlay{ position:absolute; inset:0; display:flex; align-items:end; justify-content:center; gap:.5rem; padding:.5rem; opacity:0; transition:opacity .25s ease; background: linear-gradient(to top, rgba(0,0,0,.35), rgba(0,0,0,0)); }
 .assetCard:hover .thumbOverlay{ opacity:1; }
 .previewBtn,.addBtn,.purchaseBtn{ background: rgba(255,255,255,.9); border:none; border-radius:8px; padding:.4rem .6rem; font-weight:700; cursor:pointer; }
-.purchaseBtn{ background: linear-gradient(135deg,#8a2be2,#667eea); color:#fff; }
+.purchaseBtn{ background: linear-gradient(135deg,var(--brew-accent),var(--brew-accent-light)); color:#fff; }
 .assetInfo{ padding:.6rem .75rem; }
 .assetTitle{ font-weight:800; color:#1a1a2e; }
 .assetMeta{ color:#666; font-size:.85rem; }
@@ -41,11 +41,11 @@
 .packName{ font-size:1.25rem; font-weight:800; color:#1a1a2e; margin:0 0 .5rem; }
 .packDescription{ color:#666; font-size:.9rem; line-height:1.4; margin:0 0 1rem; }
 .packMeta{ display:flex; justify-content:center; }
-.assetCount{ background:rgba(138,43,226,.1); color:#8a2be2; padding:.25rem .75rem; border-radius:20px; font-size:.8rem; font-weight:600; }
+.assetCount{ background:rgba(138,43,226,.1); color:var(--brew-accent); padding:.25rem .75rem; border-radius:20px; font-size:.8rem; font-weight:600; }
 
 /* Loading States */
 .loading{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4rem 2rem; color:#666; }
-.spinner{ width:40px; height:40px; border:3px solid rgba(138,43,226,.2); border-top:3px solid #8a2be2; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:1rem; }
+.spinner{ width:40px; height:40px; border:3px solid rgba(138,43,226,.2); border-top:3px solid var(--brew-accent); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:1rem; }
 @keyframes spin{ 0%{ transform: rotate(0deg);} 100%{ transform: rotate(360deg);} }
 
 /* Asset Icons */

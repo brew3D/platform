@@ -1426,8 +1426,8 @@ export default function LandingPage() {
               <div className={styles.footerColumn}>
                 <h4>Community</h4>
                 <Link href="/community">Discord</Link>
-                <Link href="https://twitter.com/nuvra" target="_blank" rel="noopener noreferrer">Twitter</Link>
-                <Link href="https://youtube.com/nuvra" target="_blank" rel="noopener noreferrer">YouTube</Link>
+                <Link href="https://twitter.com/brew3d" target="_blank" rel="noopener noreferrer">Twitter</Link>
+                <Link href="https://youtube.com/brew3d" target="_blank" rel="noopener noreferrer">YouTube</Link>
                 <Link href="/blog">Blog</Link>
               </div>
               

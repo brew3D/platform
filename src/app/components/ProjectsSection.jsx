@@ -10,11 +10,11 @@ export default function ProjectsSection({ projects = [], loading = false, active
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'In Progress': return '#8a2be2';
+      case 'In Progress': return '#6b4423';
       case 'Review': return '#ffd93d';
       case 'Draft': return '#4ecdc4';
       case 'Completed': return '#4ecdc4';
-      default: return '#667eea';
+      default: return '#8b5a2b';
     }
   };
 

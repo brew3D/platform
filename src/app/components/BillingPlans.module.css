@@ -42,7 +42,7 @@
 
 .planBadge.pro {
   background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(102, 126, 234, 0.2));
-  color: #8a2be2;
+  color: var(--brew-accent);
   border: 1px solid rgba(138, 43, 226, 0.3);
 }
 
@@ -169,7 +169,7 @@
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   padding: 0.5rem 1.5rem;
   border-radius: 20px;
@@ -247,7 +247,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #8a2be2, #667eea);
+  background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light));
   color: white;
   border: none;
   padding: 1rem 1.5rem;

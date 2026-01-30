@@ -1,0 +1,260 @@
+/* My tasks – coffee/beige theme, JIRA-style */
+.page {
+  padding: 0 0 2rem;
+  min-height: 100%;
+  background: #e8dfd0;
+  color: #2c2416;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2c2416;
+  margin: 0 0 0.25rem 0;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: #6b5d4f;
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.connectButton {
+  padding: 0.6rem 1.25rem;
+  background: #c4b498;
+  color: #2c2416;
+  border: 1px solid #b5a588;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.connectButton:hover:not(:disabled) {
+  background: #b5a588;
+}
+
+.connectButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.viewToggle {
+  display: flex;
+  border: 1px solid #c4b498;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.viewToggle button {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+  color: #4a4035;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.viewToggle .viewActive,
+.viewToggle button:hover {
+  background: #d4c4a8;
+  color: #2c2416;
+}
+
+.filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.filterBtn,
+.filterActive {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #c4b498;
+  background: #e8dfd0;
+  color: #4a4035;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.filterActive {
+  background: #d4c4a8;
+  color: #2c2416;
+  border-color: #b5a588;
+}
+
+.listWrap {
+  background: #f5f0e8;
+  border: 1px solid #d4c4a8;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: #e0d6c4;
+  color: #2c2416;
+  font-weight: 600;
+  border-bottom: 1px solid #d4c4a8;
+}
+
+.table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e8dfd0;
+}
+
+.row:hover {
+  background: #ebe5da;
+}
+
+.key {
+  font-family: monospace;
+  color: #6b4423;
+  font-weight: 500;
+}
+
+.summary {
+  font-weight: 500;
+}
+
+.typeTask,
+.typeBug,
+.typeStory {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.typeTask {
+  background: #d4c4a8;
+  color: #2c2416;
+}
+
+.typeBug {
+  background: #e8b4a0;
+  color: #5c2a1a;
+}
+
+.typeStory {
+  background: #a8c4d4;
+  color: #1a2a3a;
+}
+
+.priorityHigh,
+.priorityMedium,
+.priorityLow {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.priorityHigh {
+  background: #e8b4a0;
+  color: #5c2a1a;
+}
+
+.priorityMedium {
+  background: #e8d4a0;
+  color: #4a3a1a;
+}
+
+.priorityLow {
+  background: #c8d4b0;
+  color: #2a3a1a;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.column {
+  background: #f5f0e8;
+  border: 1px solid #d4c4a8;
+  border-radius: 12px;
+  padding: 1rem;
+  min-height: 320px;
+}
+
+.columnTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c2416;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #d4c4a8;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e0d6c4;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  cursor: default;
+}
+
+.cardKey {
+  font-size: 0.8rem;
+  color: #6b5d4f;
+  font-family: monospace;
+}
+
+.cardTitle {
+  margin: 0.35rem 0 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2c2416;
+}
+
+.cardMeta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mockNote {
+  font-size: 0.85rem;
+  color: #6b5d4f;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .board {
+    grid-template-columns: 1fr;
+  }
+}

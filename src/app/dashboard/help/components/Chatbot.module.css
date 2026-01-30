@@ -6,7 +6,7 @@
 }
 
 .chatButton {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
   border: none;
   border-radius: 50px;
@@ -81,7 +81,7 @@
 }
 
 .chatHeader {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
   padding: 1rem;
   display: flex;
@@ -169,7 +169,7 @@
 }
 
 .userMessage .messageContent {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
   border-bottom-right-radius: 4px;
 }
@@ -257,9 +257,9 @@
 }
 
 .questionChip:hover {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .inputContainer {
@@ -284,7 +284,7 @@
 }
 
 .messageInput:focus {
-  border-color: #8a2be2;
+  border-color: var(--brew-accent);
 }
 
 .messageInput::placeholder {
@@ -292,7 +292,7 @@
 }
 
 .sendButton {
-  background: #8a2be2;
+  background: var(--brew-accent);
   color: white;
   border: none;
   border-radius: 50%;

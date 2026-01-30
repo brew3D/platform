@@ -464,7 +464,7 @@ export const initializeAccessibility = () => {
   const style = document.createElement('style');
   style.textContent = `
     .keyboard-navigation *:focus {
-      outline: 2px solid #8a2be2 !important;
+      outline: 2px solid #6b4423 !important;
       outline-offset: 2px !important;
     }
     

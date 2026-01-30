@@ -20,16 +20,16 @@ export default function DemoProjectSettingsPage() {
       }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#1a1a1a' }}>
-            NUVRA Project Settings Demo
+            Brew 3D Project Settings Demo
           </h1>
           <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>
-            Beautiful project creation form inspired by Itch.io with white & purple theme
+            Beautiful project creation form inspired by Itch.io with white & brown theme
           </p>
         </div>
         <button
           onClick={() => router.push('/dashboard')}
           style={{
-            background: 'linear-gradient(135deg, #8a2be2 0%, #667eea 100%)',
+            background: 'linear-gradient(135deg, #6b4423 0%, #8b5a2b 100%)',
             color: 'white',
             border: 'none',
             padding: '0.75rem 1.5rem',

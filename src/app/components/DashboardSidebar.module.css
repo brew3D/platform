@@ -57,33 +57,19 @@
   transform: scale(1.05);
 }
 
-.logoIcon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
-  transition: all 0.3s ease;
-}
-
-.logoIcon svg {
-  color: white;
-  transition: all 0.3s ease;
-}
-
-.logoLink:hover .logoIcon {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.4);
+.logoImage {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
 }
 
 .logoText {
   font-size: 1.5rem;
   font-weight: 900;
   font-family: var(--font-space-grotesk);
-  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  background: linear-gradient(135deg, var(--brew-accent) 0%, var(--brew-accent-light) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -233,7 +219,7 @@
 }
 
 .navItem.active .navIcon {
-  color: #8a2be2;
+  color: var(--brew-accent);
 }
 
 .navLabel {
@@ -256,7 +242,7 @@
   transform: translateY(-50%);
   width: 4px;
   height: 20px;
-  background: linear-gradient(135deg, #8a2be2 0%, #667eea 100%);
+  background: linear-gradient(135deg, var(--brew-accent) 0%, var(--brew-accent-light) 100%);
   border-radius: 2px;
   box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
   z-index: 1;

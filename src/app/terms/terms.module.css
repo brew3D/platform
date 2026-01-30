@@ -33,16 +33,26 @@
 .logo {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
 }
 
 .logoLink {
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logoImage {
+  height: 2rem;
+  width: auto;
+  object-fit: contain;
 }
 
 .logoText {
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -63,7 +73,7 @@
 }
 
 .navLink:hover {
-  color: #667eea;
+  color: var(--brew-accent-light);
 }
 
 .navLink::after {
@@ -73,7 +83,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   transition: width 0.3s ease;
 }
 
@@ -82,7 +92,7 @@
 }
 
 .navButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -99,7 +109,7 @@
 /* Hero Section */
 .hero {
   padding: 4rem 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   color: white;
   text-align: center;
   position: relative;
@@ -191,7 +201,7 @@
   left: 0;
   width: 60px;
   height: 3px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   border-radius: 2px;
 }
 
@@ -222,7 +232,7 @@
 }
 
 .sectionContent li::marker {
-  color: #667eea;
+  color: var(--brew-accent-light);
   font-weight: bold;
 }
 
@@ -230,7 +240,7 @@
   background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
   padding: 1.5rem;
   border-radius: 12px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--brew-accent-light);
   margin-top: 1rem;
 }
 
@@ -261,7 +271,7 @@
 .footerBrand .logoText {
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--brew-accent-light) 0%, var(--brew-accent-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -297,7 +307,7 @@
 }
 
 .footerColumn a:hover {
-  color: #667eea;
+  color: var(--brew-accent-light);
 }
 
 .footerBottom {
@@ -325,7 +335,7 @@
 }
 
 .footerLegal a:hover {
-  color: #667eea;
+  color: var(--brew-accent-light);
 }
 
 /* Responsive Design */

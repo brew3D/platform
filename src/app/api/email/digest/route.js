@@ -434,14 +434,14 @@ function generateEmailHTML(content) {
       <title>Weekly Digest</title>
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #8a2be2, #667eea); color: white; padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px; }
+        .header { background: linear-gradient(135deg, #6b4423, #8b5a2b); color: white; padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px; }
         .section { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; }
-        .section h2 { color: #8a2be2; margin-top: 0; }
-        .post-item, .event-item { margin-bottom: 15px; padding: 15px; background: white; border-radius: 5px; border-left: 4px solid #8a2be2; }
-        .badge-item { display: inline-block; margin: 5px; padding: 10px; background: #8a2be2; color: white; border-radius: 20px; font-size: 14px; }
+        .section h2 { color: #6b4423; margin-top: 0; }
+        .post-item, .event-item { margin-bottom: 15px; padding: 15px; background: white; border-radius: 5px; border-left: 4px solid #6b4423; }
+        .badge-item { display: inline-block; margin: 5px; padding: 10px; background: #6b4423; color: white; border-radius: 20px; font-size: 14px; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px; }
         .stat-item { text-align: center; padding: 15px; background: white; border-radius: 5px; }
-        .stat-value { font-size: 24px; font-weight: bold; color: #8a2be2; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #6b4423; }
         .footer { text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; color: #666; }
       </style>
     </head>
@@ -525,7 +525,7 @@ function generateEmailHTML(content) {
 
       <div class="footer">
         <p>Thanks for being part of our community!</p>
-        <p><a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}" style="color: #8a2be2;">Visit Community</a></p>
+        <p><a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}" style="color: #6b4423;">Visit Community</a></p>
       </div>
     </body>
     </html>

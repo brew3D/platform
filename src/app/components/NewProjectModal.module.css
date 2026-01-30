@@ -2,8 +2,8 @@
 .modal{ width:min(680px,92vw); background:#fff; border-radius:16px; border:1px solid rgba(138,43,226,.2); box-shadow:0 20px 60px rgba(0,0,0,.2); overflow:hidden; animation:pop .2s ease-out; }
 @keyframes pop{ from{ transform:scale(.98); opacity:.6;} to{ transform:scale(1); opacity:1;} }
 .header{ display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; border-bottom:1px solid rgba(138,43,226,.15);} 
-.header h2{ margin:0; font-size:1.25rem; font-weight:900; background:linear-gradient(135deg,#8a2be2,#667eea); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-.closeBtn{ border:none; background:transparent; font-size:1.25rem; cursor:pointer; color:#8a2be2; }
+.header h2{ margin:0; font-size:1.25rem; font-weight:900; background:linear-gradient(135deg,var(--brew-accent),var(--brew-accent-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.closeBtn{ border:none; background:transparent; font-size:1.25rem; cursor:pointer; color:var(--brew-accent); }
 .body{ padding:1rem 1.25rem; display:grid; gap:.9rem; }
 .field{ display:grid; gap:.35rem; }
 .field span{ color:#1a1a2e; font-weight:700; }
@@ -12,17 +12,17 @@
 .teamSection{ display:grid; gap:.5rem; }
 .teamHeader{ display:flex; align-items:center; justify-content:space-between; }
 .teamHeader span{ color:#1a1a2e; font-weight:700; }
-.inviteLink{ color:#8a2be2; font-weight:700; text-decoration:none; }
+.inviteLink{ color:var(--brew-accent); font-weight:700; text-decoration:none; }
 .teamPicker{ position:relative; display:grid; gap:.35rem; }
 .teamPicker input{ border:2px solid rgba(138,43,226,.2); border-radius:10px; padding:.6rem .75rem; color:#1a1a2e; }
 .teamPicker input::placeholder{ color:#999; }
 .searching{ color:#666; font-size:.9rem; }
 .noResults{ color:#666; font-size:.9rem; }
-.noResults a{ color:#8a2be2; font-weight:700; }
+.noResults a{ color:var(--brew-accent); font-weight:700; }
 .results{ max-height:220px; overflow:auto; border:1px solid rgba(138,43,226,.15); border-radius:10px; }
 .resultItem{ display:flex; align-items:center; gap:.6rem; width:100%; text-align:left; background:#fff; border:none; padding:.5rem .6rem; cursor:pointer; border-bottom:1px solid rgba(138,43,226,.08);} 
 .resultItem:hover{ background:rgba(138,43,226,.06);} 
-.avatar{ width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,#8a2be2,#667eea); color:#fff; display:grid; place-items:center; font-weight:900; }
+.avatar{ width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,var(--brew-accent),var(--brew-accent-light)); color:#fff; display:grid; place-items:center; font-weight:900; }
 .resultInfo{ display:grid; }
 .resultName{ font-weight:700; color:#1a1a2e; }
 .resultEmail{ color:#666; font-size:.85rem; }
@@ -30,7 +30,7 @@
 .selectedChip{ display:flex; align-items:center; gap:.35rem; background:rgba(138,43,226,.08); border:1px solid rgba(138,43,226,.2); color:#1a1a2e; padding:.25rem .5rem; border-radius:999px; }
 .selectedChip button{ border:none; background:transparent; cursor:pointer; color:#1a1a2e; }
 .footer{ display:flex; align-items:center; justify-content:flex-end; gap:.5rem; padding:1rem 1.25rem; border-top:1px solid rgba(138,43,226,.15);} 
-.cancelBtn{ background:#fff; border:2px solid rgba(138,43,226,.2); color:#8a2be2; border-radius:10px; padding:.6rem .9rem; font-weight:700; }
-.createBtn{ background:linear-gradient(135deg,#8a2be2,#667eea); color:#fff; border:none; border-radius:10px; padding:.6rem 1rem; font-weight:800; }
+.cancelBtn{ background:#fff; border:2px solid rgba(138,43,226,.2); color:var(--brew-accent); border-radius:10px; padding:.6rem .9rem; font-weight:700; }
+.createBtn{ background:linear-gradient(135deg,var(--brew-accent),var(--brew-accent-light)); color:#fff; border:none; border-radius:10px; padding:.6rem 1rem; font-weight:800; }
 .createBtn:disabled{ opacity:.6; }
 

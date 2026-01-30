@@ -132,8 +132,8 @@ export async function POST(request) {
       branding: {
         logo: branding?.logo || '',
         favicon: branding?.favicon || '',
-        primaryColor: branding?.primaryColor || '#8a2be2',
-        secondaryColor: branding?.secondaryColor || '#667eea',
+        primaryColor: branding?.primaryColor || '#6b4423',
+        secondaryColor: branding?.secondaryColor || '#8b5a2b',
         accentColor: branding?.accentColor || '#f8f9ff',
         fontFamily: branding?.fontFamily || 'Inter, system-ui, sans-serif',
         customCSS: branding?.customCSS || '',

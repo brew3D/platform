@@ -43,8 +43,8 @@ export default function RevenueDashboard({ data, creatorType, onPayoutSetup }) {
 
   const getCreatorTypeInfo = (type) => {
     const types = {
-      template: { name: 'Template Creator', color: '#8a2be2', icon: '🎮' },
-      asset: { name: 'Asset Creator', color: '#667eea', icon: '🎨' },
+      template: { name: 'Template Creator', color: '#6b4423', icon: '🎮' },
+      asset: { name: 'Asset Creator', color: '#8b5a2b', icon: '🎨' },
       game: { name: 'Game Creator', color: '#4ecdc4', icon: '🚀' }
     };
     return types[type] || types.template;
@@ -139,7 +139,7 @@ export default function RevenueDashboard({ data, creatorType, onPayoutSetup }) {
                   className={styles.breakdownBarFill}
                   style={{ 
                     width: `${(amount / data.totalEarnings) * 100}%`,
-                    '--breakdown-color': type === 'games' ? '#4ecdc4' : type === 'assets' ? '#667eea' : '#8a2be2'
+                    '--breakdown-color': type === 'games' ? '#4ecdc4' : type === 'assets' ? '#8b5a2b' : '#6b4423'
                   }}
                 ></div>
               </div>
