@@ -4,6 +4,17 @@ sim-backend/venv/
 .env
 .env.*
 
+# Internal roadmap / context (do not commit)
+SourceOfTruth.txt
+Info/
+ROADMAP.md
+*roadmap*
+*Roadmap*
+*context*
+*Context*
+Context/
+Roadmap/
+
 # Build outputs
 .next/
 dist/
