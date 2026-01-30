@@ -22,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-  title: "Brew3D — Build 3D Worlds with AI",
+  title: "Brew 3D | Infra to your dev",
   description: "Collaborate, render, and create 3D worlds together — right from your browser. AI-powered 3D creation platform for modern creators.",
   keywords: "3D modeling, AI, collaboration, cloud rendering, 3D creation, browser-based, real-time collaboration",
   authors: [{ name: "Brew3D Team" }],
@@ -34,7 +34,7 @@ export const metadata = {
     apple: "/brew3d-logo.png",
   },
   openGraph: {
-    title: "Brew3D — Build 3D Worlds with AI",
+    title: "Brew 3D | Infra to your dev",
     description: "Collaborate, render, and create 3D worlds together — right from your browser.",
     url: process.env.NEXT_PUBLIC_SITE_URL || "https://brew3d.com",
     siteName: "Brew3D",
@@ -51,7 +51,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Brew3D — Build 3D Worlds with AI",
+    title: "Brew 3D | Infra to your dev",
     description: "Collaborate, render, and create 3D worlds together — right from your browser.",
     images: ["/meta/og-image.png"],
   },

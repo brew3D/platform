@@ -326,7 +326,7 @@ export default function DashboardNavbar({ user }) {
                 </div>
                 <div className={styles.profileDetails}>
                   <h4>{getDisplayName(user)}</h4>
-                  <p>{user?.email || 'user@example.com'}</p>
+                  {user?.email ? <p>{user.email}</p> : null}
                 </div>
               </div>
               

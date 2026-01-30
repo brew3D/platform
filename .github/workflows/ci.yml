@@ -14,8 +14,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile
+      - run: yarn run lint
+      - run: yarn run build
 
 

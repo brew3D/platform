@@ -165,7 +165,7 @@ export default function DashboardTopbar({ user, onSidebarToggle }) {
                 </div>
                 <div className={styles.profileDetails}>
                   <h4>{user?.name || 'User'}</h4>
-                  <p>{user?.email || 'user@example.com'}</p>
+                  {user?.email ? <p>{user.email}</p> : null}
                 </div>
               </div>
               

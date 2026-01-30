@@ -1,33 +1,21 @@
 import { NextResponse } from 'next/server';
-import { 
-  getDynamoDocClient 
-} from '@/app/lib/dynamodb';
-import { 
-  GetCommand, 
-  UpdateCommand, 
-  DeleteCommand 
-} from '@aws-sdk/lib-dynamodb';
-
-const docClient = getDynamoDocClient();
+import { getCharacterById, updateCharacter, deleteCharacter } from '@/app/lib/supabase-operations';
 
 // GET /api/characters/[id]
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
-    
-    const result = await docClient.send(new GetCommand({
-      TableName: 'ruchi-ai-characters',
-      Key: { characterId: id }
-    }));
-    
-    if (!result.Item) {
+    const { id } = await params;
+
+    const character = await getCharacterById(id);
+
+    if (!character) {
       return NextResponse.json(
         { error: 'Character not found' },
         { status: 404 }
       );
     }
-    
-    return NextResponse.json({ character: result.Item });
+
+    return NextResponse.json({ character });
   } catch (error) {
     console.error('Error fetching character:', error);
     return NextResponse.json(
@@ -40,40 +28,14 @@ export async function GET(request, { params }) {
 // PUT /api/characters/[id]
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
-    const timestamp = new Date().toISOString();
-    
-    const updateExpressions = [];
-    const expressionAttributeNames = {};
-    const expressionAttributeValues = {};
 
-    // Build update expression dynamically
-    Object.keys(body).forEach((key, index) => {
-      const nameKey = `#attr${index}`;
-      const valueKey = `:val${index}`;
-      
-      updateExpressions.push(`${nameKey} = ${valueKey}`);
-      expressionAttributeNames[nameKey] = key;
-      expressionAttributeValues[valueKey] = body[key];
-    });
+    const { character } = await updateCharacter(id, body);
 
-    updateExpressions.push('#updatedAt = :updatedAt');
-    expressionAttributeNames['#updatedAt'] = 'updatedAt';
-    expressionAttributeValues[':updatedAt'] = timestamp;
-
-    const result = await docClient.send(new UpdateCommand({
-      TableName: 'ruchi-ai-characters',
-      Key: { characterId: id },
-      UpdateExpression: `SET ${updateExpressions.join(', ')}`,
-      ExpressionAttributeNames: expressionAttributeNames,
-      ExpressionAttributeValues: expressionAttributeValues,
-      ReturnValues: 'ALL_NEW'
-    }));
-    
-    return NextResponse.json({ 
-      success: true, 
-      character: result.Attributes 
+    return NextResponse.json({
+      success: true,
+      character
     });
   } catch (error) {
     console.error('Error updating character:', error);
@@ -87,13 +49,10 @@ export async function PUT(request, { params }) {
 // DELETE /api/characters/[id]
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
-    
-    await docClient.send(new DeleteCommand({
-      TableName: 'ruchi-ai-characters',
-      Key: { characterId: id }
-    }));
-    
+    const { id } = await params;
+
+    await deleteCharacter(id);
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting character:', error);

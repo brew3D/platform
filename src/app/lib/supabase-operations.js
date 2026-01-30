@@ -718,6 +718,52 @@ export const getProjectCharacters = async (projectId) => {
   }
 };
 
+export const getCharacterById = async (characterId) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('characters')
+      .select('*')
+      .eq('character_id', characterId)
+      .single();
+
+    if (error) throw error;
+    return data ? fromSupabaseFormat(data) : null;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateCharacter = async (characterId, updates) => {
+  const payload = toSupabaseFormat({ ...updates, updatedAt: getCurrentTimestamp() });
+  try {
+    const { data, error } = await getSupabase()
+      .from('characters')
+      .update(payload)
+      .eq('character_id', characterId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, character: fromSupabaseFormat(data) };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteCharacter = async (characterId) => {
+  try {
+    const { error } = await getSupabase()
+      .from('characters')
+      .delete()
+      .eq('character_id', characterId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    throw error;
+  }
+};
+
 // ===== ASSET OPERATIONS =====
 
 export const createAsset = async (assetData) => {

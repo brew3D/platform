@@ -56,7 +56,7 @@ export default function ProfileTab({ user }) {
           </div>
           <div className={styles.profileInfo}>
             <h2>{user?.name || 'User'}</h2>
-            <p>{user?.email || 'user@example.com'}</p>
+            {user?.email ? <p>{user.email}</p> : null}
             <span className={styles.memberSince}>Member since 2024</span>
           </div>
         </div>

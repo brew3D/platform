@@ -1,20 +1,9 @@
-import { DeleteCommand, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
-import { getDynamoDocClient } from './dynamodb';
-import { TABLE_NAMES, GSI_NAMES } from './dynamodb-schema';
-
-const docClient = getDynamoDocClient();
+// Stub: AWS removed; use Supabase or external service for GDPR delete
+import { getSupabaseAdmin } from './supabase.js';
 
 export async function deleteUserAndData(userId) {
-  // Delete user record
-  await docClient.send(new DeleteCommand({ TableName: TABLE_NAMES.USERS, Key: { userId } }));
-
-  // Delete posts by user (scan + filter for MVP)
-  const posts = await docClient.send(new ScanCommand({ TableName: TABLE_NAMES.COMMUNITY_POSTS }));
-  const myPosts = (posts.Items || []).filter(p => p.userId === userId);
-  for (const p of myPosts) {
-    await docClient.send(new DeleteCommand({ TableName: TABLE_NAMES.COMMUNITY_POSTS, Key: { postId: p.postId } }));
-  }
-  // Extend: projects, assets, chats, etc.
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return;
+  await supabase.from('users').delete().eq('id', userId);
+  // Extend: delete related rows in other tables as needed
 }
-
-
