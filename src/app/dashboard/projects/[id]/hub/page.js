@@ -282,7 +282,7 @@ export default function ProjectHubPage() {
               <div id="builds" className={styles.analytics} style={{ marginTop: "1rem" }}>
                 <h2>Builds</h2>
                 {builds.length === 0 ? (
-                  <p style={{ color: "var(--text-secondary)", margin: 0 }}>No builds yet. Click "Create new build" above.</p>
+                  <p style={{ color: "var(--text-secondary)", margin: 0 }}>No builds yet. Click &quot;Create new build&quot; above.</p>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
                     {builds.slice(0, 5).map((build) => {

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 .PHONY: dev frontend backend install
 
-dev: ## Start full development environment (frontend + backend)
+dev: ## Start full development environment (seed users + frontend + backend)
 	@chmod +x ./start-dev.sh
 	@./start-dev.sh
 

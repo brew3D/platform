@@ -59,6 +59,9 @@ fi
 print_status "Installing frontend dependencies..."
 yarn install
 
+print_status "Seeding dev users (Supabase)..."
+yarn run seed:users 2>/dev/null || npm run seed:users 2>/dev/null || true
+
 print_status "Setting up backend virtual environment..."
 cd sim-backend
 
