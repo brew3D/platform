@@ -59,30 +59,49 @@ export async function POST(request) {
 
     // Generate unique filename
     const fileExt = file.name.split('.').pop();
-    const fileName = `${auth.userId}-${Date.now()}.${fileExt}`;
+    const fileName = `${userIdToUpdate}-${Date.now()}.${fileExt}`;
     const filePath = `avatars/${fileName}`;
 
-    // Upload to Supabase Storage
-    // Note: Create 'avatars' bucket in Supabase Storage with public access
+    // Upload to Supabase Storage using admin client
+    // Admin client should bypass RLS, but we need to ensure bucket exists and is configured
+    console.log('Uploading avatar to:', filePath, 'Size:', buffer.length, 'bytes');
+    
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(filePath, buffer, {
         contentType: file.type,
-        upsert: true // Allow overwriting existing files
+        upsert: true, // Allow overwriting existing files
+        cacheControl: '3600'
       });
 
     if (uploadError) {
       console.error('Avatar upload error:', uploadError);
+      console.error('Upload error details:', JSON.stringify(uploadError, null, 2));
+      
       // If bucket doesn't exist, return error with instructions
-      if (uploadError.message?.includes('Bucket') || uploadError.message?.includes('not found')) {
+      if (uploadError.message?.includes('Bucket') || uploadError.message?.includes('not found') || uploadError.statusCode === '404') {
         return NextResponse.json(
           { 
-            message: 'Storage bucket not configured. Please create an "avatars" bucket in Supabase Storage.',
-            error: uploadError.message 
+            message: 'Storage bucket not configured. Please create an "avatars" bucket in Supabase Storage (Dashboard > Storage > New Bucket). Make it public for reads.',
+            error: uploadError.message,
+            instructions: '1. Go to Supabase Dashboard > Storage\n2. Click "New Bucket"\n3. Name it "avatars"\n4. Make it public\n5. Save'
           },
           { status: 500 }
         );
       }
+      
+      // If RLS policy error, provide instructions
+      if (uploadError.statusCode === '403' || uploadError.message?.includes('row-level security')) {
+        return NextResponse.json(
+          { 
+            message: 'Storage RLS policy blocking upload. Please configure the avatars bucket to allow uploads, or run the storage-setup.sql script.',
+            error: uploadError.message,
+            instructions: 'The service role should bypass RLS. Check that:\n1. The "avatars" bucket exists\n2. The bucket allows uploads\n3. Your Supabase service role key is correct'
+          },
+          { status: 500 }
+        );
+      }
+      
       return NextResponse.json(
         { message: 'Failed to upload avatar', error: uploadError.message },
         { status: 500 }
@@ -99,6 +118,8 @@ export async function POST(request) {
     // Update user profile with new avatar URL
     // Use the actual user_id from the found user, not auth.userId (in case they differ)
     const userIdToUpdate = currentUser.userId || currentUser.user_id || auth.userId;
+    
+    console.log('Updating user profile with avatar URL:', avatarUrl, 'for userId:', userIdToUpdate);
     const result = await updateUser(userIdToUpdate, { profilePicture: avatarUrl });
 
     if (!result.success) {
