@@ -279,7 +279,29 @@ export default function TeamPage() {
         ownerName: user.name || user.email || 'Unknown User'
       };
       console.log('Creating team with data:', teamData);
-      console.error('Error creating team:', error);
+      // Attempt server create, fallback to localStorage on failure
+      try {
+        const response = await fetch('/api/teams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(teamData)
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.team) {
+            setTeams([data.team, ...teams]);
+            setSelectedTeam(data.team);
+            setShowCreateTeam(false);
+            setNewTeamName('');
+            setNewTeamDescription('');
+            try { localStorage.setItem(`teams_${user.userId}`, JSON.stringify([data.team, ...teams])); } catch (e) { console.error(e); }
+            alert('Team created successfully');
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error creating team on server:', error);
+      }
       // Fallback: create team in localStorage for development
       try {
         const teamId = `team_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -317,6 +339,9 @@ export default function TeamPage() {
         console.error('Error creating team fallback:', fallbackError);
         alert('Failed to create team. Please try again.');
       }
+    } catch (error) {
+      console.error('Error creating team:', error);
+      alert('Failed to create team. Please try again.');
     }
   };
 
@@ -909,5 +934,6 @@ export default function TeamPage() {
     </div>
   );
 }
+
 
 
