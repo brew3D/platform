@@ -1,0 +1,215 @@
+# Unimplemented Features - Ticket List
+
+## Engine Integrations
+
+UEI-001: Unreal Engine Integration - Repo Linking
+- Connect Unreal Engine projects via Git repository
+- Validate Unreal project structure (.uproject file detection)
+- Sync engine version and project settings
+- Status: Placeholder exists, needs real implementation
+
+UEI-002: Unreal Engine Integration - Cloud Preview
+- Spin up cloud VM with Unreal Engine installed
+- Stream Play-in-Editor via WebRTC/Pixel Streaming
+- Real-time input forwarding (keyboard, mouse, gamepad)
+- Status: Placeholder message exists in test page
+
+UEI-003: Unreal Engine Integration - CI/CD Build System
+- Deterministic builds for Unreal projects
+- Build logs and artifact storage
+- Crash log collection and analysis
+- Video recordings of test runs
+- Status: Builds API returns placeholder data
+
+UTI-001: Unity Integration - Repo Linking
+- Connect Unity projects via Git repository
+- Validate Unity project structure (Assets folder, ProjectSettings)
+- Sync Unity version and project settings
+- Status: Not implemented (only Unreal mentioned in code)
+
+UTI-002: Unity Integration - Cloud Preview
+- Spin up cloud VM with Unity installed
+- Stream Play Mode via WebRTC
+- Real-time input forwarding
+- Status: Not implemented
+
+UTI-003: Unity Integration - CI/CD Build System
+- Deterministic builds for Unity projects
+- Build logs and artifact storage
+- Crash log collection
+- Status: Not implemented
+
+GOI-001: Godot Integration - Repo Linking
+- Connect Godot projects via Git repository
+- Validate Godot project structure (project.godot file)
+- Sync Godot version
+- Status: Not implemented
+
+GOI-002: Godot Integration - Cloud Preview
+- Spin up cloud VM with Godot installed
+- Stream Play Mode via WebRTC
+- Real-time input forwarding
+- Status: Not implemented
+
+GOI-003: Godot Integration - CI/CD Build System
+- Deterministic builds for Godot projects
+- Build logs and artifact storage
+- Status: Not implemented
+
+## Core Features
+
+OB-001: Flow System - Complete Implementation
+- Flow graphs UI (currently shows "coming soon")
+- Level/state transitions visualization
+- Mechanics breakdown (input → raycast → collision → damage)
+- Player journey mapping
+- Status: Flow page exists but incomplete
+
+OB-002: Flow System - AI Integration
+- AI explanation of game flow
+- Detect missing logic in flow
+- Suggest next steps based on flow
+- Map flow concepts to engine concepts
+- Status: Not implemented
+
+OB-003: Asset Registry - External Asset Linking
+- Link assets from Unreal Marketplace
+- Link assets from Unity Asset Store
+- Link assets from Sketchfab
+- License tracking (free vs paid)
+- Status: Basic asset upload exists, external linking missing
+
+OB-004: Asset Registry - Usage Tracking
+- Track where assets are used in project
+- Show asset dependencies
+- Preview via GLB/GLTF (exists but needs enhancement)
+- Status: Partial implementation
+
+OB-005: Scripts - Read-Only Code Browser
+- Browse engine-native code/Blueprints
+- Syntax highlighting for engine scripts
+- File tree navigation
+- Status: Not implemented
+
+OB-006: Scripts - Diff Viewer
+- View diffs between builds
+- Side-by-side code comparison
+- Highlight changes in Blueprints/scripts
+- Status: Not implemented
+
+OB-007: Scripts - AI Explanations
+- AI explanations of script functionality
+- AI-proposed patches (with approval workflow)
+- Never silent changes - all go through git commits
+- Status: Not implemented
+
+OB-008: Engine Repo Linking - Full Implementation
+- Git repository connection UI
+- Branch selection and validation
+- Sync status monitoring
+- Webhook setup for auto-sync
+- Status: Placeholder exists in hub page
+
+OB-009: Game CI/CD - Deterministic Builds
+- Reproducible build environments
+- Exact engine version installation
+- Build artifact storage
+- Status: Placeholder in builds API
+
+OB-010: Game CI/CD - Build Logs & Crash Analysis
+- Detailed build logs
+- Crash log parsing and analysis
+- Video recordings of test runs
+- Status: Not implemented
+
+OB-011: Game CI/CD - Build Triggers
+- Manual build trigger
+- Git commit webhook trigger
+- AI change trigger
+- Scheduled builds
+- Status: Not implemented
+
+OB-012: AI Agent "Mug" - Full Implementation
+- Understand entire project context
+- Read flow, assets, scripts, logs
+- Diagnose build failures
+- Propose fixes with explanations
+- Status: MugPanel exists but needs full AI integration
+
+OB-013: Scene & Map Preview - Enhanced Features
+- GLB/GLTF scene preview (exists but basic)
+- Camera controls enhancement
+- 3D annotations & comments
+- AI explanations of scene structure
+- Status: Basic preview exists, needs enhancement
+
+OB-014: Docs & Knowledge Base - AI-Linked References
+- Link docs to code & flow nodes
+- Auto-update references when code changes
+- Context-aware documentation
+- Status: Basic docs CRUD exists, AI linking missing
+
+OB-015: Versioning - Timeline View
+- User-friendly timeline of changes
+- Snapshot management UI
+- Rollback functionality
+- Plain English diff explanations
+- Status: Snapshots exist but timeline view incomplete
+
+## Code Cleanup & Config
+
+CC-001: Remove Placeholder Data
+- Replace placeholder build data with real API calls
+- Remove "coming soon" messages with actual features
+- Complete stub API routes (collaboration, integrations, etc.)
+- Status: Many routes stubbed after AWS removal
+
+CC-002: Profile Update API Implementation
+- Complete profile update endpoints
+- Avatar upload functionality
+- User preference persistence
+- Status: TODOs exist in ProfileSettings.jsx
+
+CC-003: Billing Plan Upgrade Logic
+- Implement plan upgrade flow
+- Payment processing integration
+- Subscription cancellation handling
+- Status: TODOs exist in BillingPlans.jsx
+
+CC-004: Character API - Full CRUD
+- Replace placeholder character API calls
+- Persist character data via API
+- Character detail page API integration
+- Status: TODOs exist in character pages
+
+CC-005: JIRA Integration for Tasks
+- Connect JIRA to sync game dev backlog
+- Task synchronization
+- Status: "Coming soon" message in tasks page
+
+CC-006: PDF/Word Document Support
+- Support PDF and Word document uploads
+- Document preview functionality
+- Status: "Coming soon" in docs page
+
+CC-007: Engine Preview - Real Implementation
+- Replace placeholder preview with actual streaming
+- Cloud VM provisioning
+- WebRTC/Pixel Streaming setup
+- Status: Placeholder message in test page
+
+CC-008: Template Gallery - Real Data Integration
+- Connect template gallery to database
+- Template installation system
+- Template marketplace integration
+- Status: Mock data exists, needs real backend
+
+CC-009: Team Direct Messaging
+- Implement team chat functionality
+- Real-time messaging
+- Status: "Coming soon" alert in team page
+
+CC-010: Supabase Table Creation
+- Create missing tables (ai_moderation, branding_settings, translations, etc.)
+- Migrate from DynamoDB schema to Supabase
+- Status: Notes in code mention tables may not exist

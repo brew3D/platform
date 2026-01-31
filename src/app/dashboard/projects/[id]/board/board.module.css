@@ -1,0 +1,169 @@
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1.25rem;
+  color: #8B5A2B;
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 2rem;
+  text-align: center;
+  color: #991B1B;
+  background: #FEE2E2;
+  margin: 2rem;
+  border-radius: 12px;
+  border: 2px solid #FCA5A5;
+}
+
+.error h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+}
+
+.error p {
+  margin: 0.5rem 0;
+  color: #7F1D1D;
+  line-height: 1.6;
+}
+
+.error code {
+  background: #FEF2F2;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: monospace;
+  color: #991B1B;
+}
+
+/* Welcome Screen */
+.welcome {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(to bottom, #FFFBF7, #F5F1EB);
+}
+
+.welcomeContent {
+  max-width: 600px;
+  text-align: center;
+  background: #FFFFFF;
+  padding: 3rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(107, 68, 35, 0.1);
+}
+
+.welcomeIcon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.welcomeContent h1 {
+  margin: 0 0 1rem 0;
+  font-size: 2rem;
+  color: #6B4423;
+  font-weight: 600;
+}
+
+.welcomeDescription {
+  font-size: 1.1rem;
+  color: #8B5A2B;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.freeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #DEF7EC, #ECFDF5);
+  border: 2px solid #10B981;
+  border-radius: 12px;
+  color: #065F46;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
+
+.badgeIcon {
+  font-size: 1.25rem;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 2rem 0;
+  text-align: left;
+}
+
+.feature {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.featureIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.feature h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  color: #6B4423;
+}
+
+.feature p {
+  margin: 0;
+  color: #8B5A2B;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.createButton {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #8B5A2B, #6B4423);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(139, 90, 43, 0.3);
+  margin-top: 1rem;
+}
+
+.createButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(139, 90, 43, 0.4);
+}
+
+.createButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.errorMessage {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #FEE2E2;
+  border: 1px solid #FCA5A5;
+  border-radius: 8px;
+  color: #991B1B;
+  text-align: left;
+}
+
+.errorMessage p {
+  margin: 0;
+  font-size: 0.9rem;
+}
