@@ -333,13 +333,32 @@
 
 /* No Team State */
 .noTeam { display: flex; align-items: center; justify-content: center; min-height: 400px; }
-.noTeamContent { text-align: center; max-width: 500px; }
+.noTeamContent { text-align: center; max-width: 600px; }
 .emptyIcon { color: var(--brew-accent); margin-bottom: 1.5rem; opacity: 0.8; }
 .noTeamContent h2 { color: #ffffff; margin-bottom: 1rem; font-size: 1.8rem; }
 .noTeamContent p { color: #a0a0a0; margin-bottom: 2rem; font-size: 1.1rem; line-height: 1.6; }
-.emptyActions { display: flex; flex-direction: column; gap: 1rem; align-items: center; }
+.emptyActions { display: flex; flex-direction: row; gap: 1rem; align-items: center; justify-content: center; }
 .selectTeamButton { background: transparent; border: 1px solid rgba(138, 43, 226, 0.3); color: var(--brew-accent); padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
 .selectTeamButton:hover { background: rgba(138, 43, 226, 0.1); border-color: var(--brew-accent); }
+
+/* Join Modal */
+.modalJoinOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: grid; place-items: center; z-index: 1200; }
+.joinModal { background: #0f0f17; border: 1px solid rgba(138,43,226,0.12); padding: 1.25rem; border-radius: 12px; width: 420px; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+.joinModal h3 { margin: 0 0 0.75rem 0; }
+.joinInput { width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: #1a1a2e; color: #fff; margin-bottom: 0.75rem; }
+.joinButtons { display: flex; gap: .5rem; justify-content: flex-end; }
+.joinButton { background: linear-gradient(135deg, var(--brew-accent), var(--brew-accent-light)); color: white; border: none; padding: .6rem 1rem; border-radius: 8px; cursor: pointer; }
+.cancelJoin { background: transparent; border: 1px solid rgba(255,255,255,0.08); color: #fff; padding: .5rem .85rem; border-radius: 8px; cursor: pointer; }
+.joinStatus { margin-top: .5rem; color: #a0a0a0; font-size: .9rem; }
+
+/* Pending Requests */
+.pendingBox { margin-top: 1rem; background: rgba(255,255,255,.02); border: 1px solid rgba(138,43,226,.12); border-radius: 10px; padding: .75rem; }
+.pendingList { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.pendingRow { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .5rem; border-radius: 8px; background: rgba(255,255,255,.01); }
+.requestMeta { display: block; color: #a0a0a0; font-size: .85rem; }
+.requestActions { display: flex; gap: .5rem; }
+.approveButton { background: linear-gradient(135deg, #34d399, #10b981); border: none; color: white; padding: .4rem .6rem; border-radius: 6px; cursor: pointer; }
+.rejectButton { background: transparent; border: 1px solid rgba(255,255,255,.06); color: #fff; padding: .4rem .6rem; border-radius: 6px; cursor: pointer; }
 
 /* Controls */
 .controlsRow { display: flex; gap: .75rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }

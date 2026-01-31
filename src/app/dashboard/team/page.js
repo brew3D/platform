@@ -33,6 +33,9 @@ export default function TeamPage() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('editor');
   const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [showJoinTeam, setShowJoinTeam] = useState(false);
+  const [joinTeamId, setJoinTeamId] = useState('');
+  const [joinStatus, setJoinStatus] = useState(null); // null | 'submitted' | 'already' | 'error'
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamDescription, setNewTeamDescription] = useState('');
   const [messages, setMessages] = useState([]);
@@ -40,7 +43,23 @@ export default function TeamPage() {
   const [loading, setLoading] = useState(true);
   const [forceUpdate, setForceUpdate] = useState(0);
   const [teamProjects, setTeamProjects] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
   const statusIntervalRef = useRef(null);
+
+  // Load pending requests for selected team when viewing as owner
+  useEffect(() => {
+    try {
+      if (selectedTeam && selectedTeam.teamId) {
+        const key = `team_join_requests_${selectedTeam.teamId}`;
+        const stored = localStorage.getItem(key);
+        setPendingRequests(stored ? JSON.parse(stored) : []);
+      } else {
+        setPendingRequests([]);
+      }
+    } catch (err) {
+      setPendingRequests([]);
+    }
+  }, [selectedTeam]);
 
   // Watch for user changes
   useEffect(() => {
@@ -190,6 +209,58 @@ export default function TeamPage() {
     }
   };
 
+  // Submit a join request for a team (local fallback)
+  const submitJoinRequest = (teamId) => {
+    if (!teamId || !teamId.trim()) return setJoinStatus('error');
+    if (!isAuthenticated || !user?.userId) return alert('Please log in to join a team');
+
+    const key = `team_join_requests_${teamId}`;
+    try {
+      const req = { userId: user.userId, name: user.name || user.email, email: user.email, requestedAt: new Date().toISOString(), status: 'pending' };
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      if (existing.find(r => r.userId === req.userId)) {
+        setJoinStatus('already');
+        return;
+      }
+      existing.push(req);
+      localStorage.setItem(key, JSON.stringify(existing));
+      setJoinStatus('submitted');
+    } catch (err) {
+      console.error('Error submitting join request:', err);
+      setJoinStatus('error');
+    }
+  };
+
+  // Approve a pending join (local-only)
+  const approveJoinRequest = (request) => {
+    if (!selectedTeam) return;
+    const team = { ...selectedTeam };
+    team.members = team.members || [];
+    if (!team.members.includes(request.userId)) team.members.push(request.userId);
+    team.memberDetails = team.memberDetails || [];
+    team.memberDetails.push({ userId: request.userId, name: request.name, role: 'member', joinedAt: new Date().toISOString(), online: false });
+
+    // Update teams state and persist locally
+    const updated = teams.map(t => t.teamId === team.teamId ? team : t);
+    setTeams(updated);
+    setSelectedTeam(team);
+    try { localStorage.setItem(`teams_${user.userId}`, JSON.stringify(updated)); } catch (e) { console.error(e); }
+
+    // remove the pending request
+    const key = `team_join_requests_${team.teamId}`;
+    const remaining = JSON.parse(localStorage.getItem(key) || '[]').filter(r => r.userId !== request.userId);
+    localStorage.setItem(key, JSON.stringify(remaining));
+    setPendingRequests(remaining);
+  };
+
+  const rejectJoinRequest = (request) => {
+    if (!selectedTeam) return;
+    const key = `team_join_requests_${selectedTeam.teamId}`;
+    const remaining = JSON.parse(localStorage.getItem(key) || '[]').filter(r => r.userId !== request.userId);
+    localStorage.setItem(key, JSON.stringify(remaining));
+    setPendingRequests(remaining);
+  };
+
   const createTeam = async () => {
     if (!newTeamName.trim()) return;
     
@@ -208,36 +279,29 @@ export default function TeamPage() {
         ownerName: user.name || user.email || 'Unknown User'
       };
       console.log('Creating team with data:', teamData);
-      
-      const response = await fetch('/api/teams', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(teamData)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      if (data.team) {
-        setTeams(prev => [data.team, ...prev]);
-        setSelectedTeam(data.team);
-        setShowCreateTeam(false);
-        setNewTeamName('');
-        setNewTeamDescription('');
-        loadTeamMembers(data.team.teamId);
-        
-        // Save to localStorage as backup
-        try {
-          const updatedTeams = [data.team, ...teams];
-          localStorage.setItem(`teams_${user.userId}`, JSON.stringify(updatedTeams));
-        } catch (localError) {
-          console.error('Error saving to localStorage:', localError);
+      // Attempt server create, fallback to localStorage on failure
+      try {
+        const response = await fetch('/api/teams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(teamData)
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.team) {
+            setTeams([data.team, ...teams]);
+            setSelectedTeam(data.team);
+            setShowCreateTeam(false);
+            setNewTeamName('');
+            setNewTeamDescription('');
+            try { localStorage.setItem(`teams_${user.userId}`, JSON.stringify([data.team, ...teams])); } catch (e) { console.error(e); }
+            alert('Team created successfully');
+            return;
+          }
         }
+      } catch (error) {
+        console.error('Error creating team on server:', error);
       }
-    } catch (error) {
-      console.error('Error creating team:', error);
       // Fallback: create team in localStorage for development
       try {
         const teamId = `team_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -275,6 +339,9 @@ export default function TeamPage() {
         console.error('Error creating team fallback:', fallbackError);
         alert('Failed to create team. Please try again.');
       }
+    } catch (error) {
+      console.error('Error creating team:', error);
+      alert('Failed to create team. Please try again.');
     }
   };
 
@@ -425,6 +492,13 @@ export default function TeamPage() {
               >
                 {!isAuthenticated || !user?.userId ? 'Please Log In' : `+ ${getCreateTeamButtonText()}`}
               </button>
+              <button
+                className={styles.createTeamButton}
+                style={{ background: 'transparent', border: '1px solid rgba(255,255,255,.08)', color: 'white' }}
+                onClick={() => setShowJoinTeam(true)}
+              >
+                Join a Team
+              </button>
             </div>
           </header>
 
@@ -561,6 +635,27 @@ export default function TeamPage() {
                   <button className={styles.inviteButton} onClick={addMember}>Add Member</button>
               <div className={styles.inviteHint}>Or share a link with your team</div>
               <button className={styles.linkButton}>Copy Invite Link</button>
+
+              {/* Pending join requests (owner only) */}
+              {selectedTeam?.ownerId === user?.userId && pendingRequests.length > 0 && (
+                <div className={styles.pendingBox}>
+                  <h4>Pending Join Requests</h4>
+                  <ul className={styles.pendingList}>
+                    {pendingRequests.map((req) => (
+                      <li key={req.userId} className={styles.pendingRow}>
+                        <div>
+                          <strong>{req.name}</strong> <span className={styles.requestMeta}>{req.email}</span>
+                          <div className={styles.requestMeta}>Requested: {new Date(req.requestedAt).toLocaleString()}</div>
+                        </div>
+                        <div className={styles.requestActions}>
+                          <button className={styles.approveButton} onClick={() => approveJoinRequest(req)}>Approve</button>
+                          <button className={styles.rejectButton} onClick={() => rejectJoinRequest(req)}>Reject</button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               <div className={styles.permissionsBox}>
                 <h4>Roles & Permissions</h4>
@@ -699,8 +794,8 @@ export default function TeamPage() {
                 <h2>{teams.length === 0 ? 'No Teams Yet' : 'No Team Selected'}</h2>
                 <p>
                   {teams.length === 0 
-                    ? 'Create your first team to start collaborating with others.' 
-                    : 'Select a team from the dropdown above or create a new one.'
+                    ? 'Create your first team or join a team by ID to start collaborating.' 
+                    : 'Select a team from the dropdown above or create/join a new one.'
                   }
                 </p>
                 <div className={styles.emptyActions}>
@@ -717,17 +812,12 @@ export default function TeamPage() {
                   >
                     {getCreateTeamButtonText()}
                   </button>
-                  {teams.length > 0 && (
-                    <button 
-                      className={styles.selectTeamButton}
-                      onClick={() => {
-                        const teamSelect = document.querySelector(`.${styles.teamSelect}`);
-                        if (teamSelect) teamSelect.focus();
-                      }}
-                    >
-                      Select Existing Team
-                    </button>
-                  )}
+                  <button 
+                    className={styles.selectTeamButton}
+                    onClick={() => setShowJoinTeam(true)}
+                  >
+                    Join a Team
+                  </button>
                 </div>
               </div>
             </div>
@@ -809,10 +899,41 @@ export default function TeamPage() {
               </div>
             </div>
           )}
+
+          {/* Join Team Modal */}
+          {showJoinTeam && (
+            <div className={styles.modalJoinOverlay}>
+              <div className={styles.joinModal}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                  <h3>Join a Team</h3>
+                  <button className={styles.closeButton} onClick={() => { setShowJoinTeam(false); setJoinTeamId(''); setJoinStatus(null); }}>×</button>
+                </div>
+
+                <div>
+                  <input
+                    className={styles.joinInput}
+                    placeholder="Enter Team ID"
+                    value={joinTeamId}
+                    onChange={(e) => { setJoinTeamId(e.target.value); setJoinStatus(null); }}
+                  />
+
+                  {joinStatus === 'submitted' && <div className={styles.joinStatus}>Request submitted — awaiting owner approval.</div>}
+                  {joinStatus === 'already' && <div className={styles.joinStatus}>You have already requested to join this team.</div>}
+                  {joinStatus === 'error' && <div className={styles.joinStatus}>Failed to submit request. Try again.</div>}
+                </div>
+
+                <div className={styles.joinButtons}>
+                  <button className={styles.cancelJoin} onClick={() => { setShowJoinTeam(false); setJoinTeamId(''); setJoinStatus(null); }}>Cancel</button>
+                  <button className={styles.joinButton} onClick={() => submitJoinRequest(joinTeamId)}>Request to Join</button>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
 
     </div>
   );
 }
+
 
 
