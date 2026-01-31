@@ -1167,7 +1167,23 @@ export const getProjectDocs = async (projectId) => {
       .eq('project_id', projectId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('getProjectDocs error:', error);
+      // If column doesn't exist, try without new columns
+      if (error.message?.includes('column') && error.message?.includes('does not exist')) {
+        console.warn('New columns may not exist yet. Trying with basic columns only.');
+        // Try again with only basic columns
+        const { data: basicData, error: basicError } = await getSupabase()
+          .from('project_docs')
+          .select('doc_id, project_id, title, content, links, created_at, updated_at')
+          .eq('project_id', projectId)
+          .order('created_at', { ascending: false });
+        
+        if (basicError) throw basicError;
+        return (basicData || []).map(fromSupabaseFormat);
+      }
+      throw error;
+    }
     return (data || []).map(fromSupabaseFormat);
   } catch (error) {
     throw error;
