@@ -27,8 +27,28 @@ export async function GET(request, { params }) {
     );
   } catch (error) {
     console.error("Error fetching project docs:", error);
+    console.error("Error details:", JSON.stringify(error, null, 2));
+    
+    // Check if it's a column error (migration not run)
+    if (error.message?.includes('column') && error.message?.includes('does not exist')) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: "Database schema not updated. Please run docs-schema-update.sql in Supabase.",
+          error: error.message,
+          instructions: "Run the SQL migration: src/app/lib/docs-schema-update.sql"
+        },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
-      { success: false, message: "Failed to load docs", error: error.message },
+      { 
+        success: false, 
+        message: "Failed to load docs", 
+        error: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.toString() : undefined
+      },
       { status: 500 }
     );
   }

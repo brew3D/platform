@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "../../../../contexts/AuthContext";
+import DocumentPreview from "../../../../components/DocumentPreview";
 import styles from "../project.module.css";
 import docStyles from "./docs.module.css";
 
@@ -39,6 +41,12 @@ export default function ProjectDocsPage() {
   const [showNewDoc, setShowNewDoc] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState("");
   const [newDocContent, setNewDocContent] = useState("");
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameTitle, setRenameTitle] = useState("");
+  const fileInputRef = useRef(null);
+  const { token } = useAuth();
 
   useEffect(() => {
     const loadDocs = async () => {
@@ -148,6 +156,105 @@ export default function ProjectDocsPage() {
     setNewDocContent("");
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      // Reset input so it can be used again even if user cancels
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setUploadingFile(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', file.name);
+
+      const authToken = token || localStorage.getItem('auth_token');
+      if (!authToken) {
+        setUploadError('Not authenticated. Please log in again.');
+        return;
+      }
+
+      const res = await fetch(`/api/projects/${projectId}/docs/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setDocs([data.doc, ...docs]);
+        setSelectedDoc(data.doc);
+        setShowNewDoc(false);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        setUploadError(errorData.message || 'Failed to upload document');
+      }
+    } catch (error) {
+      console.error('File upload error:', error);
+      setUploadError('Failed to upload document');
+    } finally {
+      setUploadingFile(false);
+      // Always reset input so it can be used again
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRename = async () => {
+    if (!selectedDoc || !renameTitle.trim()) return;
+    
+    try {
+      const res = await fetch(`/api/projects/${projectId}/docs`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          docId: selectedDoc.docId || selectedDoc.doc_id,
+          title: renameTitle.trim(),
+          content: selectedDoc.content,
+          links: selectedDoc.links || {}
+        }),
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setDocs(docs.map((d) => (d.docId || d.doc_id) === (selectedDoc.docId || selectedDoc.doc_id) ? data.doc : d));
+        setSelectedDoc(data.doc);
+        setIsRenaming(false);
+        setRenameTitle("");
+      }
+    } catch (error) {
+      console.error('Error renaming doc:', error);
+    }
+  };
+
+  const handleStartRename = () => {
+    if (selectedDoc) {
+      setRenameTitle(selectedDoc.title);
+      setIsRenaming(true);
+    }
+  };
+
+  const getFileTypeIcon = (fileType) => {
+    switch (fileType) {
+      case 'pdf':
+        return '📄';
+      case 'docx':
+      case 'doc':
+        return '📝';
+      case 'txt':
+        return '📄';
+      case 'markdown':
+        return '📝';
+      default:
+        return '📄';
+    }
+  };
+
   const closeNewEditor = () => {
     setShowNewDoc(false);
     setNewDocTitle("");
@@ -167,9 +274,36 @@ export default function ProjectDocsPage() {
         <aside className={docStyles.docListSidebar}>
           <div className={docStyles.docListHeader}>
             <h2 className={docStyles.docListTitle}>Docs</h2>
-            <button type="button" className={docStyles.newDocBtn} onClick={openNewEditor} title="New document">
-              +
-            </button>
+            <div className={docStyles.headerActions}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.txt,.md,.markdown,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
+                onChange={handleFileUpload}
+                onClick={(e) => {
+                  // Reset value on click so same file can be selected again
+                  e.target.value = '';
+                }}
+                style={{ display: 'none' }}
+              />
+              <button 
+                type="button" 
+                className={docStyles.uploadBtn} 
+                onClick={() => {
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = ''; // Reset before opening
+                    fileInputRef.current.click();
+                  }
+                }}
+                title="Upload PDF or Word document (Max 50MB)"
+                disabled={uploadingFile}
+              >
+                {uploadingFile ? '⏳' : '📤'}
+              </button>
+              <button type="button" className={docStyles.newDocBtn} onClick={openNewEditor} title="New Markdown document">
+                +
+              </button>
+            </div>
           </div>
           <div className={docStyles.docList}>
             {loading ? (
@@ -191,7 +325,14 @@ export default function ProjectDocsPage() {
                       setShowNewDoc(false);
                     }}
                   >
-                    <span className={docStyles.docListItemTitle}>{doc.title}</span>
+                    <div className={docStyles.docListItemContent}>
+                      <span className={docStyles.docListItemIcon}>
+                        {(doc.fileType || doc.file_type) && (doc.fileType || doc.file_type) !== 'markdown' 
+                          ? getFileTypeIcon(doc.fileType || doc.file_type)
+                          : '📄'}
+                      </span>
+                      <span className={docStyles.docListItemTitle}>{doc.title}</span>
+                    </div>
                     <span className={docStyles.docListItemDate}>
                       {new Date(doc.createdAt || doc.created_at).toLocaleDateString()}
                     </span>
@@ -199,6 +340,9 @@ export default function ProjectDocsPage() {
                 );
               })
             )}
+          </div>
+          <div className={docStyles.docListFooter}>
+            <p className={docStyles.fileSizeLimit}>📏 Max 50MB</p>
           </div>
         </aside>
 
@@ -297,37 +441,132 @@ export default function ProjectDocsPage() {
               /* View mode */
               <>
                 <div className={docStyles.viewHeader}>
-                  <h1 className={docStyles.viewTitle}>{selectedDoc.title}</h1>
+                  {isRenaming ? (
+                    <div className={docStyles.renameContainer}>
+                      <input
+                        type="text"
+                        className={docStyles.renameInput}
+                        value={renameTitle}
+                        onChange={(e) => setRenameTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleRename();
+                          if (e.key === 'Escape') {
+                            setIsRenaming(false);
+                            setRenameTitle("");
+                          }
+                        }}
+                        autoFocus
+                      />
+                      <div className={docStyles.renameActions}>
+                        <button 
+                          type="button" 
+                          className={styles.backButton} 
+                          onClick={handleRename}
+                          style={{ marginBottom: 0 }}
+                        >
+                          Save
+                        </button>
+                        <button 
+                          type="button" 
+                          className={styles.backButton} 
+                          onClick={() => {
+                            setIsRenaming(false);
+                            setRenameTitle("");
+                          }}
+                          style={{ marginBottom: 0 }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <h1 className={docStyles.viewTitle}>{selectedDoc.title}</h1>
+                  )}
                   <div className={docStyles.viewActions}>
-                    <button type="button" className={styles.backButton} onClick={handleStartEdit} style={{ marginBottom: 0 }}>
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.backButton}
-                      onClick={() => handleDeleteDoc(selectedDoc.docId || selectedDoc.doc_id)}
-                      style={{ marginBottom: 0 }}
-                    >
-                      Delete
-                    </button>
+                    {!isRenaming && (
+                      <>
+                        {(selectedDoc.fileType || selectedDoc.file_type) === 'markdown' && (
+                          <button type="button" className={styles.backButton} onClick={handleStartEdit} style={{ marginBottom: 0 }}>
+                            Edit
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className={styles.backButton}
+                          onClick={handleStartRename}
+                          style={{ marginBottom: 0 }}
+                        >
+                          Rename
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.backButton}
+                          onClick={() => handleDeleteDoc(selectedDoc.docId || selectedDoc.doc_id)}
+                          style={{ marginBottom: 0 }}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
-                <div
-                  className={docStyles.viewContentRendered}
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedDoc.content || "No content yet.") }}
-                />
+                {(selectedDoc.fileType || selectedDoc.file_type) && (selectedDoc.fileType || selectedDoc.file_type) !== 'markdown' ? (
+                  <DocumentPreview doc={selectedDoc} />
+                ) : (
+                  <div
+                    className={docStyles.viewContentRendered}
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedDoc.content || "No content yet.") }}
+                  />
+                )}
               </>
             )
           ) : (
             /* Empty state: select a file or create new */
             <div className={docStyles.emptyState}>
               <p className={docStyles.emptyStateTitle}>Select a file or create a new one</p>
-              <p className={docStyles.emptyStateSub}>Choose a document from the list or add a new Markdown doc.</p>
-              <button type="button" className={docStyles.emptyStateBtn} onClick={openNewEditor}>
-                + New document
-              </button>
-              <p style={{ fontSize: "0.8rem", margin: 0, maxWidth: 320 }}>
-                Supported: Markdown. PDF and Word: paste a link to open (coming soon). Unsupported types will show a message.
+              <p className={docStyles.emptyStateSub}>Upload a PDF/Word document or create a new Markdown doc.</p>
+              <div className={docStyles.emptyStateActions}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt,.md,.markdown,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
+                  onChange={handleFileUpload}
+                  onClick={(e) => {
+                    // Reset value on click so same file can be selected again
+                    e.target.value = '';
+                  }}
+                  style={{ display: 'none' }}
+                />
+                <button 
+                  type="button" 
+                  className={docStyles.emptyStateBtn} 
+                  onClick={() => {
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = ''; // Reset before opening
+                      fileInputRef.current.click();
+                    }
+                  }}
+                  disabled={uploadingFile}
+                >
+                  {uploadingFile ? '⏳ Uploading...' : '📤 Upload PDF/Word'}
+                </button>
+                <button type="button" className={docStyles.emptyStateBtn} onClick={openNewEditor}>
+                  + New Markdown Doc
+                </button>
+              </div>
+              {uploadError && (
+                <p style={{ fontSize: "0.85rem", margin: "1rem 0 0 0", color: "#ef4444", maxWidth: 320 }}>
+                  {uploadError}
+                </p>
+              )}
+              <p style={{ fontSize: "0.8rem", margin: "1rem 0 0 0", maxWidth: 320, color: "var(--text-secondary)" }}>
+                Supported: PDF (.pdf), Word (.doc, .docx), Text (.txt), and Markdown (.md) documents.
+              </p>
+              <p style={{ fontSize: "0.75rem", margin: "0.5rem 0 0 0", maxWidth: 320, color: "var(--text-tertiary)" }}>
+                📏 Maximum file size: <strong>50MB</strong>
+              </p>
+              <p style={{ fontSize: "0.7rem", margin: "0.5rem 0 0 0", maxWidth: 320, color: "var(--text-tertiary)", fontStyle: "italic" }}>
+                Unrecognized file types will open as text files.
               </p>
             </div>
           )}
