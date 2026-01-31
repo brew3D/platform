@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS project_docs (
     content TEXT DEFAULT '',
     links JSONB DEFAULT '{}'::jsonb,
     file_url TEXT DEFAULT '',
-    file_type TEXT DEFAULT 'markdown' CHECK (file_type IN ('markdown', 'pdf', 'docx', 'doc')),
+    file_type TEXT DEFAULT 'markdown' CHECK (file_type IN ('markdown', 'pdf', 'docx', 'doc', 'txt')),
     file_size INTEGER DEFAULT 0,
     mime_type TEXT DEFAULT '',
     created_at TIMESTAMPTZ DEFAULT NOW(),

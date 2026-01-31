@@ -22,26 +22,34 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: 'No file provided' }, { status: 400 });
     }
 
-    // Validate file type
+    // Validate file type - support PDF, Word, TXT, and Markdown
     const allowedTypes = [
       'application/pdf',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-word.document.macroEnabled.12'
+      'application/vnd.ms-word.document.macroEnabled.12',
+      'text/plain',
+      'text/markdown',
+      'text/x-markdown'
     ];
     
+    const fileName = file.name.toLowerCase();
     const fileType = file.type;
     const isValidType = allowedTypes.includes(fileType) || 
-                        file.name.toLowerCase().endsWith('.pdf') ||
-                        file.name.toLowerCase().endsWith('.doc') ||
-                        file.name.toLowerCase().endsWith('.docx');
+                        fileName.endsWith('.pdf') ||
+                        fileName.endsWith('.doc') ||
+                        fileName.endsWith('.docx') ||
+                        fileName.endsWith('.txt') ||
+                        fileName.endsWith('.md') ||
+                        fileName.endsWith('.markdown');
 
-    if (!isValidType) {
-      return NextResponse.json(
-        { message: 'Invalid file type. Only PDF and Word documents are supported.' },
-        { status: 400 }
-      );
-    }
+    // Don't reject unknown types - we'll handle them as text
+    // if (!isValidType) {
+    //   return NextResponse.json(
+    //     { message: 'Invalid file type. Only PDF and Word documents are supported.' },
+    //     { status: 400 }
+    //   );
+    // }
 
     // Validate file size (max 50MB)
     const maxSize = 50 * 1024 * 1024; // 50MB
@@ -62,11 +70,20 @@ export async function POST(request, { params }) {
     const buffer = Buffer.from(arrayBuffer);
 
     // Determine file type for database
-    let dbFileType = 'markdown';
-    if (fileType === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+    const fileName = file.name.toLowerCase();
+    let dbFileType = 'txt'; // Default to txt for unrecognized types
+    
+    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
       dbFileType = 'pdf';
-    } else if (fileType.includes('word') || file.name.toLowerCase().endsWith('.docx') || file.name.toLowerCase().endsWith('.doc')) {
+    } else if (fileType.includes('word') || fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
       dbFileType = 'docx';
+    } else if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
+      dbFileType = 'txt';
+    } else if (fileType === 'text/markdown' || fileType === 'text/x-markdown' || fileName.endsWith('.md') || fileName.endsWith('.markdown')) {
+      dbFileType = 'markdown';
+    } else {
+      // Unrecognized type - will be handled as txt
+      dbFileType = 'txt';
     }
 
     // Generate unique filename

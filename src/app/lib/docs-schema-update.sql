@@ -18,13 +18,15 @@ BEGIN
     ALTER TABLE project_docs ADD COLUMN IF NOT EXISTS file_size INTEGER DEFAULT 0;
     ALTER TABLE project_docs ADD COLUMN IF NOT EXISTS mime_type TEXT DEFAULT '';
     
-    -- Add check constraint if it doesn't exist
-    IF NOT EXISTS (
+    -- Add check constraint if it doesn't exist (update to include new types)
+    IF EXISTS (
         SELECT 1 FROM pg_constraint WHERE conname = 'project_docs_file_type_check'
     ) THEN
-        ALTER TABLE project_docs ADD CONSTRAINT project_docs_file_type_check 
-        CHECK (file_type IN ('markdown', 'pdf', 'docx', 'doc'));
+        ALTER TABLE project_docs DROP CONSTRAINT project_docs_file_type_check;
     END IF;
+    
+    ALTER TABLE project_docs ADD CONSTRAINT project_docs_file_type_check 
+    CHECK (file_type IN ('markdown', 'pdf', 'docx', 'doc', 'txt'));
 EXCEPTION
     WHEN undefined_table THEN
         RAISE NOTICE 'Table project_docs does not exist. Please run project-docs-table-create.sql first.';

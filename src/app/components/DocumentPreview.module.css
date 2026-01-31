@@ -147,3 +147,90 @@
 .viewInGoogleDocs:hover {
   background: #7c1ed6;
 }
+
+.textViewer {
+  flex: 1;
+  overflow: auto;
+  padding: 2rem;
+  background: var(--bg-primary);
+}
+
+.textContent {
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.warningContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.warningIcon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.warningContainer h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+}
+
+.warningContainer p {
+  margin: 0 0 2rem 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  max-width: 500px;
+}
+
+.warningActions {
+  display: flex;
+  gap: 1rem;
+}
+
+.warningButton {
+  padding: 0.75rem 1.5rem;
+  background: var(--brew-accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.warningButton:hover {
+  background: #7c1ed6;
+}
+
+.warningButtonSecondary {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.warningButtonSecondary:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}

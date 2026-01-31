@@ -246,6 +246,10 @@ export default function ProjectDocsPage() {
       case 'docx':
       case 'doc':
         return '📝';
+      case 'txt':
+        return '📄';
+      case 'markdown':
+        return '📝';
       default:
         return '📄';
     }
@@ -274,7 +278,7 @@ export default function ProjectDocsPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                accept=".pdf,.doc,.docx,.txt,.md,.markdown,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
                 onChange={handleFileUpload}
                 onClick={(e) => {
                   // Reset value on click so same file can be selected again
@@ -336,6 +340,9 @@ export default function ProjectDocsPage() {
                 );
               })
             )}
+          </div>
+          <div className={docStyles.docListFooter}>
+            <p className={docStyles.fileSizeLimit}>📏 Max 50MB</p>
           </div>
         </aside>
 
@@ -522,7 +529,7 @@ export default function ProjectDocsPage() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  accept=".pdf,.doc,.docx,.txt,.md,.markdown,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
                   onChange={handleFileUpload}
                   onClick={(e) => {
                     // Reset value on click so same file can be selected again
@@ -553,10 +560,13 @@ export default function ProjectDocsPage() {
                 </p>
               )}
               <p style={{ fontSize: "0.8rem", margin: "1rem 0 0 0", maxWidth: 320, color: "var(--text-secondary)" }}>
-                Supported: PDF (.pdf), Word (.doc, .docx), and Markdown documents.
+                Supported: PDF (.pdf), Word (.doc, .docx), Text (.txt), and Markdown (.md) documents.
               </p>
               <p style={{ fontSize: "0.75rem", margin: "0.5rem 0 0 0", maxWidth: 320, color: "var(--text-tertiary)" }}>
                 📏 Maximum file size: <strong>50MB</strong>
+              </p>
+              <p style={{ fontSize: "0.7rem", margin: "0.5rem 0 0 0", maxWidth: 320, color: "var(--text-tertiary)", fontStyle: "italic" }}>
+                Unrecognized file types will open as text files.
               </p>
             </div>
           )}
