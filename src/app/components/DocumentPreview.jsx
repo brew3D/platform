@@ -18,52 +18,75 @@ export default function DocumentPreview({ doc }) {
   // Check if file type is unrecognized
   useEffect(() => {
     const recognizedTypes = ['pdf', 'docx', 'doc', 'txt', 'markdown'];
-    if (fileUrl && fileType && !recognizedTypes.includes(fileType) && !mimeType.match(/^(application\/pdf|application\/msword|application\/vnd\.|text\/)/)) {
-      setShowUnrecognizedWarning(true);
+    if (fileUrl && fileType && !recognizedTypes.includes(fileType)) {
+      // Only show warning if it's truly unrecognized (not a known text type)
+      const isKnownTextType = mimeType.match(/^text\//);
+      if (!isKnownTextType) {
+        setShowUnrecognizedWarning(true);
+      } else {
+        // It's a text type but file_type is not recognized - load as text
+        setShowUnrecognizedWarning(false);
+      }
+    } else {
+      setShowUnrecognizedWarning(false);
     }
   }, [fileType, fileUrl, mimeType]);
 
-  // Load text content for txt/md/unrecognized files
+  // Load text content for txt/md files (but not for unrecognized until user confirms)
   useEffect(() => {
-    if ((fileType === 'txt' || fileType === 'markdown' || showUnrecognizedWarning) && fileUrl) {
+    if ((fileType === 'txt' || fileType === 'markdown') && fileUrl && !showUnrecognizedWarning) {
+      setLoading(true);
       fetch(fileUrl)
-        .then(res => res.text())
-        .then(text => setTextContent(text))
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch');
+          return res.text();
+        })
+        .then(text => {
+          setTextContent(text);
+          setLoading(false);
+        })
         .catch(err => {
           console.error('Error loading text file:', err);
           setError('Failed to load file content');
-        })
-        .finally(() => setLoading(false));
+          setLoading(false);
+        });
     }
   }, [fileType, fileUrl, showUnrecognizedWarning]);
 
   // Show warning for unrecognized files
-  if (showUnrecognizedWarning && !textContent) {
+  if (showUnrecognizedWarning && textContent === null) {
     return (
       <div className={styles.previewContainer}>
         <div className={styles.warningContainer}>
           <div className={styles.warningIcon}>⚠️</div>
-          <h3>File Type Not Recognized</h3>
-          <p>This file type is not recognized. Would you like to open it as a text file?</p>
+          <h3>THIS FILE IS NOT RECOGNIZED</h3>
+          <p>Still open as TXT?</p>
           <div className={styles.warningActions}>
             <button 
               className={styles.warningButton}
               onClick={() => {
                 setShowUnrecognizedWarning(false);
+                setLoading(true);
                 // Trigger text loading
                 if (fileUrl) {
                   fetch(fileUrl)
-                    .then(res => res.text())
-                    .then(text => setTextContent(text))
+                    .then(res => {
+                      if (!res.ok) throw new Error('Failed to fetch');
+                      return res.text();
+                    })
+                    .then(text => {
+                      setTextContent(text);
+                      setLoading(false);
+                    })
                     .catch(err => {
                       console.error('Error loading text file:', err);
                       setError('Failed to load file content');
-                    })
-                    .finally(() => setLoading(false));
+                      setLoading(false);
+                    });
                 }
               }}
             >
-              Yes, Open as Text
+              Yes, Open as TXT
             </button>
             <button 
               className={styles.warningButtonSecondary}
@@ -205,43 +228,48 @@ export default function DocumentPreview({ doc }) {
     );
   }
 
-  // Unrecognized type opened as text
-  if (showUnrecognizedWarning === false && textContent !== null) {
-    return (
-      <div className={styles.previewContainer}>
-        <div className={styles.previewHeader}>
-          <div className={styles.fileTypeBadge}>
-            <span className={styles.fileIcon}>📄</span>
-            <span>Text File (Unrecognized Type)</span>
+  // Unrecognized type opened as text (after user confirmed)
+  if (!showUnrecognizedWarning && textContent !== null && fileUrl) {
+    const recognizedTypes = ['pdf', 'docx', 'doc', 'txt', 'markdown'];
+    const isUnrecognized = fileType && !recognizedTypes.includes(fileType);
+    
+    if (isUnrecognized) {
+      return (
+        <div className={styles.previewContainer}>
+          <div className={styles.previewHeader}>
+            <div className={styles.fileTypeBadge}>
+              <span className={styles.fileIcon}>📄</span>
+              <span>Text File (Unrecognized Type)</span>
+            </div>
+            <a 
+              href={fileUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={styles.downloadButton}
+            >
+              Download
+            </a>
           </div>
-          <a 
-            href={fileUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className={styles.downloadButton}
-          >
-            Download
-          </a>
+          <div className={styles.textViewer}>
+            {loading ? (
+              <div className={styles.loadingOverlay}>
+                <div className={styles.spinner}></div>
+                <p>Loading content...</p>
+              </div>
+            ) : error ? (
+              <div className={styles.errorMessage}>
+                <p>{error}</p>
+                <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                  Open in new tab
+                </a>
+              </div>
+            ) : (
+              <pre className={styles.textContent}>{textContent || 'Loading...'}</pre>
+            )}
+          </div>
         </div>
-        <div className={styles.textViewer}>
-          {loading ? (
-            <div className={styles.loadingOverlay}>
-              <div className={styles.spinner}></div>
-              <p>Loading content...</p>
-            </div>
-          ) : error ? (
-            <div className={styles.errorMessage}>
-              <p>{error}</p>
-              <a href={fileUrl} target="_blank" rel="noopener noreferrer">
-                Open in new tab
-              </a>
-            </div>
-          ) : (
-            <pre className={styles.textContent}>{textContent || 'Loading...'}</pre>
-          )}
-        </div>
-      </div>
-    );
+      );
+    }
   }
 
   // Markdown or no file - render markdown content
