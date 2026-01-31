@@ -128,3 +128,105 @@
   }
 }
 
+/* Team section (bubbly) */
+.teamSection {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-top: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,250,250,0.6));
+  border-radius: 12px;
+  margin-right: 0.75rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+.teamSectionHeader {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #2c2416;
+  margin-bottom: 0.5rem;
+}
+.teamMembers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.teamMember {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 10px;
+  background: #fff;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+.teamMember:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 26px rgba(0,0,0,0.08);
+}
+.memberAvatarWrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.memberAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #8b5a2b 0%, #6b4423 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+  overflow: hidden;
+}
+.memberAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.activeDot {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #39d353;
+  border: 2px solid white;
+  box-shadow: 0 0 6px rgba(57,211,83,0.6);
+}
+.memberInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+.memberName {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #222;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.memberRole {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.72rem;
+  background: linear-gradient(90deg, rgba(139,90,43,0.12), rgba(139,90,43,0.06));
+  color: #6b5d4f;
+  border-radius: 999px;
+  font-weight: 700;
+  width: fit-content;
+}
+.noMembers {
+  color: #7a6f5f;
+  font-size: 0.9rem;
+  padding: 0.25rem 0;
+}

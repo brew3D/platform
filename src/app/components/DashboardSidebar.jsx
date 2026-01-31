@@ -88,17 +88,6 @@ const sidebarItems = [
       </svg>
     ),
     href: '/dashboard/community'
-  },
-  {
-    id: 'tasks',
-    label: 'My tasks',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="2"/>
-        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" strokeWidth="2"/>
-      </svg>
-    ),
-    href: '/dashboard/tasks'
   }
 ];
 
@@ -149,7 +138,7 @@ const bottomItems = [
   }
 ];
 
-export default function DashboardSidebar({ collapsed, onToggle, activeProject, onProjectSelect, activeItem = 'projects' }) {
+export default function DashboardSidebar({ activeProject, onProjectSelect, activeItem = 'projects' }) {
   const [internalActiveItem, setInternalActiveItem] = useState(activeItem);
   const router = useRouter();
   const { logout } = useAuth?.() || { logout: undefined };
@@ -162,43 +151,7 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
   const currentActiveItem = activeItem !== 'projects' ? activeItem : internalActiveItem;
 
   return (
-    <div className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
-      {/* Logo (Design asset - do not replace font) */}
-      <div className={styles.logo}>
-        <Link href="/dashboard" className={styles.logoLink}>
-          <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
-          {!collapsed && (
-            <span className={styles.logoText}>Brew3D</span>
-          )}
-        </Link>
-        {!collapsed && (
-          <button 
-            className={styles.collapseButton}
-            onClick={onToggle}
-            aria-label="Toggle sidebar"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2"/>
-            </svg>
-          </button>
-        )}
-      </div>
-
-      {/* Collapse Button for Collapsed State */}
-      {collapsed && (
-        <div className={styles.collapsedToggle}>
-          <button 
-            className={styles.collapseButtonCollapsed}
-            onClick={onToggle}
-            aria-label="Toggle sidebar"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2"/>
-            </svg>
-          </button>
-        </div>
-      )}
-
+    <aside className={styles.sidebar}>
       {/* Navigation Items — Projects and Templates below logo, then rest */}
       <nav className={styles.nav}>
         <div className={styles.navSection}>
@@ -212,9 +165,7 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
               <div className={styles.navIcon}>
                 {item.icon}
               </div>
-              {!collapsed && (
-                <span className={styles.navLabel}>{item.label}</span>
-              )}
+              <span className={styles.navLabel}>{item.label}</span>
               {currentActiveItem === item.id && (
                 <div className={styles.activeIndicator}></div>
               )}
@@ -232,9 +183,7 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
               <div className={styles.navIcon}>
                 {item.icon}
               </div>
-              {!collapsed && (
-                <span className={styles.navLabel}>{item.label}</span>
-              )}
+              <span className={styles.navLabel}>{item.label}</span>
               {currentActiveItem === item.id && (
                 <div className={styles.activeIndicator}></div>
               )}
@@ -254,9 +203,7 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
               <div className={styles.navIcon}>
                 {item.icon}
               </div>
-              {!collapsed && (
-                <span className={styles.navLabel}>{item.label}</span>
-              )}
+              <span className={styles.navLabel}>{item.label}</span>
               {currentActiveItem === item.id && (
                 <div className={styles.activeIndicator}></div>
               )}
@@ -286,12 +233,10 @@ export default function DashboardSidebar({ collapsed, onToggle, activeProject, o
                 <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2"/>
               </svg>
             </div>
-            {!collapsed && (
-              <span className={styles.navLabel}>Logout</span>
-            )}
+            <span className={styles.navLabel}>Logout</span>
           </button>
         </div>
       </nav>
-    </div>
+    </aside>
   );
 }
