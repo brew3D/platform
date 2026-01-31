@@ -8,10 +8,25 @@ export async function POST(request) {
     const auth = requireAuth(request);
     if (auth.error) return NextResponse.json({ message: auth.error.message }, { status: auth.error.status });
 
-    // Get current user
-    const currentUser = await getUserById(auth.userId);
+    console.log('Avatar upload - auth.userId:', auth.userId);
+    console.log('Avatar upload - auth.decoded:', auth.decoded);
+
+    // Get current user - try by ID first, then by email if available
+    let currentUser = await getUserById(auth.userId);
+    
+    // If not found by ID and we have email in decoded token, try by email
+    if (!currentUser && auth.decoded?.email) {
+      const { getUserByEmail } = await import('@/app/lib/supabase-operations');
+      currentUser = await getUserByEmail(auth.decoded.email);
+      console.log('Avatar upload - tried getUserByEmail:', auth.decoded.email, 'found:', !!currentUser);
+    }
+    
     if (!currentUser) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+      console.error('Avatar upload - User not found. userId:', auth.userId, 'email:', auth.decoded?.email);
+      return NextResponse.json({ 
+        message: 'User not found',
+        debug: process.env.NODE_ENV === 'development' ? { userId: auth.userId, email: auth.decoded?.email } : undefined
+      }, { status: 404 });
     }
 
     // Parse form data (multipart/form-data for file upload)
@@ -82,7 +97,9 @@ export async function POST(request) {
     const avatarUrl = urlData.publicUrl;
 
     // Update user profile with new avatar URL
-    const result = await updateUser(auth.userId, { profilePicture: avatarUrl });
+    // Use the actual user_id from the found user, not auth.userId (in case they differ)
+    const userIdToUpdate = currentUser.userId || currentUser.user_id || auth.userId;
+    const result = await updateUser(userIdToUpdate, { profilePicture: avatarUrl });
 
     if (!result.success) {
       // Try to delete uploaded file if update fails

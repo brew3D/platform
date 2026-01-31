@@ -10,10 +10,25 @@ export async function PUT(request) {
     const body = await request.json();
     const { name, email, bio, website, location, twitter, github, linkedin, profilePicture } = body;
 
-    // Get current user to verify ownership
-    const currentUser = await getUserById(auth.userId);
+    console.log('Profile update - auth.userId:', auth.userId);
+    console.log('Profile update - auth.decoded:', auth.decoded);
+
+    // Get current user - try by ID first, then by email if available
+    let currentUser = await getUserById(auth.userId);
+    
+    // If not found by ID and we have email in decoded token, try by email
+    if (!currentUser && auth.decoded?.email) {
+      const { getUserByEmail } = await import('@/app/lib/supabase-operations');
+      currentUser = await getUserByEmail(auth.decoded.email);
+      console.log('Profile update - tried getUserByEmail:', auth.decoded.email, 'found:', !!currentUser);
+    }
+    
     if (!currentUser) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+      console.error('Profile update - User not found. userId:', auth.userId, 'email:', auth.decoded?.email);
+      return NextResponse.json({ 
+        message: 'User not found',
+        debug: process.env.NODE_ENV === 'development' ? { userId: auth.userId, email: auth.decoded?.email } : undefined
+      }, { status: 404 });
     }
 
     // Build update payload (only include fields that are provided)
@@ -31,8 +46,9 @@ export async function PUT(request) {
     if (linkedin !== undefined) updateData.linkedin = linkedin;
     if (profilePicture !== undefined) updateData.profilePicture = profilePicture;
 
-    // Update user in database
-    const result = await updateUser(auth.userId, updateData);
+    // Update user in database - use the actual user_id from the found user
+    const userIdToUpdate = currentUser.userId || currentUser.user_id || auth.userId;
+    const result = await updateUser(userIdToUpdate, updateData);
     
     if (!result.success) {
       return NextResponse.json({ message: 'Failed to update profile' }, { status: 500 });
