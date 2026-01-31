@@ -25,6 +25,17 @@
   justify-content: space-between;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+.docListHeader::after {
+  content: '📏 Max 50MB';
+  position: absolute;
+  bottom: -1.5rem;
+  left: 1rem;
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
 }
 
 .headerActions {
@@ -308,6 +319,35 @@
   font-size: 1.35rem;
   font-weight: 700;
   color: var(--foreground);
+  flex: 1;
+}
+
+.renameContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.renameInput {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--brew-accent);
+  border-radius: 8px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.renameInput:focus {
+  outline: none;
+  border-color: var(--brew-accent-light);
+}
+
+.renameActions {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .viewActions {

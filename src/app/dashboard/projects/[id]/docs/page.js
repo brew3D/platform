@@ -43,6 +43,8 @@ export default function ProjectDocsPage() {
   const [newDocContent, setNewDocContent] = useState("");
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadError, setUploadError] = useState(null);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameTitle, setRenameTitle] = useState("");
   const fileInputRef = useRef(null);
   const { token } = useAuth();
 
@@ -156,7 +158,11 @@ export default function ProjectDocsPage() {
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      // Reset input so it can be used again even if user cancels
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     setUploadingFile(true);
     setUploadError(null);
@@ -185,7 +191,6 @@ export default function ProjectDocsPage() {
         setDocs([data.doc, ...docs]);
         setSelectedDoc(data.doc);
         setShowNewDoc(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
       } else {
         const errorData = await res.json().catch(() => ({}));
         setUploadError(errorData.message || 'Failed to upload document');
@@ -195,6 +200,42 @@ export default function ProjectDocsPage() {
       setUploadError('Failed to upload document');
     } finally {
       setUploadingFile(false);
+      // Always reset input so it can be used again
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRename = async () => {
+    if (!selectedDoc || !renameTitle.trim()) return;
+    
+    try {
+      const res = await fetch(`/api/projects/${projectId}/docs`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          docId: selectedDoc.docId || selectedDoc.doc_id,
+          title: renameTitle.trim(),
+          content: selectedDoc.content,
+          links: selectedDoc.links || {}
+        }),
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setDocs(docs.map((d) => (d.docId || d.doc_id) === (selectedDoc.docId || selectedDoc.doc_id) ? data.doc : d));
+        setSelectedDoc(data.doc);
+        setIsRenaming(false);
+        setRenameTitle("");
+      }
+    } catch (error) {
+      console.error('Error renaming doc:', error);
+    }
+  };
+
+  const handleStartRename = () => {
+    if (selectedDoc) {
+      setRenameTitle(selectedDoc.title);
+      setIsRenaming(true);
     }
   };
 
@@ -235,13 +276,22 @@ export default function ProjectDocsPage() {
                 type="file"
                 accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={handleFileUpload}
+                onClick={(e) => {
+                  // Reset value on click so same file can be selected again
+                  e.target.value = '';
+                }}
                 style={{ display: 'none' }}
               />
               <button 
                 type="button" 
                 className={docStyles.uploadBtn} 
-                onClick={() => fileInputRef.current?.click()}
-                title="Upload PDF or Word document"
+                onClick={() => {
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = ''; // Reset before opening
+                    fileInputRef.current.click();
+                  }
+                }}
+                title="Upload PDF or Word document (Max 50MB)"
                 disabled={uploadingFile}
               >
                 {uploadingFile ? '⏳' : '📤'}
@@ -384,21 +434,73 @@ export default function ProjectDocsPage() {
               /* View mode */
               <>
                 <div className={docStyles.viewHeader}>
-                  <h1 className={docStyles.viewTitle}>{selectedDoc.title}</h1>
+                  {isRenaming ? (
+                    <div className={docStyles.renameContainer}>
+                      <input
+                        type="text"
+                        className={docStyles.renameInput}
+                        value={renameTitle}
+                        onChange={(e) => setRenameTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleRename();
+                          if (e.key === 'Escape') {
+                            setIsRenaming(false);
+                            setRenameTitle("");
+                          }
+                        }}
+                        autoFocus
+                      />
+                      <div className={docStyles.renameActions}>
+                        <button 
+                          type="button" 
+                          className={styles.backButton} 
+                          onClick={handleRename}
+                          style={{ marginBottom: 0 }}
+                        >
+                          Save
+                        </button>
+                        <button 
+                          type="button" 
+                          className={styles.backButton} 
+                          onClick={() => {
+                            setIsRenaming(false);
+                            setRenameTitle("");
+                          }}
+                          style={{ marginBottom: 0 }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <h1 className={docStyles.viewTitle}>{selectedDoc.title}</h1>
+                  )}
                   <div className={docStyles.viewActions}>
-                    {(selectedDoc.fileType || selectedDoc.file_type) === 'markdown' && (
-                      <button type="button" className={styles.backButton} onClick={handleStartEdit} style={{ marginBottom: 0 }}>
-                        Edit
-                      </button>
+                    {!isRenaming && (
+                      <>
+                        {(selectedDoc.fileType || selectedDoc.file_type) === 'markdown' && (
+                          <button type="button" className={styles.backButton} onClick={handleStartEdit} style={{ marginBottom: 0 }}>
+                            Edit
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className={styles.backButton}
+                          onClick={handleStartRename}
+                          style={{ marginBottom: 0 }}
+                        >
+                          Rename
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.backButton}
+                          onClick={() => handleDeleteDoc(selectedDoc.docId || selectedDoc.doc_id)}
+                          style={{ marginBottom: 0 }}
+                        >
+                          Delete
+                        </button>
+                      </>
                     )}
-                    <button
-                      type="button"
-                      className={styles.backButton}
-                      onClick={() => handleDeleteDoc(selectedDoc.docId || selectedDoc.doc_id)}
-                      style={{ marginBottom: 0 }}
-                    >
-                      Delete
-                    </button>
                   </div>
                 </div>
                 {(selectedDoc.fileType || selectedDoc.file_type) && (selectedDoc.fileType || selectedDoc.file_type) !== 'markdown' ? (
@@ -422,12 +524,21 @@ export default function ProjectDocsPage() {
                   type="file"
                   accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   onChange={handleFileUpload}
+                  onClick={(e) => {
+                    // Reset value on click so same file can be selected again
+                    e.target.value = '';
+                  }}
                   style={{ display: 'none' }}
                 />
                 <button 
                   type="button" 
                   className={docStyles.emptyStateBtn} 
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => {
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = ''; // Reset before opening
+                      fileInputRef.current.click();
+                    }
+                  }}
                   disabled={uploadingFile}
                 >
                   {uploadingFile ? '⏳ Uploading...' : '📤 Upload PDF/Word'}
@@ -443,6 +554,9 @@ export default function ProjectDocsPage() {
               )}
               <p style={{ fontSize: "0.8rem", margin: "1rem 0 0 0", maxWidth: 320, color: "var(--text-secondary)" }}>
                 Supported: PDF (.pdf), Word (.doc, .docx), and Markdown documents.
+              </p>
+              <p style={{ fontSize: "0.75rem", margin: "0.5rem 0 0 0", maxWidth: 320, color: "var(--text-tertiary)" }}>
+                📏 Maximum file size: <strong>50MB</strong>
               </p>
             </div>
           )}
