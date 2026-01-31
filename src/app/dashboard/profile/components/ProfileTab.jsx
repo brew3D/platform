@@ -87,7 +87,15 @@ export default function ProfileTab({ user }) {
         const data = await res.json();
         setAvatarPreview(data.avatarUrl);
         setSuccess('Avatar uploaded successfully');
-        // Reload page to refresh user data
+        
+        // Update user in AuthContext if available
+        if (window.location.pathname.includes('/dashboard')) {
+          // Trigger a refresh of user data
+          const event = new CustomEvent('avatarUpdated', { detail: { avatarUrl: data.avatarUrl } });
+          window.dispatchEvent(event);
+        }
+        
+        // Reload page to refresh user data everywhere
         setTimeout(() => window.location.reload(), 1500);
       } else {
         const errorData = await res.json().catch(() => ({}));

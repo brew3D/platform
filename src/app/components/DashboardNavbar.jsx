@@ -301,7 +301,15 @@ export default function DashboardNavbar({ user }) {
             onClick={() => setShowProfileDropdown(!showProfileDropdown)}
           >
             <div className={styles.profileAvatar}>
-              {(getDisplayName(user) || "U").charAt(0).toUpperCase()}
+              {user?.profilePicture || user?.profile_picture ? (
+                <img 
+                  src={user.profilePicture || user.profile_picture} 
+                  alt={getDisplayName(user) || "User"}
+                  className={styles.profileAvatarImg}
+                />
+              ) : (
+                (getDisplayName(user) || "U").charAt(0).toUpperCase()
+              )}
             </div>
             <div className={styles.profileInfo}>
               <span className={styles.profileName}>{getDisplayName(user)}</span>
@@ -322,7 +330,15 @@ export default function DashboardNavbar({ user }) {
             <div className={styles.profileDropdown}>
               <div className={styles.profileHeader}>
                 <div className={styles.profileAvatarLarge}>
-                  {(getDisplayName(user) || "U").charAt(0).toUpperCase()}
+                  {user?.profilePicture || user?.profile_picture ? (
+                    <img 
+                      src={user.profilePicture || user.profile_picture} 
+                      alt={getDisplayName(user) || "User"}
+                      className={styles.profileAvatarLargeImg}
+                    />
+                  ) : (
+                    (getDisplayName(user) || "U").charAt(0).toUpperCase()
+                  )}
                 </div>
                 <div className={styles.profileDetails}>
                   <h4>{getDisplayName(user)}</h4>
