@@ -1,47 +1,31 @@
-/* Dashboard Sidebar - Purple & White Theme */
+/* Dashboard Sidebar — project-aligned, left side under navbar */
 .sidebar {
+  width: 260px;
+  background: #f5f5f5;
+  border-right: 1px solid #e8e8e8;
+  height: calc(100vh - 70px);
   position: fixed;
-  top: 0;
+  top: 70px;
   left: 0;
-  width: 280px;
-  height: 100vh;
-  background: linear-gradient(180deg, #1a0a2e 0%, #16213e 100%);
-  border-right: 1px solid rgba(138, 43, 226, 0.2);
+  overflow-y: auto;
+  padding: 1.25rem 0;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.nav {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  z-index: 1000;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(20px);
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+  padding: 0 0.75rem;
 }
 
-.sidebar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 20%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(102, 126, 234, 0.1) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.collapsed {
-  width: 80px;
-}
-
-/* Logo Section */
+/* Logo */
 .logo {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 1.25rem;
-  border-bottom: 1px solid rgba(138, 43, 226, 0.2);
-  position: relative;
-  z-index: 1;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem;
 }
 
 .logoLink {
@@ -49,16 +33,11 @@
   align-items: center;
   gap: 0.75rem;
   text-decoration: none;
-  color: white;
-  transition: all 0.3s ease;
-}
-
-.logoLink:hover {
-  transform: scale(1.05);
+  color: inherit;
 }
 
 .logoImage {
-  height: 36px;
+  height: 32px;
   width: auto;
   object-fit: contain;
   display: block;
@@ -66,70 +45,13 @@
 }
 
 .logoText {
-  font-size: 1.5rem;
-  font-weight: 900;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #2c2416;
   font-family: var(--font-space-grotesk);
-  background: linear-gradient(135deg, var(--brew-accent) 0%, var(--brew-accent-light) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 0 30px rgba(138, 43, 226, 0.3);
-  transition: all 0.3s ease;
 }
 
-.collapseButton {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 0.5rem;
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.collapseButton:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
-}
-
-.collapsed .collapseButton svg {
-  transform: rotate(180deg);
-}
-
-/* Collapsed Toggle Button */
-.collapsedToggle {
-  display: flex;
-  justify-content: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(138, 43, 226, 0.2);
-  position: relative;
-  z-index: 1;
-}
-
-.collapseButtonCollapsed {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 0.5rem;
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-}
-
-.collapseButtonCollapsed:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
-}
+/* Remove collapsible styles — fixed / non-collapsible */
 
 /* Navigation */
 .nav {
@@ -156,14 +78,14 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.875rem 1rem;
+  padding: 0.65rem 0.85rem;
   margin-bottom: 0.25rem;
-  border-radius: 12px;
+  border-radius: 8px;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #555;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -173,33 +95,29 @@
   text-align: left;
 }
 
-.navItem::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 0.6s ease;
-  z-index: 0;
-}
-
-.navItem:hover::before {
-  left: 100%;
-}
-
 .navItem:hover {
-  background: rgba(138, 43, 226, 0.15);
-  color: white;
-  transform: translateX(4px);
+  background: rgba(0,0,0,0.05);
+  color: #1a1a1a;
+  transform: translateX(2px);
 }
 
 .navItem.active {
-  background: linear-gradient(135deg, rgba(138, 43, 226, 0.2) 0%, rgba(102, 126, 234, 0.2) 100%);
-  color: white;
-  border: 1px solid rgba(138, 43, 226, 0.3);
-  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.2);
+  color: var(--brew-accent);
+  background: rgba(138, 43, 226, 0.08);
+  border: none;
+}
+
+.activeIndicator {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--gradient-primary);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 8px rgba(138, 43, 226, 0.6);
+  z-index: 1;
 }
 
 .navIcon {
@@ -249,7 +167,7 @@
 }
 
 .bottomItem {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(44,36,22,0.6);
 }
 
 .logoutItem {
@@ -261,34 +179,7 @@
   color: #ff6b6b;
 }
 
-/* Collapsed State */
-.collapsed .navLabel {
-  opacity: 0;
-  width: 0;
-  overflow: hidden;
-}
-
-.collapsed .navItem {
-  justify-content: center;
-  padding: 0.875rem;
-}
-
-.collapsed .logoText {
-  opacity: 0;
-  width: 0;
-  overflow: hidden;
-}
-
-.collapsed .logo {
-  justify-content: center;
-}
-
-.collapsed .collapseButton {
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-}
+/* Non-collapsible sidebar (simplified) */
 
 /* Responsive Design */
 @media (max-width: 1024px) {

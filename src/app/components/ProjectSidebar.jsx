@@ -197,6 +197,55 @@ export default function ProjectSidebar({ projectId }) {
     }
   };
 
+  // Team section state
+  const [members, setMembers] = React.useState([]);
+  const [loadingTeam, setLoadingTeam] = React.useState(false);
+  const [onlineMembers, setOnlineMembers] = React.useState([]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const loadTeam = async () => {
+      if (!projectId) return;
+      setLoadingTeam(true);
+      setMembers([]);
+      setOnlineMembers([]);
+      try {
+        // Fetch project to discover teamId or team members
+        const res = await fetch(`/api/projects/${projectId}`);
+        if (!res.ok) return;
+        const project = await res.json();
+        // If project has a teamId, use that
+        if (project.teamId) {
+          const tmRes = await fetch(`/api/teams/${project.teamId}/members`);
+          if (tmRes.ok) {
+            const data = await tmRes.json();
+            if (cancelled) return;
+            setMembers(data.members || []);
+          }
+          const statusRes = await fetch(`/api/teams/${project.teamId}/status`);
+          if (statusRes.ok) {
+            const sdata = await statusRes.json();
+            if (cancelled) return;
+            setOnlineMembers(sdata.onlineMembers || []);
+          }
+        } else if (Array.isArray(project.teamMembers) && project.teamMembers.length > 0) {
+          // If teamMembers provided as array of ids, show ids (simple fallback)
+          const simpleMembers = project.teamMembers.map(id => ({ userId: id, name: id }));
+          setMembers(simpleMembers);
+        } else {
+          setMembers([]);
+        }
+      } catch (err) {
+        console.error('Failed to load project team:', err);
+      } finally {
+        if (!cancelled) setLoadingTeam(false);
+      }
+    };
+
+    loadTeam();
+    return () => { cancelled = true; };
+  }, [projectId]);
+
   return (
     <aside className={styles.sidebar}>
       <nav className={styles.nav}>
@@ -216,6 +265,46 @@ export default function ProjectSidebar({ projectId }) {
           );
         })}
       </nav>
+
+      {/* Team section — shows active members for this project */}
+      <div className={styles.teamSection}>
+        <div className={styles.teamSectionHeader}>Team</div>
+        <div className={styles.teamMembers}>
+          {loadingTeam ? (
+            <div className={styles.loading}>Loading...</div>
+          ) : members.length === 0 ? (
+            <div className={styles.noMembers}>No team members</div>
+          ) : (
+            members.map((m) => {
+              const idKey = m.userId || m.id || m.email;
+              const avatarSrc = m.profilePicture || m.profile_picture || m.profile_picture_url || m.picture || '';
+              const initials = (m.name || m.email || idKey || '').slice(0,1).toUpperCase();
+              return (
+                <button
+                  key={idKey}
+                  className={styles.teamMember}
+                  onClick={() => router.push(`/dashboard/team?member=${encodeURIComponent(idKey)}`)}
+                  title={m.role ? `${m.name} — ${m.role}` : m.name}
+                >
+                  <div className={styles.memberAvatarWrap}>
+                    {avatarSrc ? (
+                      <img src={avatarSrc} alt={m.name || idKey} className={styles.memberAvatarImg} />
+                    ) : (
+                      <div className={styles.memberAvatar}>{initials}</div>
+                    )}
+                    {onlineMembers.includes(idKey) ? <span className={styles.activeDot} /> : null}
+                  </div>
+
+                  <div className={styles.memberInfo}>
+                    <div className={styles.memberName}>{m.name || m.email || idKey}</div>
+                    <div className={styles.memberRole}>{m.role ? (m.role.charAt(0).toUpperCase() + m.role.slice(1)) : 'Member'}</div>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </div>
     </aside>
   );
 }

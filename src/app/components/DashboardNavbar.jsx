@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import { useTheme } from "../contexts/ThemeContext";
+import { useProjects } from "../contexts/ProjectsContext";
 import styles from "./DashboardNavbar.module.css";
 
 function getDisplayName(user) {
@@ -116,10 +116,43 @@ export default function DashboardNavbar({ user }) {
   const router = useRouter();
   const pathname = usePathname();
   const { logout } = useAuth();
-  const { toggleTheme, isDark } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  // Project name state when viewing a specific project
+  const [projectName, setProjectName] = useState(null);
+  const { getProjectById } = useProjects();
+
+  // When we navigate inside a project route, try to resolve the project name
+  React.useEffect(() => {
+    if (!pathname) return;
+    const parts = pathname.split('/');
+    if (!pathname.startsWith('/dashboard/projects/') || parts.length < 4) {
+      setProjectName(null);
+      return;
+    }
+    const projectId = parts[3];
+    // Try context first
+    const fromCtx = getProjectById(projectId);
+    if (fromCtx && fromCtx.name) {
+      setProjectName(fromCtx.name);
+      return;
+    }
+    // Fallback to fetch
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setProjectName(data.name || data.project?.name || 'Project');
+      } catch (err) {
+        console.error('Failed to fetch project name:', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [pathname, getProjectById]);
+
 
   const notifications = [
     { id: 1, message: "New team member joined your project", time: "2m ago", unread: true },
@@ -163,6 +196,28 @@ export default function DashboardNavbar({ user }) {
 
   const activeItem = getActiveItem();
 
+  // Breadcrumb helpers
+  const pathParts = pathname ? pathname.split('/') : [];
+  const inProject = pathname?.startsWith('/dashboard/projects/');
+  const projectId = inProject && pathParts.length > 3 ? pathParts[3] : null;
+  const currentSection = inProject && pathParts.length > 4 ? pathParts[4] : null;
+  const sectionLabels = {
+    hub: 'Project Hub',
+    docs: 'Docs',
+    assets: 'Asset Library',
+    settings: 'Project Settings',
+    flow: 'Flow',
+    script: 'Script',
+    scenes: 'Animated Scenes',
+    maps: 'Maps',
+    characters: 'Characters',
+    snapshots: 'Snapshots',
+    collab: 'Collab Room',
+    carve: 'Builder',
+    test: 'Test Game',
+    board: 'Barista Board'
+  };
+
   return (
     <header className={styles.navbar}>
       {/* Logo (Design asset - do not replace font) */}
@@ -171,39 +226,56 @@ export default function DashboardNavbar({ user }) {
           <img src="/brew3d-logo.png" alt="Brew3D" className={styles.logoImage} />
           <span className={styles.logoText}>Brew3D</span>
         </Link>
+
+        {/* Breadcrumb on left when inside a project (3 layers: Projects › Name › Section) */}
+        {inProject && projectId && (
+          <nav className={styles.projectBreadcrumb} aria-label="Project breadcrumb">
+            <Link href="/dashboard" className={styles.breadcrumbLink}>Projects</Link>
+            <span className={styles.breadcrumbSep}>›</span>
+            <Link href={`/dashboard/projects/${projectId}/hub`} className={styles.breadcrumbLink}>{projectName || 'Project'}</Link>
+            {currentSection && (
+              <>
+                <span className={styles.breadcrumbSep}>›</span>
+                <Link href={pathname} className={styles.breadcrumbProject}>{sectionLabels[currentSection] || (currentSection.charAt(0).toUpperCase() + currentSection.slice(1))}</Link>
+              </>
+            )}
+          </nav>
+        )}
       </div>
 
-      {/* Navigation Items — Projects and Templates below logo, then rest */}
-      <nav className={styles.navSection}>
-        {primaryNavItems.map((item) => {
-          const isActive = activeItem === item.id;
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
-            >
-              <div className={styles.navIcon}>{item.icon}</div>
-              <span className={styles.navLabel}>{item.label}</span>
-              {isActive && <div className={styles.activeIndicator}></div>}
-            </Link>
-          );
-        })}
-        {navItems.map((item) => {
-          const isActive = activeItem === item.id;
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
-            >
-              <div className={styles.navIcon}>{item.icon}</div>
-              <span className={styles.navLabel}>{item.label}</span>
-              {isActive && <div className={styles.activeIndicator}></div>}
-            </Link>
-          );
-        })}
-      </nav>
+      {/* Navigation Tabs — hidden on project pages and on dashboard root */}
+      {(!inProject && pathname !== '/dashboard') && (
+        <nav className={styles.navSection}>
+          {primaryNavItems.map((item) => {
+            const isActive = activeItem === item.id;
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+              >
+                <div className={styles.navIcon}>{item.icon}</div>
+                <span className={styles.navLabel}>{item.label}</span>
+                {isActive && <div className={styles.activeIndicator}></div>}
+              </Link>
+            );
+          })}
+          {navItems.map((item) => {
+            const isActive = activeItem === item.id;
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+              >
+                <div className={styles.navIcon}>{item.icon}</div>
+                <span className={styles.navLabel}>{item.label}</span>
+                {isActive && <div className={styles.activeIndicator}></div>}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
 
       {/* Right Section */}
       <div className={styles.rightSection}>
@@ -224,30 +296,6 @@ export default function DashboardNavbar({ user }) {
           />
         </div>
 
-        {/* Theme Toggle */}
-        <button 
-          className={styles.themeToggle}
-          onClick={toggleTheme}
-          aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-        >
-          {isDark ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="2"/>
-              <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" strokeWidth="2"/>
-              <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" strokeWidth="2"/>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" strokeWidth="2"/>
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" strokeWidth="2"/>
-              <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" strokeWidth="2"/>
-              <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" strokeWidth="2"/>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" strokeWidth="2"/>
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" strokeWidth="2"/>
-            </svg>
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" strokeWidth="2"/>
-            </svg>
-          )}
-        </button>
 
         {/* Notifications */}
         <div className={styles.notificationContainer}>

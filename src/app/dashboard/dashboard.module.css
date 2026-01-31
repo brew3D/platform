@@ -19,6 +19,19 @@
   background: #e8dfd0;
 }
 
+/* When the DashboardSidebar is visible, make space on the right */
+.withSidebar {
+  margin-left: 260px;
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Responsive: smaller left sidebar */
+@media (max-width: 1024px) {
+  .withSidebar {
+    margin-left: 220px;
+  }
+}
+
 .content {
   flex: 1;
   padding: 0 2rem 2rem 2rem;
