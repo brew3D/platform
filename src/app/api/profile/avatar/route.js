@@ -98,9 +98,20 @@ export async function POST(request) {
       if (uploadError.statusCode === '403' || uploadError.message?.includes('row-level security')) {
         return NextResponse.json(
           { 
-            message: 'Storage RLS policy blocking upload. Please configure the avatars bucket to allow uploads, or run the storage-setup.sql script.',
+            message: 'Storage RLS policy blocking upload.',
             error: uploadError.message,
-            instructions: 'The service role should bypass RLS. Check that:\n1. The "avatars" bucket exists\n2. The bucket allows uploads\n3. Your Supabase service role key is correct'
+            instructions: [
+              '1. Go to Supabase Dashboard > Storage > avatars bucket',
+              '2. Click "Settings" and enable "Public bucket"',
+              '3. Go to SQL Editor and run storage-setup-simple.sql',
+              '4. This will create permissive policies that allow uploads',
+              '',
+              'Alternatively, you can manually create a policy:',
+              'CREATE POLICY "Allow all uploads to avatars"',
+              'ON storage.objects FOR INSERT',
+              'TO public',
+              'WITH CHECK (bucket_id = \'avatars\');'
+            ].join('\n')
           },
           { status: 500 }
         );
