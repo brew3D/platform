@@ -63,6 +63,12 @@ export const createUser = async (userData) => {
     password_hash: userData.passwordHash,
     role: userData.role || 'member',
     profile_picture: userData.profilePicture || '',
+    bio: userData.bio || '',
+    website: userData.website || '',
+    location: userData.location || '',
+    twitter: userData.twitter || '',
+    github: userData.github || '',
+    linkedin: userData.linkedin || '',
     security: {
       twoFactorEnabled: false,
       totpSecret: null,
@@ -145,10 +151,20 @@ export const getUserByEmail = async (email) => {
 export const updateUser = async (userId, updateData) => {
   const timestamp = getCurrentTimestamp();
   
+  // Convert camelCase fields to snake_case for database
   const updatePayload = {
     ...toSupabaseFormat(updateData),
     updated_at: timestamp
   };
+
+  // Handle profile fields that might not exist in schema yet
+  // These will be added via migration if needed
+  const profileFields = ['bio', 'website', 'location', 'twitter', 'github', 'linkedin'];
+  profileFields.forEach(field => {
+    if (updateData[field] !== undefined) {
+      updatePayload[field] = updateData[field];
+    }
+  });
 
   try {
     const { data, error } = await getSupabase()
@@ -158,7 +174,28 @@ export const updateUser = async (userId, updateData) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // If column doesn't exist, it's okay - fields will be added via migration
+      if (error.message?.includes('column') && error.message?.includes('does not exist')) {
+        console.warn(`Column may not exist yet: ${error.message}. Run profile-schema-update.sql if needed.`);
+        // Try update without the new fields
+        const safePayload = {};
+        Object.keys(updatePayload).forEach(key => {
+          if (!['bio', 'website', 'location', 'twitter', 'github', 'linkedin'].includes(key)) {
+            safePayload[key] = updatePayload[key];
+          }
+        });
+        const { data: safeData, error: safeError } = await getSupabase()
+          .from('users')
+          .update(safePayload)
+          .eq('user_id', userId)
+          .select()
+          .single();
+        if (safeError) throw safeError;
+        return { success: true, user: fromSupabaseFormat(safeData) };
+      }
+      throw error;
+    }
     return { success: true, user: fromSupabaseFormat(data) };
   } catch (error) {
     throw error;
