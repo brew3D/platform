@@ -874,6 +874,36 @@ export default function TeamPage() {
               </div>
             </div>
           )}
+
+          {/* Join Team Modal */}
+          {showJoinTeam && (
+            <div className={styles.modalJoinOverlay}>
+              <div className={styles.joinModal}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                  <h3>Join a Team</h3>
+                  <button className={styles.closeButton} onClick={() => { setShowJoinTeam(false); setJoinTeamId(''); setJoinStatus(null); }}>×</button>
+                </div>
+
+                <div>
+                  <input
+                    className={styles.joinInput}
+                    placeholder="Enter Team ID"
+                    value={joinTeamId}
+                    onChange={(e) => { setJoinTeamId(e.target.value); setJoinStatus(null); }}
+                  />
+
+                  {joinStatus === 'submitted' && <div className={styles.joinStatus}>Request submitted — awaiting owner approval.</div>}
+                  {joinStatus === 'already' && <div className={styles.joinStatus}>You have already requested to join this team.</div>}
+                  {joinStatus === 'error' && <div className={styles.joinStatus}>Failed to submit request. Try again.</div>}
+                </div>
+
+                <div className={styles.joinButtons}>
+                  <button className={styles.cancelJoin} onClick={() => { setShowJoinTeam(false); setJoinTeamId(''); setJoinStatus(null); }}>Cancel</button>
+                  <button className={styles.joinButton} onClick={() => submitJoinRequest(joinTeamId)}>Request to Join</button>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
 
     </div>
