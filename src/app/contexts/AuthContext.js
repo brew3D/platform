@@ -26,8 +26,9 @@ export const AuthProvider = ({ children }) => {
     
     // Listen for avatar updates
     const handleAvatarUpdate = (event) => {
-      if (user && event.detail?.avatarUrl) {
-        const updatedUser = { ...user, profilePicture: event.detail.avatarUrl };
+      const currentUser = JSON.parse(localStorage.getItem('auth_user') || 'null');
+      if (currentUser && event.detail?.avatarUrl) {
+        const updatedUser = { ...currentUser, profilePicture: event.detail.avatarUrl };
         setUser(updatedUser);
         localStorage.setItem('auth_user', JSON.stringify(updatedUser));
       }
@@ -102,7 +103,7 @@ export const AuthProvider = ({ children }) => {
     return () => {
       window.removeEventListener('avatarUpdated', handleAvatarUpdate);
     };
-  }, [user]);
+  }, []);
 
   const verifyToken = async (tokenToVerify) => {
     try {
