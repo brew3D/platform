@@ -29,6 +29,9 @@ export async function POST(request) {
       }, { status: 404 });
     }
 
+    // Get the user ID to use for filename and updates
+    const userIdToUpdate = currentUser.userId || currentUser.user_id || auth.userId;
+
     // Parse form data (multipart/form-data for file upload)
     const formData = await request.formData();
     const file = formData.get('avatar');
@@ -116,9 +119,6 @@ export async function POST(request) {
     const avatarUrl = urlData.publicUrl;
 
     // Update user profile with new avatar URL
-    // Use the actual user_id from the found user, not auth.userId (in case they differ)
-    const userIdToUpdate = currentUser.userId || currentUser.user_id || auth.userId;
-    
     console.log('Updating user profile with avatar URL:', avatarUrl, 'for userId:', userIdToUpdate);
     const result = await updateUser(userIdToUpdate, { profilePicture: avatarUrl });
 
