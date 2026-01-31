@@ -65,8 +65,15 @@ export default function ProfileTab({ user }) {
       const formData = new FormData();
       formData.append('avatar', file);
 
-      const res = await authenticatedFetch('/api/profile/avatar', {
+      // Use regular fetch for FormData - don't set Content-Type header
+      // Browser will automatically set it with boundary parameter
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/profile/avatar', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+          // Don't set Content-Type - browser will set it automatically for FormData
+        },
         body: formData
       });
 
