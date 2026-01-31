@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "../../../../contexts/AuthContext";
+import DocumentPreview from "../../../../components/DocumentPreview";
 import styles from "../project.module.css";
 import docStyles from "./docs.module.css";
 
@@ -39,6 +41,10 @@ export default function ProjectDocsPage() {
   const [showNewDoc, setShowNewDoc] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState("");
   const [newDocContent, setNewDocContent] = useState("");
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const fileInputRef = useRef(null);
+  const { token } = useAuth();
 
   useEffect(() => {
     const loadDocs = async () => {
@@ -148,6 +154,62 @@ export default function ProjectDocsPage() {
     setNewDocContent("");
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', file.name);
+
+      const authToken = token || localStorage.getItem('auth_token');
+      if (!authToken) {
+        setUploadError('Not authenticated. Please log in again.');
+        return;
+      }
+
+      const res = await fetch(`/api/projects/${projectId}/docs/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setDocs([data.doc, ...docs]);
+        setSelectedDoc(data.doc);
+        setShowNewDoc(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        setUploadError(errorData.message || 'Failed to upload document');
+      }
+    } catch (error) {
+      console.error('File upload error:', error);
+      setUploadError('Failed to upload document');
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const getFileTypeIcon = (fileType) => {
+    switch (fileType) {
+      case 'pdf':
+        return '📄';
+      case 'docx':
+      case 'doc':
+        return '📝';
+      default:
+        return '📄';
+    }
+  };
+
   const closeNewEditor = () => {
     setShowNewDoc(false);
     setNewDocTitle("");
@@ -167,9 +229,27 @@ export default function ProjectDocsPage() {
         <aside className={docStyles.docListSidebar}>
           <div className={docStyles.docListHeader}>
             <h2 className={docStyles.docListTitle}>Docs</h2>
-            <button type="button" className={docStyles.newDocBtn} onClick={openNewEditor} title="New document">
-              +
-            </button>
+            <div className={docStyles.headerActions}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={handleFileUpload}
+                style={{ display: 'none' }}
+              />
+              <button 
+                type="button" 
+                className={docStyles.uploadBtn} 
+                onClick={() => fileInputRef.current?.click()}
+                title="Upload PDF or Word document"
+                disabled={uploadingFile}
+              >
+                {uploadingFile ? '⏳' : '📤'}
+              </button>
+              <button type="button" className={docStyles.newDocBtn} onClick={openNewEditor} title="New Markdown document">
+                +
+              </button>
+            </div>
           </div>
           <div className={docStyles.docList}>
             {loading ? (
@@ -191,7 +271,14 @@ export default function ProjectDocsPage() {
                       setShowNewDoc(false);
                     }}
                   >
-                    <span className={docStyles.docListItemTitle}>{doc.title}</span>
+                    <div className={docStyles.docListItemContent}>
+                      <span className={docStyles.docListItemIcon}>
+                        {(doc.fileType || doc.file_type) && (doc.fileType || doc.file_type) !== 'markdown' 
+                          ? getFileTypeIcon(doc.fileType || doc.file_type)
+                          : '📄'}
+                      </span>
+                      <span className={docStyles.docListItemTitle}>{doc.title}</span>
+                    </div>
                     <span className={docStyles.docListItemDate}>
                       {new Date(doc.createdAt || doc.created_at).toLocaleDateString()}
                     </span>
@@ -299,9 +386,11 @@ export default function ProjectDocsPage() {
                 <div className={docStyles.viewHeader}>
                   <h1 className={docStyles.viewTitle}>{selectedDoc.title}</h1>
                   <div className={docStyles.viewActions}>
-                    <button type="button" className={styles.backButton} onClick={handleStartEdit} style={{ marginBottom: 0 }}>
-                      Edit
-                    </button>
+                    {(selectedDoc.fileType || selectedDoc.file_type) === 'markdown' && (
+                      <button type="button" className={styles.backButton} onClick={handleStartEdit} style={{ marginBottom: 0 }}>
+                        Edit
+                      </button>
+                    )}
                     <button
                       type="button"
                       className={styles.backButton}
@@ -312,22 +401,48 @@ export default function ProjectDocsPage() {
                     </button>
                   </div>
                 </div>
-                <div
-                  className={docStyles.viewContentRendered}
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedDoc.content || "No content yet.") }}
-                />
+                {(selectedDoc.fileType || selectedDoc.file_type) && (selectedDoc.fileType || selectedDoc.file_type) !== 'markdown' ? (
+                  <DocumentPreview doc={selectedDoc} />
+                ) : (
+                  <div
+                    className={docStyles.viewContentRendered}
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedDoc.content || "No content yet.") }}
+                  />
+                )}
               </>
             )
           ) : (
             /* Empty state: select a file or create new */
             <div className={docStyles.emptyState}>
               <p className={docStyles.emptyStateTitle}>Select a file or create a new one</p>
-              <p className={docStyles.emptyStateSub}>Choose a document from the list or add a new Markdown doc.</p>
-              <button type="button" className={docStyles.emptyStateBtn} onClick={openNewEditor}>
-                + New document
-              </button>
-              <p style={{ fontSize: "0.8rem", margin: 0, maxWidth: 320 }}>
-                Supported: Markdown. PDF and Word: paste a link to open (coming soon). Unsupported types will show a message.
+              <p className={docStyles.emptyStateSub}>Upload a PDF/Word document or create a new Markdown doc.</p>
+              <div className={docStyles.emptyStateActions}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={handleFileUpload}
+                  style={{ display: 'none' }}
+                />
+                <button 
+                  type="button" 
+                  className={docStyles.emptyStateBtn} 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingFile}
+                >
+                  {uploadingFile ? '⏳ Uploading...' : '📤 Upload PDF/Word'}
+                </button>
+                <button type="button" className={docStyles.emptyStateBtn} onClick={openNewEditor}>
+                  + New Markdown Doc
+                </button>
+              </div>
+              {uploadError && (
+                <p style={{ fontSize: "0.85rem", margin: "1rem 0 0 0", color: "#ef4444", maxWidth: 320 }}>
+                  {uploadError}
+                </p>
+              )}
+              <p style={{ fontSize: "0.8rem", margin: "1rem 0 0 0", maxWidth: 320, color: "var(--text-secondary)" }}>
+                Supported: PDF (.pdf), Word (.doc, .docx), and Markdown documents.
               </p>
             </div>
           )}

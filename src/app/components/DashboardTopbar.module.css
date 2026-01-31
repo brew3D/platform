@@ -386,6 +386,8 @@
   object-fit: cover;
   border-radius: 50%;
 }
+
+.profileAvatarLarge {
   justify-content: center;
   font-weight: 700;
   font-size: 1.1rem;

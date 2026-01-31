@@ -1137,6 +1137,10 @@ export const createProjectDoc = async (docData) => {
     title: docData.title,
     content: docData.content || '',
     links: docData.links || {},
+    file_url: docData.fileUrl || '',
+    file_type: docData.fileType || 'markdown',
+    file_size: docData.fileSize || 0,
+    mime_type: docData.mimeType || '',
     created_at: timestamp,
     updated_at: timestamp
   };

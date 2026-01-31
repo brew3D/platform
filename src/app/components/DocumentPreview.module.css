@@ -1,0 +1,149 @@
+.previewContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+
+.previewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.fileTypeBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.fileIcon {
+  font-size: 1.2rem;
+}
+
+.downloadButton {
+  padding: 0.5rem 1rem;
+  background: var(--brew-accent);
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.downloadButton:hover {
+  background: #7c1ed6;
+}
+
+.pdfViewer {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #525252;
+}
+
+.pdfFrame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
+
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 10;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(138, 43, 226, 0.2);
+  border-top: 4px solid var(--brew-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.errorMessage {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.errorMessage a {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--brew-accent);
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.wordViewer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.wordPreview {
+  text-align: center;
+  max-width: 500px;
+}
+
+.wordIcon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.wordPreview h3 {
+  margin: 1rem 0;
+  color: var(--text-primary);
+}
+
+.wordPreview p {
+  color: var(--text-secondary);
+  margin: 0.5rem 0;
+}
+
+.viewInGoogleDocs {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--brew-accent);
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.viewInGoogleDocs:hover {
+  background: #7c1ed6;
+}
