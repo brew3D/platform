@@ -239,20 +239,18 @@ export default function ProjectDocsPage() {
     }
   };
 
-  const getFileTypeIcon = (fileType) => {
-    switch (fileType) {
-      case 'pdf':
-        return '📄';
-      case 'docx':
-      case 'doc':
-        return '📝';
-      case 'txt':
-        return '📄';
-      case 'markdown':
-        return '📝';
-      default:
-        return '📄';
-    }
+  const getFileTypeLabel = (fileType) => {
+    if (!fileType || fileType === 'markdown') return 'MD';
+    if (fileType === 'doc' || fileType === 'docx') return 'DOCX';
+    return (fileType || 'TXT').toUpperCase();
+  };
+
+  const getFileTypeBubbleClass = (fileType) => {
+    if (!fileType || fileType === 'markdown') return docStyles.fileTypeBubble + ' ' + docStyles['fileTypeBubble--md'];
+    if (fileType === 'pdf') return docStyles.fileTypeBubble + ' ' + docStyles['fileTypeBubble--pdf'];
+    if (fileType === 'doc' || fileType === 'docx') return docStyles.fileTypeBubble + ' ' + docStyles['fileTypeBubble--docx'];
+    if (fileType === 'txt') return docStyles.fileTypeBubble + ' ' + docStyles['fileTypeBubble--txt'];
+    return docStyles.fileTypeBubble + ' ' + docStyles['fileTypeBubble--txt'];
   };
 
   const closeNewEditor = () => {
@@ -326,10 +324,8 @@ export default function ProjectDocsPage() {
                     }}
                   >
                     <div className={docStyles.docListItemContent}>
-                      <span className={docStyles.docListItemIcon}>
-                        {(doc.fileType || doc.file_type) && (doc.fileType || doc.file_type) !== 'markdown' 
-                          ? getFileTypeIcon(doc.fileType || doc.file_type)
-                          : '📄'}
+                      <span className={getFileTypeBubbleClass(doc.fileType || doc.file_type)}>
+                        {getFileTypeLabel(doc.fileType || doc.file_type)}
                       </span>
                       <span className={docStyles.docListItemTitle}>{doc.title}</span>
                     </div>
@@ -340,9 +336,6 @@ export default function ProjectDocsPage() {
                 );
               })
             )}
-          </div>
-          <div className={docStyles.docListFooter}>
-            <p className={docStyles.fileSizeLimit}>📏 Max 50MB</p>
           </div>
         </aside>
 
@@ -480,7 +473,12 @@ export default function ProjectDocsPage() {
                       </div>
                     </div>
                   ) : (
-                    <h1 className={docStyles.viewTitle}>{selectedDoc.title}</h1>
+                    <div className={docStyles.viewTitleRow}>
+                      <span className={getFileTypeBubbleClass(selectedDoc.fileType || selectedDoc.file_type)}>
+                        {getFileTypeLabel(selectedDoc.fileType || selectedDoc.file_type)}
+                      </span>
+                      <h1 className={docStyles.viewTitle}>{selectedDoc.title}</h1>
+                    </div>
                   )}
                   <div className={docStyles.viewActions}>
                     {!isRenaming && (
@@ -488,6 +486,24 @@ export default function ProjectDocsPage() {
                         {(selectedDoc.fileType || selectedDoc.file_type) === 'markdown' && (
                           <button type="button" className={styles.backButton} onClick={handleStartEdit} style={{ marginBottom: 0 }}>
                             Edit
+                          </button>
+                        )}
+                        {(selectedDoc.fileUrl || selectedDoc.file_url) && (
+                          <button
+                            type="button"
+                            className={styles.backButton}
+                            onClick={() => {
+                              const url = selectedDoc.fileUrl || selectedDoc.file_url;
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = (selectedDoc.title || 'document') + (selectedDoc.fileType === 'pdf' ? '.pdf' : selectedDoc.fileType === 'docx' ? '.docx' : selectedDoc.fileType === 'txt' ? '.txt' : '.md');
+                              a.target = '_blank';
+                              a.rel = 'noopener noreferrer';
+                              a.click();
+                            }}
+                            style={{ marginBottom: 0 }}
+                          >
+                            Download
                           </button>
                         )}
                         <button
@@ -563,7 +579,7 @@ export default function ProjectDocsPage() {
                 Supported: PDF (.pdf), Word (.doc, .docx), Text (.txt), and Markdown (.md) documents.
               </p>
               <p style={{ fontSize: "0.75rem", margin: "0.5rem 0 0 0", maxWidth: 320, color: "var(--text-tertiary)" }}>
-                📏 Maximum file size: <strong>50MB</strong>
+                Maximum file size: <strong>50MB</strong>
               </p>
               <p style={{ fontSize: "0.7rem", margin: "0.5rem 0 0 0", maxWidth: 320, color: "var(--text-tertiary)", fontStyle: "italic" }}>
                 Unrecognized file types will open as text files.
