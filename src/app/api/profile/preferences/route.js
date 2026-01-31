@@ -1,38 +1,49 @@
-import { userStorage } from '@/app/lib/userStorage';
-import jwt from 'jsonwebtoken';
+import { NextResponse } from 'next/server';
+import { updateUser, getUserById } from '@/app/lib/supabase-operations';
+import { requireAuth } from '@/app/lib/auth';
 
 export async function PUT(request) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return Response.json({ message: 'Unauthorized' }, { status: 401 });
+    const auth = requireAuth(request);
+    if (auth.error) return NextResponse.json({ message: auth.error.message }, { status: auth.error.status });
+
+    const body = await request.json();
+    const { preferences } = body;
+
+    if (!preferences || typeof preferences !== 'object') {
+      return NextResponse.json({ message: 'Preferences data is required' }, { status: 400 });
     }
 
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const email = decoded.email;
-
-    const { preferences } = await request.json();
-
-    if (!preferences) {
-      return Response.json({ message: 'Preferences data is required' }, { status: 400 });
+    // Get current user to merge preferences
+    const currentUser = await getUserById(auth.userId);
+    if (!currentUser) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    const updatedUser = userStorage.updatePreferences(email, preferences);
+    // Merge with existing preferences
+    const mergedPreferences = {
+      ...(currentUser.preferences || {}),
+      ...preferences
+    };
 
-    if (!updatedUser) {
-      return Response.json({ message: 'User not found' }, { status: 404 });
+    // Update user preferences
+    const result = await updateUser(auth.userId, { preferences: mergedPreferences });
+    
+    if (!result.success) {
+      return NextResponse.json({ message: 'Failed to update preferences' }, { status: 500 });
     }
 
-    return Response.json({
+    return NextResponse.json({
       message: 'Preferences updated successfully',
-      preferences: updatedUser.preferences
+      preferences: result.user.preferences
     });
-
   } catch (error) {
     console.error('Preferences update error:', error);
-    return Response.json(
-      { message: 'Internal server error' },
+    return NextResponse.json(
+      { 
+        message: error.message || 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? error.toString() : undefined
+      },
       { status: 500 }
     );
   }

@@ -140,7 +140,15 @@ export default function DashboardTopbar({ user, onSidebarToggle }) {
             onClick={() => setShowProfileDropdown(!showProfileDropdown)}
           >
             <div className={styles.profileAvatar}>
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              {user?.profilePicture || user?.profile_picture ? (
+                <img 
+                  src={user.profilePicture || user.profile_picture} 
+                  alt={user?.name || "User"}
+                  className={styles.profileAvatarImg}
+                />
+              ) : (
+                user?.name ? user.name.charAt(0).toUpperCase() : 'U'
+              )}
             </div>
             <div className={styles.profileInfo}>
               <span className={styles.profileName}>{user?.name || 'User'}</span>
@@ -161,7 +169,15 @@ export default function DashboardTopbar({ user, onSidebarToggle }) {
             <div className={styles.profileDropdown}>
               <div className={styles.profileHeader}>
                 <div className={styles.profileAvatarLarge}>
-                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  {user?.profilePicture || user?.profile_picture ? (
+                    <img 
+                      src={user.profilePicture || user.profile_picture} 
+                      alt={user?.name || "User"}
+                      className={styles.profileAvatarLargeImg}
+                    />
+                  ) : (
+                    user?.name ? user.name.charAt(0).toUpperCase() : 'U'
+                  )}
                 </div>
                 <div className={styles.profileDetails}>
                   <h4>{user?.name || 'User'}</h4>

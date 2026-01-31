@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import styles from "./ProfileSettings.module.css";
 
-export default function ProfileSettings({ user }) {
+export default function ProfileSettings({ user, onUpdate }) {
+  const { authenticatedFetch, token } = useAuth();
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -17,6 +20,10 @@ export default function ProfileSettings({ user }) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState(user?.profilePicture || null);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -26,15 +33,105 @@ export default function ProfileSettings({ user }) {
     }));
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size must be less than 5MB');
+      return;
+    }
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatarPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload avatar
+    try {
+      setUploadingAvatar(true);
+      setError(null);
+      
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      // Use regular fetch for FormData - don't set Content-Type header
+      // Browser will automatically set it with boundary parameter
+      // Get token from AuthContext or localStorage as fallback
+      const authToken = token || localStorage.getItem('auth_token');
+      if (!authToken) {
+        setError('Not authenticated. Please log in again.');
+        return;
+      }
+      
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+          // Don't set Content-Type - browser will set it automatically for FormData
+        },
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setAvatarPreview(data.avatarUrl);
+        setSuccess('Avatar uploaded successfully');
+        if (onUpdate) onUpdate();
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        setError(errorData.message || 'Failed to upload avatar');
+        setAvatarPreview(user?.profilePicture || null); // Revert preview
+      }
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      setError('Failed to upload avatar');
+      setAvatarPreview(user?.profilePicture || null); // Revert preview
+    } finally {
+      setUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   const handleSave = async () => {
     setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    
     try {
-      // TODO: Implement API call to update user profile
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      setIsEditing(false);
-      console.log("Profile updated:", formData);
+      const res = await authenticatedFetch('/api/profile/update', {
+        method: 'PUT',
+        body: JSON.stringify(formData)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setSuccess('Profile updated successfully');
+        setIsEditing(false);
+        if (onUpdate) {
+          // Refresh user data
+          onUpdate();
+        }
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        setError(errorData.message || 'Failed to update profile');
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
+      setError('Failed to update profile');
     } finally {
       setIsLoading(false);
     }
@@ -51,28 +148,60 @@ export default function ProfileSettings({ user }) {
       github: user?.github || "",
       linkedin: user?.linkedin || ""
     });
+    setAvatarPreview(user?.profilePicture || null);
     setIsEditing(false);
+    setError(null);
+    setSuccess(null);
   };
 
   return (
     <div className={styles.profileSettings}>
+      {error && (
+        <div className={styles.alertError}>
+          {error}
+          <button onClick={() => setError(null)}>×</button>
+        </div>
+      )}
+      {success && (
+        <div className={styles.alertSuccess}>
+          {success}
+          <button onClick={() => setSuccess(null)}>×</button>
+        </div>
+      )}
+
       <div className={styles.header}>
         <div className={styles.avatarSection}>
           <div className={styles.avatar}>
-            {user?.profilePicture ? (
-              <img src={user.profilePicture} alt="Profile" />
+            {avatarPreview ? (
+              <img src={avatarPreview} alt="Profile" />
             ) : (
               <div className={styles.avatarPlaceholder}>
                 {user?.name?.charAt(0)?.toUpperCase() || "U"}
               </div>
             )}
+            {uploadingAvatar && (
+              <div className={styles.avatarLoading}>
+                <div className={styles.spinner}></div>
+              </div>
+            )}
           </div>
-          <button className={styles.changeAvatarButton}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarChange}
+            style={{ display: 'none' }}
+          />
+          <button 
+            className={styles.changeAvatarButton}
+            onClick={handleAvatarClick}
+            disabled={uploadingAvatar}
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
               <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="2"/>
             </svg>
-            Change Avatar
+            {uploadingAvatar ? 'Uploading...' : 'Change Avatar'}
           </button>
         </div>
         

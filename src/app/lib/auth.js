@@ -23,6 +23,15 @@ export function requireAuth(request) {
   
   try {
     const token = authHeader.substring(7);
+    
+    // If token is null, undefined, or empty, return error
+    if (!token || token === 'null' || token === 'undefined') {
+      console.log('requireAuth: No valid token provided');
+      return { 
+        error: { status: 401, message: 'No authentication token provided' }
+      };
+    }
+    
     // If token is the temp bypass token, return default user
     if (token === 'temp-token-bypass-auth') {
       return { 
@@ -31,14 +40,18 @@ export function requireAuth(request) {
         decoded: { userId: tempUserId, role: 'admin' }
       };
     }
+    
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    console.log('requireAuth: Token verified successfully, userId:', decoded.userId);
     return { userId: decoded.userId, role: decoded.role || 'member', decoded };
   } catch (e) {
-    // TEMPORARY: Instead of returning error, return default user
+    // Log the actual error for debugging
+    console.error('requireAuth: JWT verification failed:', e.message);
+    console.error('requireAuth: Token (first 20 chars):', authHeader.substring(7, 27));
+    
+    // Return error instead of falling back to temp user for profile operations
     return { 
-      userId: tempUserId, 
-      role: 'admin', 
-      decoded: { userId: tempUserId, role: 'admin' }
+      error: { status: 401, message: 'Invalid or expired authentication token' }
     };
   }
 }

@@ -24,6 +24,18 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     console.log('🚀 AuthContext loaded with version:', VERSION);
     
+    // Listen for avatar updates
+    const handleAvatarUpdate = (event) => {
+      const currentUser = JSON.parse(localStorage.getItem('auth_user') || 'null');
+      if (currentUser && event.detail?.avatarUrl) {
+        const updatedUser = { ...currentUser, profilePicture: event.detail.avatarUrl };
+        setUser(updatedUser);
+        localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+      }
+    };
+    
+    window.addEventListener('avatarUpdated', handleAvatarUpdate);
+    
     // Check for stored token on mount
     const storedToken = localStorage.getItem('auth_token');
     const storedUser = localStorage.getItem('auth_user');
@@ -87,6 +99,10 @@ export const AuthProvider = ({ children }) => {
       setIsInitialized(true);
       setLoading(false);
     }
+    
+    return () => {
+      window.removeEventListener('avatarUpdated', handleAvatarUpdate);
+    };
   }, []);
 
   const verifyToken = async (tokenToVerify) => {
