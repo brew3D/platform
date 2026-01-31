@@ -66,8 +66,9 @@ export async function POST(request) {
     const filePath = `avatars/${fileName}`;
 
     // Upload to Supabase Storage using admin client
-    // Admin client should bypass RLS, but we need to ensure bucket exists and is configured
+    // Note: Storage RLS policies need to allow service_role for uploads
     console.log('Uploading avatar to:', filePath, 'Size:', buffer.length, 'bytes');
+    console.log('Using Supabase admin client (service role)');
     
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('avatars')
