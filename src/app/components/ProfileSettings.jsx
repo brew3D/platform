@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import styles from "./ProfileSettings.module.css";
 
 export default function ProfileSettings({ user, onUpdate }) {
-  const { authenticatedFetch } = useAuth();
+  const { authenticatedFetch, token } = useAuth();
   const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -70,11 +70,17 @@ export default function ProfileSettings({ user, onUpdate }) {
 
       // Use regular fetch for FormData - don't set Content-Type header
       // Browser will automatically set it with boundary parameter
-      const token = localStorage.getItem('token');
+      // Get token from AuthContext or localStorage as fallback
+      const authToken = token || localStorage.getItem('auth_token');
+      if (!authToken) {
+        setError('Not authenticated. Please log in again.');
+        return;
+      }
+      
       const res = await fetch('/api/profile/avatar', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${authToken}`
           // Don't set Content-Type - browser will set it automatically for FormData
         },
         body: formData
